@@ -352,7 +352,7 @@ class BottleArithReplRequestHandler:
         def button(s, action='', go=False):
             if not action:
                 action = s
-            action = action.replace('"', r"'")
+            action = action.replace('"', r"&quot;").replace("`", r"\&grave;")
             flag = ('false', 'true')[go]
             action = "addtext(`" + action + "`," + flag + ");"
             self.write_html(
