@@ -136,6 +136,7 @@ class ArithmeticParser:
         opns_map = {
             '+': lambda x: x,
             '-': operator.neg,
+            '−': operator.neg,
         }
 
         def evaluate(self):
@@ -149,6 +150,7 @@ class ArithmeticParser:
         opns_map = {
             '+': operator.add,
             '-': operator.sub,
+            '−': operator.sub,
             '*': operator.mul,
             '/': operator.truediv,
             '**': math.pow,
@@ -222,8 +224,15 @@ class ArithmeticParser:
             'abs': FunctionSpec(abs, 1),
             'round': FunctionSpec(round, 2),
             'trunc': FunctionSpec(math.trunc, 1),
-            'log10': FunctionSpec(math.log10, 1),
+            'ceil': FunctionSpec(math.ceil, 1),
+            'floor': FunctionSpec(math.floor, 1),
             'ln': FunctionSpec(math.log, 1),
+            'log2': FunctionSpec(math.log2, 1),
+            'log10': FunctionSpec(math.log10, 1),
+            'gcd': FunctionSpec(math.gcd, 2),
+            'lcm': FunctionSpec((lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0), 2),
+            'gamma': FunctionSpec(math.gamma, 2),
+            'hypot': FunctionSpec(math.hypot, 2),
         }
 
         # customize can update or replace with different characters
@@ -399,7 +408,7 @@ class ArithmeticParser:
             ('-', 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             ('**', 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf('* / mod × ÷'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
-            (pp.oneOf('+ -'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
+            (pp.oneOf('+ - −'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
             ((BETWEEN | WITHIN, AND), 3, pp.opAssoc.LEFT, IntervalComparison),
             ((IN_RANGE_FROM, TO), 3, pp.opAssoc.LEFT, IntervalComparison),
@@ -408,7 +417,17 @@ class ArithmeticParser:
             (OR | '∨', 2, pp.opAssoc.LEFT, BinaryComp),
             (('?', ':'), 3, pp.opAssoc.RIGHT, TernaryComp),
         ]
+        ABS_VALUE_VERT = pp.Suppress("|")
+        abs_value_expression = ABS_VALUE_VERT + arith_operand + ABS_VALUE_VERT
+        def cvt_to_function_call(tokens):
+            ret = pp.ParseResults(['abs']) + tokens
+            ret['fn_name'] = 'abs'
+            ret['args'] = tokens
+            return [ret]
+        abs_value_expression.addParseAction(cvt_to_function_call, function_node_class)
+
         arith_operand <<= pp.infixNotation((function_expression
+                                            | abs_value_expression
                                             | string_operand
                                             | numeric_operand
                                             | bool_operand
@@ -418,12 +437,20 @@ class ArithmeticParser:
         rvalue.setName("arithmetic expression")
         lvalue = var_name()
 
-        value_assignment_statement = lvalue("lhs") + pp.oneOf("<- =") + rvalue("rhs")
+        value_assignment_statement = pp.delimitedList(lvalue)("lhs") + pp.oneOf("<- =") + pp.delimitedList(rvalue)("rhs")
 
         def eval_and_store_value(tokens):
-            rval = LiteralNode([tokens.rhs.evaluate()])
-            identifier_node_class._assigned_vars[tokens.lhs.name] = rval
-            return rval
+            if len(tokens.lhs) > len(tokens.rhs):
+                raise TypeError("not enough values given")
+            if len(tokens.lhs) < len(tokens.rhs):
+                raise TypeError("not enough variable names given")
+
+            assignments = []
+            for lhs_name, rhs_expr in zip(tokens.lhs, tokens.rhs):
+                rval = LiteralNode([rhs_expr.evaluate()])
+                identifier_node_class._assigned_vars[lhs_name.name] = rval
+                assignments.append(rval)
+            return LiteralNode([assignments])
 
         value_assignment_statement.addParseAction(eval_and_store_value)
         value_assignment_statement.setName("assignment statement")

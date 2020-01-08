@@ -185,6 +185,11 @@ class Repl:
         or assignment statement, using the following operators:
         {operator_list}
 
+        Multiple assignments can be made using lists of variable names and
+        corresponding lists of expressions (lists must be of matching lengths).
+            x₁, y₁ = 1, 2
+            a, b, c = 1, 2, a+b
+
         Deferred evaluation assignments can be defined using "@=":
             circle_area @= pi * r**2
         will re-evaluate 'circle_area' using the current value of 'r'.
@@ -204,7 +209,7 @@ class Repl:
         custom_operators = [str(oper_defn[0]) for oper_defn in parser.added_operator_specs]
         operators = parser.base_operators
 
-        oper_list = cls.make_name_list_string(names=custom_operators + operators, indent='  ')
+        oper_list = cls.make_name_list_string(names=custom_operators + operators + ['|absolute-value|'], indent='  ')
         return msg.format(function_list=func_list, operator_list=oper_list)
 
     @classmethod
@@ -214,6 +219,7 @@ class Repl:
 
             5!
             √2
+            2√5
             15²
             12³
             sin(30)
@@ -245,6 +251,12 @@ class Repl:
             100 within 0 and 100          (0 <= 100 <= 100  = True)
             100 in range from 0 to 100    (0 <= 100 < 100   = False)
             99.9 in range from 0 to 100
+            dist @= ((x2-x1)**2 + (y2-y1)**2)**0.5
+            dist @= √((x₂-x₁)² + (y₂-y₁)²)
+            x₁, y₁ = 1, 2
+            x₂, y₂ = 5, 6
+            dist
+            |12-14|
         """)
         return msg
 
