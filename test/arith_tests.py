@@ -12,7 +12,7 @@ parser.runTests("""\
     sin(1, 2)
     sin(pi)
     sin(π/2)
-    rand()
+    rnd()
     1/0
     0**0
     32 + 37 * 9 / 5
@@ -57,7 +57,7 @@ parser.runTests("""\
     circle_area @= pi * circle_radius**2
     circle_radius = 100
     circle_area
-    coin_toss @= rand() > 0.5? "heads" : "tails"
+    coin_toss @= rnd() > 0.5? "heads" : "tails"
     coin_toss
     coin_toss
     coin_toss
