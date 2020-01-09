@@ -227,6 +227,8 @@ class Repl:
             sin(30°)
             sin(pi/2)
             sin(π/2)
+            sin(-π/2)
+            |sin(-π/2)|
             1/0
             0**0
             3**2**3
@@ -256,7 +258,6 @@ class Repl:
             x₁, y₁ = 1, 2
             x₂, y₂ = 5, 6
             dist
-            |12-14|
         """)
         return msg
 
