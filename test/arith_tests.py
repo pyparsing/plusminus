@@ -2,6 +2,37 @@ from pyparsing_arithmetic import *
 from pprint import pprint
 import math
 
+
+class restore:
+    """
+    Context manager for restoring an object's attributes back the way they were if they were
+    changed or deleted, or to remove any attributes that were added.
+    """
+    def __init__(self, obj, *attr_names):
+        self._obj = obj
+        self._attrs = attr_names
+        if not self._attrs:
+            self._attrs = [name for name in vars(obj) if name not in ('__dict__', '__slots__')]
+        self._no_attr_value = object()
+        self._save_values = {}
+
+    def __enter__(self):
+        for attr in self._attrs:
+            self._save_values[attr] = getattr(self._obj, attr, self._no_attr_value)
+        return self
+
+    def __exit__(self, *args):
+        for attr in self._attrs:
+            save_value = self._save_values[attr]
+            if save_value is not self._no_attr_value:
+                if getattr(self._obj, attr, self._no_attr_value) != save_value:
+                    print("reset", attr, "to", save_value)
+                    setattr(self._obj, attr, save_value)
+            else:
+                if hasattr(self._obj, attr):
+                    delattr(self._obj, attr)
+
+
 parser = BasicArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
@@ -115,3 +146,14 @@ parser.runTests("""\
     5 / 20%
     """,
     postParse=lambda _, result: result[0].evaluate())
+
+# override max number of variables
+with restore(ArithmeticParser):
+    ArithmeticParser.MAX_VARS = 20
+    parser = ArithmeticParser()
+    try:
+        for i in range(1000):
+            parser.evaluate("a{} = 0".format(i))
+    except Exception as e:
+        print(len(parser.vars()), ArithmeticParser.MAX_VARS)
+        print("{}: {}".format(type(e).__name__, e))

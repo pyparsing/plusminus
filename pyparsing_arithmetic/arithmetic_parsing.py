@@ -131,6 +131,7 @@ class TernaryNode(ArithNode):
 class ArithmeticParser:
     LEFT = pp.opAssoc.LEFT
     RIGHT = pp.opAssoc.RIGHT
+    MAX_VARS = 1000
 
     class ArithmeticUnaryOp(UnaryNode):
         opns_map = {
@@ -268,11 +269,15 @@ class ArithmeticParser:
     def scanString(self, *args):
         yield from self.parser().scanString(*args)
 
-    def parse(self, *args):
-        return self.parser().parseString(*args)[0]
+    def parse(self, *args, **kwargs):
+        return self.parser().parseString(*args, **kwargs)[0]
 
     def evaluate(self, arith_expression):
-        return self.parser().parseString(arith_expression, parseAll=True)[0].evaluate()
+        try:
+            parsed = self.parse(arith_expression, parseAll=True)
+            return parsed.evaluate()
+        except Exception as e:
+            raise e.with_traceback(None)
 
     def __getattr__(self, attr):
         parser = self.parser()
@@ -448,7 +453,11 @@ class ArithmeticParser:
             assignments = []
             for lhs_name, rhs_expr in zip(tokens.lhs, tokens.rhs):
                 rval = LiteralNode([rhs_expr.evaluate()])
-                identifier_node_class._assigned_vars[lhs_name.name] = rval
+                var_name = lhs_name.name
+                if (var_name not in identifier_node_class._assigned_vars
+                        and len(identifier_node_class._assigned_vars) >= self.MAX_VARS):
+                    raise Exception("too many variables defined")
+                identifier_node_class._assigned_vars[var_name] = rval
                 assignments.append(rval)
             return LiteralNode([assignments])
 
@@ -461,7 +470,11 @@ class ArithmeticParser:
 
         def store_parsed_value(tokens):
             rval = tokens.rhs
-            identifier_node_class._assigned_vars[tokens.lhs.name] = rval
+            var_name = tokens.lhs.name
+            if (var_name not in identifier_node_class._assigned_vars
+                    and len(identifier_node_class._assigned_vars) >= self.MAX_VARS):
+                raise Exception("too many variables defined")
+            identifier_node_class._assigned_vars[var_name] = rval
             return rval
 
         formula_assignment_statement.addParseAction(store_parsed_value)
