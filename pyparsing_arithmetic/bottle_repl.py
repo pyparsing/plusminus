@@ -304,49 +304,14 @@ class BottleArithReplRequestHandler:
         cmd = query.get('c', '').encode("latin1").decode('utf-8')
         if sessionkey is not None:
             cmd_history.append(CmdLog(datetime.now(), sessionkey, cmd))
-        self.write_html('<html><head>\n')
-        self.write_html('<meta name="HandheldFriendly" content="true" />')
-        self.write_html('<meta name="viewport" content="width=device-width, initial-scale=1.0,'
-                        ' maximum-scale=1.0, user-scalable=1" />')
-        self.write_html('<meta charset="UTF-8">')
-        self.write_html('<title>{}</title>'.format(title_string))
-        self.write_html('</head>')
-        self.write_html('<body OnLoad="document.turnForm.c.focus();">\n')
-        self.write_html('<h3>{}</h3>\n<p>\n'.format(title_string))
 
         # get key from query
         game = None
+        too_many_sessions = False
         if sessionkey and sessionkey in sessions:
             with sessions_lock:
                 session_info = sessions[sessionkey]
             player, game = session_info.player, session_info.game
-            game_over = False
-            success, command_status, output = game.do_command(cmd, sessionkey)
-            # print(repr(cmd))
-            # print(success)
-            # print(output)
-            if command_status is Repl.CommandStatus.META_QUIT:
-                game_over = True
-
-            if game_over:
-                # self._sayRaw('<p>You ended the game with:\n<ul>\n')
-                # for item in player.inv:
-                #     self._sayRaw('<li>%s %s\n' % (advEng._aOrAn(str(item)), item))
-                # self._sayRaw('</ul>\n')
-                # if player.eventLog:
-                #     self._sayRaw('<p><p>During the game you:\n<ul>\n')
-                #     for evt in player.showLog():
-                #         self._sayRaw('<li>%s\n' % evt)
-                #     self._sayRaw('</ul>\n')
-                pass
-            else:
-                if success or output:
-                    self.write_html_text_block(cmd, fixed_font=True)
-                    if isinstance(output, str):
-                        self.write_html_text_block(output, fixed_font=True)
-                    elif isinstance(output, list):
-                        self.write_html_table(output)
-
         else:
             if len(sessions) < MAX_SESSIONS:
                 # advEng.HelpCommand(None)._doCommand(None)
@@ -356,10 +321,17 @@ class BottleArithReplRequestHandler:
                 # create player session
                 sessionkey = game.start_new_session()
             else:
-                self.write_html('<h2>Sorry, too many sessions just now...</h2>\n')
+                too_many_sessions = True
 
-        # print self.buffer
-        # output latest game output
+        self.write_html('<html><head>\n')
+        self.write_html('<meta name="HandheldFriendly" content="true" />')
+        self.write_html('<meta name="viewport" content="width=device-width, initial-scale=1.0,'
+                        ' maximum-scale=1.0, user-scalable=1" />')
+        self.write_html('<meta charset="UTF-8">')
+        self.write_html('<title>{}</title>'.format(title_string))
+        self.write_html('</head>')
+        self.write_html('<body OnLoad="document.turnForm.c.focus();">\n')
+        self.write_html('<h3>{}</h3>\n<p>\n'.format(title_string))
 
         # add buttons for operators and non-ASCII identifier chars
         def button(s, action='', go=False):
@@ -391,12 +363,12 @@ class BottleArithReplRequestHandler:
         button_row('₀₁₂₃₄₅₆₇₈₉', "Subscripts")
         button_row("0123456789.πφ")
         self.write_html('\n<br>\n')
-        if game is not None:
-            previous_cmd = game.get_last_command(sessionkey)
-            button('Prev', previous_cmd)
-            self.write_html('&nbsp;&nbsp;')
-            button('Redo', previous_cmd, go=True)
-            self.write_html('&nbsp;&nbsp;')
+
+        previous_cmd = cmd
+        button('Prev', previous_cmd)
+        self.write_html('&nbsp;&nbsp;')
+        button('Redo', previous_cmd, go=True)
+        self.write_html('&nbsp;&nbsp;')
         button('Help', 'help', go=True)
         button('Examples', 'examples', go=True)
         button('Vars', 'vars', go=True)
@@ -409,6 +381,39 @@ class BottleArithReplRequestHandler:
         # output hidden key
         self.write_html('\n<input type="hidden" name="k" value="KEY">'.replace("KEY", sessionkey))
         self.write_html('\n</form>')
+
+        # output latest game output
+        if game:
+            game_over = False
+            success, command_status, output = game.do_command(cmd, sessionkey)
+            # print(repr(cmd))
+            # print(success)
+            # print(output)
+            if command_status is Repl.CommandStatus.META_QUIT:
+                game_over = True
+
+            if game_over:
+                # self._sayRaw('<p>You ended the game with:\n<ul>\n')
+                # for item in player.inv:
+                #     self._sayRaw('<li>%s %s\n' % (advEng._aOrAn(str(item)), item))
+                # self._sayRaw('</ul>\n')
+                # if player.eventLog:
+                #     self._sayRaw('<p><p>During the game you:\n<ul>\n')
+                #     for evt in player.showLog():
+                #         self._sayRaw('<li>%s\n' % evt)
+                #     self._sayRaw('</ul>\n')
+                pass
+            else:
+                if success or output:
+                    self.write_html_text_block(cmd, fixed_font=True)
+                    if isinstance(output, str):
+                        self.write_html_text_block(output, fixed_font=True)
+                    elif isinstance(output, list):
+                        self.write_html_table(output)
+        else:
+            if too_many_sessions:
+                self.write_html('<h2>Sorry, too many sessions just now...</h2>\n')
+
         self.write_javascript(textwrap.dedent('''\
             function addtext(s, go) {
                 var frm = document.turnForm;
