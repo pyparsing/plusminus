@@ -313,7 +313,7 @@ class ArithmeticParser:
     def initialize_variable(self, vname, vvalue, as_formula=False):
         self._initial_variables[vname] = (vvalue, as_formula)
 
-    def add_function(self, fn_name, fn_method, fn_arity):
+    def add_function(self, fn_name, fn_arity, fn_method):
         self._added_function_specs[fn_name] = (FunctionSpec(fn_method, fn_arity))
 
     def parser(self):
@@ -514,8 +514,8 @@ class BasicArithmeticParser(ArithmeticParser):
         self.initialize_variable("π", math.pi)
         self.initialize_variable("e", math.e)
         self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
-        self.add_function('rnd', random.random, 0)
-        self.add_function('randint', random.randint, 2)
+        self.add_function('rnd', 0, random.random)
+        self.add_function('randint', 2, random.randint)
         self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
         self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
         self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)

@@ -4,7 +4,7 @@
 
 - `add_operator(operator_symbol, num_args, left_right_assoc, operator_function)`
 - `add_variable(variable, value)`
-- `add_function(function_name, function_method, num_args)`
+- `add_function(function_name, num_args, function_method)`
 
 ### Parser parse/evaluation methods
 

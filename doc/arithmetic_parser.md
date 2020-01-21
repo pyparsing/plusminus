@@ -1,11 +1,11 @@
-##The core ArithmeticParser
+## The core ArithmeticParser
 - operators
 - functions
 - variables
 - deferred evaluation
 
 
-###Features:
+### Features:
 - 5-function arithmetic (`+, - , *, /, **`)
 
 - Unicode math operators (`×, ÷, ≠, ≤, ≥, ∧, ∨`)
@@ -79,7 +79,7 @@
         dist = hypot(x₂-x₁, y₂-y₁)
 
 
-##The core BasicArithmeticParser
+## The core BasicArithmeticParser
 
 The `BasicArithmeticParser` class inherits all the features and behavior of the 
 `ArithmeticParser` class. In addition, it also defines more operators and
@@ -89,6 +89,7 @@ functions, and common mathematical variables
   - `°` - degree (convert to radians)
   - `!` - factorial
   - `√` - square root (can be used a unary and binary operator)
+  - `⁻¹` - superscript -1 - `x**(-1) or 1/x`
   - `²` - superscript 2 - `x**2`
   - `³` - superscript 3 - `x**3`
 - functions
@@ -140,12 +141,13 @@ functions, and common mathematical variables
             self.initialize_variable("pi", math.pi)
             self.initialize_variable("π", math.pi)
             self.initialize_variable("e", math.e)
-            self.initialize_variable("φ", (1 + 5**0.5)/2)
-            self.add_function('rnd', random.random, 0)
-            self.add_function('randint', random.randint, 2)
+            self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
+            self.add_function('rnd', 0, random.random)
+            self.add_function('randint', 2, random.randint)
             self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
             self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
-            self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x**2)
-            self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x**3)
-            self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x**0.5)
-            self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y**0.5)
+            self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
+            self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x ** 2)
+            self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x ** 3)
+            self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
+            self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)

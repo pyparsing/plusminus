@@ -24,9 +24,9 @@
             super().customize()
             self.add_operator('%', 1, ArithmeticParser.LEFT, math.radians)
             self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-            self.add_function('PV', pv, 3)
-            self.add_function('FV', fv, 3)
-            self.add_function('PP', pp, 3)
+            self.add_function('PV', 3, pv)
+            self.add_function('FV', 3, fv)
+            self.add_function('PP', 3, pp)
 
 
 ## The example Combinatorics Parser
@@ -69,9 +69,9 @@
             self.add_operator('h', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_HOUR)
             self.add_operator('m', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_MINUTE)
             self.add_operator('s', 1, ArithmeticParser.LEFT, lambda t: t)
-            self.add_function('now', lambda: datetime.utcnow().timestamp(), 0)
-            self.add_function('today', lambda: datetime.utcnow().replace(hour=0,
-                                                                         minute=0,
-                                                                         second=0,
-                                                                         microsecond=0).timestamp(), 0)
-            self.add_function('str', lambda dt: str(datetime.fromtimestamp(dt)), 1)
+            self.add_function('now', 0, lambda: datetime.utcnow().timestamp())
+            self.add_function('today', 0, lambda: datetime.utcnow().replace(hour=0,
+                                                                            minute=0,
+                                                                            second=0,
+                                                                            microsecond=0).timestamp())
+            self.add_function('str', 1, lambda dt: str(datetime.fromtimestamp(dt)))
