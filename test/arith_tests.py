@@ -1,4 +1,4 @@
-from pyparsing_arithmetic import *
+from plusminus import *
 from pprint import pprint
 import math
 

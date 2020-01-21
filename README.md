@@ -1,11 +1,11 @@
-# pyparsing_arithmetic
+# plusminus
 
-The pyparsing_arithmetic package provides a ready-to-run arithmetic parser and evaluator, base on pyparsing's 
+The plusminus package provides a ready-to-run arithmetic parser and evaluator, base on pyparsing's 
 `infixNotation` helper method.
 
 Strings containing 5-function arithmetic expressions can be parsed and evaluated using the BasicArithmeticParser:
 
-    from pyparsing_arithmetic import BasicArithmeticParser
+    from plusminus import BasicArithmeticParser
     
     parser = BasicArithmeticParser()
     print(parser.evaluate("2+3/10"))

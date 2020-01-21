@@ -1,6 +1,6 @@
 from pprint import pprint
 import textwrap
-from arithmetic_parsing import BasicArithmeticParser
+from plusminus import BasicArithmeticParser
 
 def make_name_list_string(names, indent=''):
     import math

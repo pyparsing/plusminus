@@ -9,7 +9,7 @@ import io
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
-from arithmetic_parsing import BasicArithmeticParser
+from plusminus import BasicArithmeticParser
 import cgitb
 cgitb.enable()
 
