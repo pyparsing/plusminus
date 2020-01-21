@@ -351,6 +351,7 @@ class BottleArithReplRequestHandler:
 
         button_row('°√×÷≠≤≥∧∨', "Operators")
         button_row('+-*/=<>!()²³')
+        button('⁻¹')
         # button_row('ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ')
         # button_row('αβγδεζηθικλμνξοπρστυφχψω')
         # button_row('𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧')
