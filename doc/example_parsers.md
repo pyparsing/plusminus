@@ -5,15 +5,28 @@
   - `of`
 
 - Functions
-  - `PV` - compute present value
+  - `PV` - compute present value = `FV ÷ (1 + rate)ⁿ`
+  - `FV` - compute future value = `PV × (1 + rate)ⁿ`
+  - `PP` - compute periodic payment = `(rate × PV) ÷ (1-(1 + rate)⁻ⁿ)`
 
 
-    class BusinessParser(ArithmeticParser):
+    class BusinessArithmeticParser(ArithmeticParser):
         def customize(self):
+            def pv(fv, rate, n_periods):
+                return fv / (1 + rate)**n_periods
+
+            def fv(pv, rate, n_periods):
+                return pv * (1 + rate)**n_periods
+
+            def pp(pv, rate, n_periods):
+                return rate * pv / (1 - (1 + rate)**(-n_periods))
+
             super().customize()
             self.add_operator('%', 1, ArithmeticParser.LEFT, math.radians)
             self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-            self.add_function('PV', random.randint, 2)
+            self.add_function('PV', pv, 3)
+            self.add_function('FV', fv, 3)
+            self.add_function('PP', pp, 3)
 
 
 ## The example Combinatorics Parser
@@ -26,7 +39,39 @@
     class CombinatoricsParser(BasicArithmeticParser):
         def customize(self):
             super().customize()
-            self.add_operator("P", 2, ArithmeticParser.LEFT, 
-                                lambda a, b: a * b)
-            self.add_operator("C", 2, ArithmeticParser.LEFT,
-                                lambda a, b: a * b)
+            self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
+                                                                              / math.factorial(a-b)))
+            self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
+                                                                              / math.factorial(b)
+                                                                              / math.factorial(a-b)))
+
+## The example DateTimeParser
+
+- Operators
+
+  - `d`, `h`, `m`, `s` - unary post operators to specify days, hours, minutes, and seconds
+    for values to be added
+
+- Functions
+
+  - now()
+  - today()
+  
+
+    from datetime import datetime
+
+    class DateTimeArithmeticParser(ArithmeticParser):
+        SECONDS_PER_MINUTE = 60
+        SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
+        SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
+        def customize(self):
+            self.add_operator('d', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_DAY)
+            self.add_operator('h', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_HOUR)
+            self.add_operator('m', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_MINUTE)
+            self.add_operator('s', 1, ArithmeticParser.LEFT, lambda t: t)
+            self.add_function('now', lambda: datetime.utcnow().timestamp(), 0)
+            self.add_function('today', lambda: datetime.utcnow().replace(hour=0,
+                                                                         minute=0,
+                                                                         second=0,
+                                                                         microsecond=0).timestamp(), 0)
+            self.add_function('str', lambda dt: str(datetime.fromtimestamp(dt)), 1)

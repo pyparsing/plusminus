@@ -133,21 +133,69 @@ parser.runTests("""\
 
 class BusinessArithmeticParser(ArithmeticParser):
     def customize(self):
+        def pv(fv, rate, n_periods):
+            return fv / (1 + rate) ** n_periods
+
+        def fv(pv, rate, n_periods):
+            return pv * (1 + rate) ** n_periods
+
+        def pp(pv, rate, n_periods):
+            return rate * pv / (1 - (1 + rate) ** (-n_periods))
+
         super().customize()
-        self.add_operator('of', 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda x: x/100.)
+        self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
+        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda x: x / 100.0)
+        self.add_function('PV', pv, 3)
+        self.add_function('FV', fv, 3)
+        self.add_function('PP', pp, 3)
+
 
 parser = BusinessArithmeticParser()
 parser.runTests("""\
+    25%
     20 * 50%
     50% of 20
     20 * (1-20%)
     (100-20)% of 20
     5 / 20%
+    FV(20000, 3%, 30)
+    FV(20000, 3%/12, 30*12)
     """,
     postParse=lambda _, result: result[0].evaluate())
 
+from datetime import datetime
+class DateTimeArithmeticParser(ArithmeticParser):
+    SECONDS_PER_MINUTE = 60
+    SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
+    SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
+    def customize(self):
+        super().customize()
+        self.add_operator('d', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_DAY)
+        self.add_operator('h', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_HOUR)
+        self.add_operator('m', 1, ArithmeticParser.LEFT, lambda t: t*DateTimeArithmeticParser.SECONDS_PER_MINUTE)
+        self.add_operator('s', 1, ArithmeticParser.LEFT, lambda t: t)
+        self.add_function('now', lambda: datetime.utcnow().timestamp(), 0)
+        self.add_function('today', lambda: datetime.utcnow().replace(hour=0,
+                                                                     minute=0,
+                                                                     second=0,
+                                                                     microsecond=0).timestamp(), 0)
+        self.add_function('str', lambda dt: str(datetime.fromtimestamp(dt)), 1)
+
+parser = DateTimeArithmeticParser()
+parser.runTests("""\
+    now()
+    str(now())
+    str(today())
+    "A day from now: " + str(now() + 1d)
+    "A day and an hour from now: " + str(now() + 1d + 1h)
+    str(now() + 3*(1d + 1h))
+    """,
+    postParse=lambda _, result: result[0].evaluate())
+
+print()
+
 # override max number of variables
+print('test defining too many vars (set max to 20)')
 with restore(ArithmeticParser):
     ArithmeticParser.MAX_VARS = 20
     parser = ArithmeticParser()
