@@ -1,9 +1,9 @@
 # plusminus
 
-The plusminus package provides a ready-to-run arithmetic parser and evaluator, base on pyparsing's 
+The **plusminus** package provides a ready-to-run arithmetic parser and evaluator, based on `pyparsing`'s 
 `infixNotation` helper method.
 
-Strings containing 5-function arithmetic expressions can be parsed and evaluated using the BasicArithmeticParser:
+Strings containing 5-function arithmetic expressions can be parsed and evaluated using the `BasicArithmeticParser`:
 
     from plusminus import BasicArithmeticParser
     
@@ -29,6 +29,16 @@ to override:
     and
     or
     ? : (ternary)
+
+Functions can be called:
+
+      sin   sinh  abs    log2   rnd
+      cos   cosh  round  log10  randint
+      tan   tanh  trunc  gcd    min
+      asin  rad   ceil   lcm    max
+      acos  deg   floor  gamma
+      atan  sgn   ln     hypot
+
 
 The Basic ArithmeticParser also supports assignment of variables:
 
