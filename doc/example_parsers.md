@@ -9,6 +9,7 @@
   - `FV` - compute future value = `PV × (1 + rate)ⁿ`
   - `PP` - compute periodic payment = `(rate × PV) ÷ (1-(1 + rate)⁻ⁿ)`
 
+Class implementation:
 
     class BusinessArithmeticParser(ArithmeticParser):
         def customize(self):
@@ -28,6 +29,19 @@
             self.add_function('FV', 3, fv)
             self.add_function('PP', 3, pp)
 
+    parser = BusinessArithmeticParser()
+    parser.runTests("""\
+        25%
+        20 * 50%
+        50% of 20
+        20 * (1-20%)
+        (100-20)% of 20
+        5 / 20%
+        FV(20000, 3%, 30)
+        FV(20000, 3%/12, 30*12)
+        """,
+        postParse=lambda _, result: result[0].evaluate())
+    
 
 ## The example Combinatorics Parser
 
@@ -35,6 +49,7 @@
   - `P` permutations operator (`m P n` -> number of permutations of m items n at a time)
   - `C` combinations operator (`m C n` -> number of combinations of m items n at a time)
 
+Class implementation:
 
     class CombinatoricsParser(BasicArithmeticParser):
         def customize(self):
@@ -44,6 +59,20 @@
             self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
                                                                               / math.factorial(b)
                                                                               / math.factorial(a-b)))
+
+    parser = CombinatoricsArithmeticParser()
+    parser.runTests("""\
+        3!
+        -3!
+        3!!
+        6! / (6-2)!
+        6 P 2
+        6! / (2!*(6-2)!)
+        6 C 2
+        6P6
+        6C6
+        """,
+        postParse=lambda _, result: result[0].evaluate())
 
 ## The example DateTimeParser
 
@@ -57,6 +86,8 @@
   - now()
   - today()
   
+
+Class implementation:
 
     from datetime import datetime
 
@@ -75,3 +106,37 @@
                                                                             second=0,
                                                                             microsecond=0).timestamp())
             self.add_function('str', 1, lambda dt: str(datetime.fromtimestamp(dt)))
+
+    parser = DateTimeArithmeticParser()
+    parser.runTests("""\
+        now()
+        str(now())
+        str(today())
+        "A day from now: " + str(now() + 1d)
+        "A day and an hour from now: " + str(now() + 1d + 1h)
+        str(now() + 3*(1d + 1h))
+        """,
+        postParse=lambda _, result: result[0].evaluate())
+    
+
+## The example DiceRollParser
+
+- Operators
+
+  - 'd' - unary or binary operator
+
+Class implementation:
+
+        import random
+        class DiceRollParser(ArithmeticParser):
+            def customize(self):
+                super().customize()
+                self.add_operator('d', 1, ArithmeticParser.RIGHT, lambda x: random.randint(1, x))
+                self.add_operator('d', 2, ArithmeticParser.LEFT, lambda x, y: x * random.randint(1, y))
+        
+        parser = DiceRollParser()
+        parser.runTests("""
+        d20
+        3d6
+        d20 + 3d4
+        """, postParse=lambda _, result: result[0].evaluate())

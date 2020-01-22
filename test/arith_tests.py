@@ -192,6 +192,23 @@ parser.runTests("""\
     """,
     postParse=lambda _, result: result[0].evaluate())
 
+
+import random
+class DiceRollParser(ArithmeticParser):
+    def customize(self):
+        super().customize()
+        self.add_operator('d', 1, ArithmeticParser.RIGHT, lambda x: random.randint(1, x))
+        self.add_operator('d', 2, ArithmeticParser.LEFT, lambda x, y: x * random.randint(1, y))
+
+parser = DiceRollParser()
+parser.runTests("""
+d20
+3d6
+d20 + 3d4
+(3d6)/3
+""", postParse=lambda _, result: result[0].evaluate())
+
+
 print()
 
 # override max number of variables
