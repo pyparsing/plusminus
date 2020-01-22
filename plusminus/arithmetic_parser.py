@@ -167,7 +167,7 @@ class ArithmeticParser:
                 for operand in self.tokens[-3::-2]:
                     op1 = operand.evaluate()
                     # rough guard against too large values in expression
-                    if abs(op1) * ret > 2000000:
+                    if math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
                         raise OverflowError("operands too large for expression")
                     ret = op1 ** ret
                 return ret
