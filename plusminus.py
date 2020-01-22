@@ -1,10 +1,10 @@
 #
-# arithmetic_parser.py
+# plusminus.py
 #
 """
-arithmetic_parser
+plusminus
 
-arithmetic_parser is a module that builds on the pyparsing infixNotation
+plusminus is a module that builds on the pyparsing infixNotation
 helper method to build easy-to-code and easy-to-use parsers for parsing and
 evaluating infix arithmetic expressions. arithmetic_parsing's ArithmeticParser
 class includes separate parse and evaluate methods, handling operator
