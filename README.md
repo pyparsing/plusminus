@@ -10,7 +10,7 @@ Strings containing 5-function arithmetic expressions can be parsed and evaluated
     parser = BasicArithmeticParser()
     print(parser.evaluate("2+3/10"))
 
-The parser can also return an Abstract Syntax Tree of ArithNode objects:
+The parser can also return an Abstract Syntax Tree of `ArithNode` objects:
 
     parsed_elements = parser.parse("2+3/10")
 
