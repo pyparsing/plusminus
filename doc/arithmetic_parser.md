@@ -128,26 +128,26 @@ functions, and common mathematical variables
         x = 1
         y (evaluates to 5)
 
+    Class implementation:
 
-
-    class BasicArithmeticParser(ArithmeticParser):
-        def customize(self):
-            def constrained_factorial(x):
-                if not(0 <= x < 32768):
-                    raise ValueError("{!r} not in working 0-32,767 range".format(x))
-                return math.factorial(int(x))
-    
-            super().customize()
-            self.initialize_variable("pi", math.pi)
-            self.initialize_variable("π", math.pi)
-            self.initialize_variable("e", math.e)
-            self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
-            self.add_function('rnd', 0, random.random)
-            self.add_function('randint', 2, random.randint)
-            self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
-            self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
-            self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
-            self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x ** 2)
-            self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x ** 3)
-            self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
-            self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)
+        class BasicArithmeticParser(ArithmeticParser):
+            def customize(self):
+                def constrained_factorial(x):
+                    if not(0 <= x < 32768):
+                        raise ValueError("{!r} not in working 0-32,767 range".format(x))
+                    return math.factorial(int(x))
+        
+                super().customize()
+                self.initialize_variable("pi", math.pi)
+                self.initialize_variable("π", math.pi)
+                self.initialize_variable("e", math.e)
+                self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
+                self.add_function('rnd', 0, random.random)
+                self.add_function('randint', 2, random.randint)
+                self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
+                self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
+                self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
+                self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x ** 2)
+                self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x ** 3)
+                self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
+                self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)
