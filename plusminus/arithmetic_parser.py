@@ -1,10 +1,10 @@
 #
-# arithmetic_parsing.py
+# arithmetic_parser.py
 #
 """
-arithmetic_parsing
+arithmetic_parser
 
-arithmetic_parsing is a module that builds on the pyparsing infixNotation
+arithmetic_parser is a module that builds on the pyparsing infixNotation
 helper method to build easy-to-code and easy-to-use parsers for parsing and
 evaluating infix arithmetic expressions. arithmetic_parsing's ArithmeticParser
 class includes separate parse and evaluate methods, handling operator
@@ -129,6 +129,9 @@ class TernaryNode(ArithNode):
 
 
 class ArithmeticParser:
+    """
+    Base class for defining arithmetic parsers.
+    """
     LEFT = pp.opAssoc.LEFT
     RIGHT = pp.opAssoc.RIGHT
     MAX_VARS = 1000
@@ -512,6 +515,7 @@ class BasicArithmeticParser(ArithmeticParser):
         super().customize()
         self.initialize_variable("pi", math.pi)
         self.initialize_variable("π", math.pi)
+        self.initialize_variable("τ", math.pi * 2)
         self.initialize_variable("e", math.e)
         self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
         self.add_function('rnd', 0, random.random)

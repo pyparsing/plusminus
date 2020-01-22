@@ -67,8 +67,10 @@
 
   - Selected Unicode character ranges (Latin1, Greek)
 
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ
         abcdefghijklmnopqrstuvwxyz
-        àáâãäåæçèéêëìíîïßðñòóôõöøùúûüýþÿ
+        ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß
+        àáâãäåæçèéêëìíîïßðñòóôõöøùúûüýþÿªº
         ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ
         αβγδεζηθικλμνξοπρστυφχψω
 
@@ -97,6 +99,7 @@ functions, and common mathematical variables
   - `randint`
 - variables
   - `pi` and `π`
+  - `τ`
   - `e`
   - `φ`
 
