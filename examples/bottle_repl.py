@@ -1,3 +1,9 @@
+#
+# bottle_repl.py
+#
+# A simple demonstration REPL implemented in a bottle web server.
+# NOT FOR PRODUCTION USE.
+#
 from bottle import default_app, route, request
 from enum import Enum
 import inspect
@@ -575,4 +581,7 @@ def hello_world():
     return 'Hello from arith repl!'
 
 
-application = default_app()
+if __name__ == '__main__':
+    import sys
+    sys.setrecursionlimit(2000)
+    application = default_app()

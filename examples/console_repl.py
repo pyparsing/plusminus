@@ -1,3 +1,9 @@
+#
+# console_repl.py
+#
+# A simple demonstration REPL around a BasicArithmeticParser.
+# NOT FOR PRODUCTION USE.
+#
 from pprint import pprint
 import textwrap
 from plusminus import BasicArithmeticParser
