@@ -20,6 +20,8 @@ ONE_MINUTE = ONE_SECOND * 60
 ONE_HOUR = ONE_MINUTE * 60
 ONE_DAY = ONE_HOUR * 24
 
+server_start = datetime.now()
+
 sessions_lock = threading.Lock()
 sessions = {}
 MAX_SESSIONS = 200
@@ -432,6 +434,7 @@ class BottleArithReplRequestHandler:
         now = datetime.now()
         self.write_html('<html><body>\n')
         self.write_html('<h2>Stats as of {}</h2>\n<p>\n'.format(time_to_str(now)))
+        self.write_html('Server start time: {}<p>'.format(time_to_str(server_start)))
         headings = "Session/Start time/Latest time/Connected/Idle/Tests/Exceptions".split('/')
         self.write_html('<h2>Active Testers</h2>\n')
         self.write_html('<table border=1 cellpadding="4"><tr><th>' +

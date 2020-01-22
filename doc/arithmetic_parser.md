@@ -143,6 +143,7 @@ functions, and common mathematical variables
                 super().customize()
                 self.initialize_variable("pi", math.pi)
                 self.initialize_variable("π", math.pi)
+                self.initialize_variable("τ", math.pi * 2)
                 self.initialize_variable("e", math.e)
                 self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
                 self.add_function('rnd', 0, random.random)
