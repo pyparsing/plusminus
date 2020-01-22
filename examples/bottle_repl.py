@@ -181,7 +181,7 @@ class Repl:
     @classmethod
     def usage(cls, parser):
         msg = textwrap.dedent("""\
-        Interactive utility to use the pyparsing-arithmetic BaseArithmeticParser.
+        Interactive utility to use the plusminus BaseArithmeticParser.
 
         Use your keyboard or the buttons below to enter an arithmetic expression
         or assignment statement, using the following operators:
