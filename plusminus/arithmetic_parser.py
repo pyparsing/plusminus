@@ -267,10 +267,10 @@ class ArithmeticParser:
         return self._added_operator_specs[:]
 
     def scanString(self, *args):
-        yield from self.parser().scanString(*args)
+        yield from self.get_parser().scanString(*args)
 
     def parse(self, *args, **kwargs):
-        return self.parser().parseString(*args, **kwargs)[0]
+        return self.get_parser().parseString(*args, **kwargs)[0]
 
     def evaluate(self, arith_expression):
         try:
@@ -280,7 +280,7 @@ class ArithmeticParser:
             raise e.with_traceback(None)
 
     def __getattr__(self, attr):
-        parser = self.parser()
+        parser = self._parser
         if hasattr(parser, attr):
             return getattr(parser, attr)
         raise AttributeError("no such attribute {!r}".format(attr))
@@ -316,7 +316,7 @@ class ArithmeticParser:
     def add_function(self, fn_name, fn_arity, fn_method):
         self._added_function_specs[fn_name] = (FunctionSpec(fn_method, fn_arity))
 
-    def parser(self):
+    def get_parser(self):
         if self._parser is None:
             self._parser = self.make_parser()
         return self._parser
