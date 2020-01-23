@@ -428,8 +428,8 @@ class ArithmeticParser:
         identifier_node_class = type('Identifier', (self.IdentifierNode,), {'_assigned_vars': self._variable_map})
         var_name.addParseAction(identifier_node_class)
         base_operator_specs = [
-            ('-', 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             ('**', 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
+            ('-', 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             (pp.oneOf('* / mod × ÷'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf('+ - −'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
