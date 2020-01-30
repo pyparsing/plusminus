@@ -99,7 +99,13 @@ parser.runTests("""\
     die_roll
     √2
     2√2
+    √-1
     10000**100000
+    0**10000000000**10000000000
+    0**(-1)**2
+    0**(-1)**3
+    1000000000000**1000000000000**0
+    1000000000000**0**1000000000000**1000000000000
     """,
     postParse=lambda teststr, result: result[0].evaluate() if '@=' not in teststr else None)
 
