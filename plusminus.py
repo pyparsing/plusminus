@@ -27,6 +27,7 @@ SOFTWARE.
 """
 
 from collections import namedtuple
+from functools import partial
 import math
 import operator
 import random
@@ -54,6 +55,85 @@ TRUE.addParseAction(lambda: True)
 FALSE.addParseAction(lambda: False)
 
 FunctionSpec = namedtuple("FunctionSpec", "method arity")
+
+_numeric_type = (int, float, complex)
+
+# define special versions of lt, le, etc. to comprehend "is close"
+_lt = lambda a, b, eps: a < b and not math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a < b
+_le = lambda a, b, eps: a <= b or math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a <= b
+_gt = lambda a, b, eps: a > b and not math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a > b
+_ge = lambda a, b, eps: a >= b or math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a >= b
+_eq = lambda a, b, eps: a == b or math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a == b
+_ne = lambda a, b, eps: not math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a != b
+
+
+def collapse_operands(seq, eps=1e-15):
+    cur = seq[:]
+    # if any((a == 0 and b < 0) for a, b in zip(seq, seq[1:])):
+    #     1 / 0
+    last = cur[:]
+    while True:
+        # print(cur)
+        if len(cur) <= 2:
+            break
+        if _eq(cur[-1], 0, eps):
+            cur[-2:] = [1]
+            continue
+        for i in range(len(cur) - 2, -1, -1):
+            if cur[i] == 0:
+                # print(i, cur)
+                if cur[i+1] < 0 and (i == len(cur)-2 or cur[i+2] % 2 != 0):
+                    0 ** cur[i+1]
+                else:
+                    cur[i - 2:] = [1]
+                break
+        for i in range(len(cur) - 1, 1, -1):
+            if cur[i] == 1:
+                del cur[i:]
+                break
+        if cur == last:
+            break
+        last = cur[:]
+
+    if len(cur) > 1:
+        if cur[0] == 0:
+            if cur[1] == 0:
+                cur[:] = [1]
+            else:
+                del cur[1:]
+        elif cur[1] == 0:
+            cur[:] = [1]
+        elif cur[0] == 1:
+            del cur[1:]
+
+    return cur
+
+
+def safe_pow(seq, eps=1e-15):
+    # print(seq)
+    operands = collapse_operands(seq, eps)
+    # print(operands)
+    ret = 1
+    for operand in operands[::-1]:
+        op1 = operand  # .evaluate()
+        # rough guard against too large values in expression
+        if ret == 0:
+            ret = 1
+        elif op1 == 0:
+            if ret > 0:
+                ret = 0
+            else:
+                # raises an exception
+                0 ** ret
+        elif op1 == 1:
+            ret = 1
+        elif ret == 1:
+            ret = op1
+        else:
+            if 0 not in (ret, op1) and math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
+                raise OverflowError("operands too large for expression")
+            ret = op1 ** ret
+    return ret
 
 
 class ArithNode:
@@ -162,6 +242,7 @@ class ArithmeticParser:
             return self.right_associative_evaluate(self.opns_map)
 
     class ArithmeticUnaryPostOp(UnaryNode):
+        opns_map = {}
         def evaluate(self):
             return self.left_associative_evaluate(self.opns_map)
 
@@ -172,27 +253,38 @@ class ArithmeticParser:
             '−': operator.sub,
             '*': operator.mul,
             '/': operator.truediv,
-            '**': math.pow,
             'mod': operator.mod,
             '×': operator.mul,
             '÷': operator.truediv,
         }
 
         def evaluate(self):
-            if self.tokens[1] == '**':
-                # parsed left-to-right, but evaluate right-to-left
-                ret = self.tokens[-1].evaluate()
-                for operand in self.tokens[-3::-2]:
-                    op1 = operand.evaluate()
-                    # rough guard against too large values in expression
-                    if math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
-                        raise OverflowError("operands too large for expression")
-                    ret = op1 ** ret
-                return ret
-            else:
-                return self.left_associative_evaluate(self.opns_map)
+            return self.left_associative_evaluate(self.opns_map)
+
+    class ExponentBinaryOp(ArithmeticBinaryOp):
+
+        def evaluate(self):
+            # parsed left-to-right, but evaluate right-to-left
+            operands = [t.evaluate() for t in self.tokens[::2]]
+            if not all(isinstance(op, (int, float, complex)) for op in operands):
+                raise TypeError("invalid operators for exponentiation")
+
+            return safe_pow(operands)
+
+        def evaluateX(self):
+            # parsed left-to-right, but evaluate right-to-left
+            ret = self.tokens[-1].evaluate()
+            for operand in self.tokens[-3::-2]:
+                op1 = operand.evaluate()
+                # rough guard against too large values in expression
+                if math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
+                    raise OverflowError("operands too large for expression")
+                ret = op1 ** ret
+            return ret
 
     class IdentifierNode(ArithNode):
+        _assigned_vars = {}
+
         @property
         def name(self):
             return self.tokens
@@ -253,6 +345,9 @@ class ArithmeticParser:
             'gamma': FunctionSpec(math.gamma, 2),
             'hypot': FunctionSpec(math.hypot, 2),
         }
+
+        # epsilon for computing "close" floating point values - can be updated in customize
+        self.epsilon = 1e-15
 
         # customize can update or replace with different characters
         self.ident_letters = ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªº"
@@ -363,16 +458,20 @@ class ArithmeticParser:
                               ).setName("identifier")
 
         class BinaryComparison(BinaryNode):
+            def __init__(self, tokens):
+                super().__init__(tokens)
+                self.epsilon = 1e-15
+
             opns_map = {
-                '<': operator.lt,
-                '<=': operator.le,
-                '>': operator.gt,
-                '>=': operator.ge,
-                '==': operator.eq,
-                '!=': operator.ne,
-                '≠': operator.ne,
-                '≤': operator.le,
-                '≥': operator.ge,
+                '<': partial(_lt, eps=self.epsilon),
+                '<=': partial(_le, eps=self.epsilon),
+                '>': partial(_gt, eps=self.epsilon),
+                '>=': partial(_ge, eps=self.epsilon),
+                '==': partial(_eq, eps=self.epsilon),
+                '!=': partial(_ne, eps=self.epsilon),
+                '≠': partial(_ne, eps=self.epsilon),
+                '≤': partial(_le, eps=self.epsilon),
+                '≥': partial(_ge, eps=self.epsilon),
             }
 
             def evaluate(self):
@@ -388,10 +487,14 @@ class ArithmeticParser:
                 return ret
 
         class IntervalComparison(TernaryNode):
+            def __init__(self, tokens):
+                super().__init__(tokens)
+                self.epsilon = 1e-15
+
             opns_map = {
-                ('between', 'and'): (lambda a, b, c: b < a < c),
-                ('within', 'and'): (lambda a, b, c: b <= a <= c),
-                ('in_range_from', 'to'): (lambda a, b, c: b <= a < c),
+                ('between', 'and'): (lambda a, b, c: _lt(b, a, eps=self.epsilon) and _lt(a, c, eps=self.epsilon)),
+                ('within', 'and'): (lambda a, b, c: _le(b, a, eps=self.epsilon) and _le(a, c, eps=self.epsilon)),
+                ('in_range_from', 'to'): (lambda a, b, c: _le(b, a, eps=self.epsilon) and _lt(a, c, eps=self.epsilon)),
             }
 
         class UnaryNot(UnaryNode):
@@ -425,10 +528,32 @@ class ArithmeticParser:
                 ('?', ':'): (lambda a, b, c: b if a else c),
             }
 
+        class RoundToEpsilon:
+            def __init__(self, result):
+                self._result = result
+                self.epsilon = 1e-15
+
+            def evaluate(self):
+                # print(self._result.dump())
+                ret = self._result[0].evaluate()
+                if isinstance(ret, (float, complex)):
+                    if math.isclose(ret.imag, 0, abs_tol=self.epsilon):
+                        ret = round(ret.real, 15)
+                    if math.isclose(ret.real, 0, abs_tol=self.epsilon):
+                        if ret.imag:
+                            ret = complex(0, ret.imag)
+                        else:
+                            ret = 0
+                    if (not isinstance(ret, complex)
+                            and abs(ret) < 1e15
+                            and math.isclose(ret, int(ret), abs_tol=self.epsilon)):
+                        return int(ret)
+                return ret
+
         identifier_node_class = type('Identifier', (self.IdentifierNode,), {'_assigned_vars': self._variable_map})
         var_name.addParseAction(identifier_node_class)
         base_operator_specs = [
-            ('**', 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
+            ('**', 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
             ('-', 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             (pp.oneOf('* / mod × ÷'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf('+ - −'), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
@@ -495,9 +620,11 @@ class ArithmeticParser:
             identifier_node_class._assigned_vars[var_name] = rval
             return rval
 
+        value_assignment_statement.addParseAction(RoundToEpsilon)
+        lone_rvalue = rvalue().addParseAction(RoundToEpsilon)
         formula_assignment_statement.addParseAction(store_parsed_value)
 
-        parser = (value_assignment_statement | formula_assignment_statement | rvalue)
+        parser = (value_assignment_statement | formula_assignment_statement | lone_rvalue)
 
         # init _variable_map with any pre-defined values
         for varname, (varvalue, as_formula) in self._initial_variables.items():
