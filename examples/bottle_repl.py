@@ -441,6 +441,7 @@ class BottleArithReplRequestHandler:
         self.write_html('<html><body>\n')
         self.write_html('<h2>Stats as of {}</h2>\n<p>\n'.format(time_to_str(now)))
         self.write_html('Server start time: {}<p>'.format(time_to_str(server_start)))
+        self.write_html('Uptime: {}<p>'.format(str(datetime.utcnow() - server_start)))
         headings = "Session/Start time/Latest time/Connected/Idle/Tests/Exceptions".split('/')
         self.write_html('<h2>Active Testers</h2>\n')
         self.write_html('<table border=1 cellpadding="4"><tr><th>' +
@@ -527,12 +528,16 @@ class BottleArithReplRequestHandler:
                         '</th><th>'.join(headings) +
                        '</th></tr>\n')
         cmds = list(cmd_history)
+        max_command_display = 100
         if cmds:
             cmds.sort(key=lambda x: x[0], reverse=True)
             for cmd in cmds:
+                if len(cmd.command) > max_command_display:
+                    cmd = cmd._replace(command=cmd.command[:max_command_display] + '...')
                 self.write_html('<tr><td valign="top">%.19s</td>'
                                '<td valign="top" align="center">%s</td>'
                                '<td valign="top">%s</td></tr>\n' % cmd)
+
         else:
             self.write_html('<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n' % len(headings))
         self.write_html('</table>\n')
