@@ -136,6 +136,17 @@ def safe_pow(seq, eps=1e-15):
     return ret
 
 
+def safe_mult(a, b):
+    for _ in range(2):
+        if isinstance(a, str):
+            if b <= 0:
+                return ''
+            if  len(a) * abs(b) > 1e7:
+                raise MemoryError("expression creates too large a string")
+        a, b = b, a
+    return a * b
+
+
 class ArithNode:
     def __init__(self, tokens):
         self.tokens = tokens[0]
@@ -230,6 +241,7 @@ class ArithmeticParser:
     LEFT = pp.opAssoc.LEFT
     RIGHT = pp.opAssoc.RIGHT
     MAX_VARS = 1000
+    MAX_VAR_MEMORY = 10**6
 
     class ArithmeticUnaryOp(UnaryNode):
         opns_map = {
@@ -251,10 +263,10 @@ class ArithmeticParser:
             '+': operator.add,
             '-': operator.sub,
             '−': operator.sub,
-            '*': operator.mul,
+            '*': safe_mult,
             '/': operator.truediv,
             'mod': operator.mod,
-            '×': operator.mul,
+            '×': safe_mult,
             '÷': operator.truediv,
         }
 
@@ -615,7 +627,9 @@ class ArithmeticParser:
             rval = tokens.rhs
             var_name = tokens.lhs.name
             if (var_name not in identifier_node_class._assigned_vars
-                    and len(identifier_node_class._assigned_vars) >= self.MAX_VARS):
+                    and len(identifier_node_class._assigned_vars) >= self.MAX_VARS
+                    or sum(sys.getsizeof(vv) for vv in identifier_node_class._assigned_vars.values())
+                            > self.MAX_VAR_MEMORY):
                 raise Exception("too many variables defined")
             identifier_node_class._assigned_vars[var_name] = rval
             return rval
