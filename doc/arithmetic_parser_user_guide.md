@@ -99,18 +99,6 @@ characters you may use at the end of a variable name):
         y₁ = 2
 
 
-### Formula assignments
-
-A formula assignment uses '@=' to assign an expression to a variable:
-
-        area @= π*r²
-
-As the value of `r` is updated, each evaluation of `area` will recalculate the given formula.
-
-Note: Formula assignments may only reference variables and functions, but
-not other formula variables.
-
-
 ### Multi-value assignment
 
 Multiple assignments can be made using lists of variable names and
@@ -121,8 +109,47 @@ corresponding lists of expressions (lists must be of matching lengths).
     a, b, c = 1, 2, a+b
 
 Expressions and assignments are made respectively from left-to-right. The
-second expression above is evaluated in this order:
+third expression above is evaluated in this order:
 
     a = 1
     b = 2
     c = a + b
+
+
+### Formula assignments
+
+A formula assignment uses `@=` to assign an expression to a variable:
+
+        area @= π × r²
+
+As the value of `r` is updated, each evaluation of `area` will recalculate the given formula.
+
+Note: Formula assignments may only reference variables and functions, but
+not other formula variables.
+
+
+### Example: Trigonometric functions (converting from degrees to radians using the `°` operator)
+
+    sin(pi/2)
+    sin(π/2)
+    sin(-π/2)
+    sin(30)
+    sin(rad(30))
+    sin(30°)
+
+### Example: Converting from Celsius to Fahrenheit
+
+    c_temp = 37
+    F @= (c_temp × 9/5) + 32
+
+### Example: Distance formula
+
+    x₁, y₁ = 1, 2
+    x₂, y₂ = 4, 0
+    dist @= √((x₂-x₁)² + (y₂-y₁)²)
+
+### Example: Solving for roots of a quadratic polynomial (_`ax² + bx + c`_)
+
+    a,b,c = 1,1,-12
+    r₀ @= (-b + √(b² - 4×a×c)) / (2×a)
+    r₁ @= (-b - √(b² - 4×a×c)) / (2×a)
