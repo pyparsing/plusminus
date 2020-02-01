@@ -356,6 +356,8 @@ class ArithmeticParser:
             'lcm': FunctionSpec((lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0), 2),
             'gamma': FunctionSpec(math.gamma, 2),
             'hypot': FunctionSpec(math.hypot, 2),
+            'min': FunctionSpec(min, 2),
+            'max': FunctionSpec(max, 2),
         }
 
         # epsilon for computing "close" floating point values - can be updated in customize
