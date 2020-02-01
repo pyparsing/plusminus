@@ -20,14 +20,14 @@ to override:
     ()
     -
     **
-    * / mod
+    * / × ÷ mod
     + -
-    < > <= >= == !=
+    < > <= >= == != ≠ ≤ ≥
     between-and within-and "in range from"-to (ternary) (between is exclusive, within is inclusive, and `in range from` is
       inclusive lower-bound and exclusive upper-bound)
     not
-    and
-    or
+    and ∧
+    or ∨
     ? : (ternary)
 
 Functions can be called:
@@ -42,13 +42,12 @@ Functions can be called:
 
 The Basic ArithmeticParser also supports assignment of variables:
 
-    m = 10
-    a = 9.8
-    F = m * a
+    r = 5
+    area = π × r²
 
 This last expression could be assigned using '@=' formula assignment:
 
-    F @= m * a
+    area @= π × r²
 
-As `m` and `a` are updated, evaluting `F` will reevaluate using the new values.
+As `r` is updated, evaluating `area` will be reevaluated using the new value.
 
