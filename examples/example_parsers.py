@@ -6,12 +6,12 @@ class DiceRollParser(ArithmeticParser):
         import random
         super().customize()
         self.add_operator('d', 1, ArithmeticParser.RIGHT,
-                                lambda x: random.randint(1, x))
+                                lambda a: random.randint(1, a))
         self.add_operator('d', 2, ArithmeticParser.LEFT,
-                                lambda x, y: x * random.randint(1, y))
+                                lambda a, b: sum(random.randint(1, b) for _ in range(a)))
 
 parser = DiceRollParser()
-parser.runTests(['d20', '3d6', 'd20+3d4', 'd100'],
+parser.runTests(['d20', '3d6', 'd20+3d4', '2d100'],
                 postParse=lambda _, result: result[0].evaluate())
 
 
@@ -83,7 +83,7 @@ class BusinessArithmeticParser(ArithmeticParser):
 
         super().customize()
         self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda x: x/100)
+        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda a: a / 100)
         self.add_function('PV', 3, pv)
         self.add_function('FV', 3, fv)
         self.add_function('PP', 3, pp)

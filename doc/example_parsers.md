@@ -127,16 +127,15 @@ Class implementation:
 
 Class implementation:
 
-        import random
         class DiceRollParser(ArithmeticParser):
             def customize(self):
+                import random
                 super().customize()
-                self.add_operator('d', 1, ArithmeticParser.RIGHT, lambda x: random.randint(1, x))
-                self.add_operator('d', 2, ArithmeticParser.LEFT, lambda x, y: x * random.randint(1, y))
-        
+                self.add_operator('d', 1, ArithmeticParser.RIGHT,
+                                  lambda a: random.randint(1, a))
+                self.add_operator('d', 2, ArithmeticParser.LEFT,
+                                  lambda a, b: sum(random.randint(1, b)
+                                                   for _ in range(a)))
         parser = DiceRollParser()
-        parser.runTests("""
-        d20
-        3d6
-        d20 + 3d4
-        """, postParse=lambda _, result: result[0].evaluate())
+        parser.runTests(['d20', '3d6', 'd20+3d4', '2d100'],
+                        postParse=lambda _, result: result[0].evaluate())
