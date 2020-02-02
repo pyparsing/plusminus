@@ -309,8 +309,8 @@ class BottleArithReplRequestHandler:
         query = self.get_query()
         # print('query=', query)
         sessionkey = query.get('k')
-        cmd = query.get('c', '').encode("latin1").decode('utf-8')
-        if sessionkey is not None:
+        cmd = query.get('c', '').encode("latin1").decode('utf-8').strip()
+        if cmd and sessionkey is not None:
             cmd_history.append(CmdLog(datetime.now(), sessionkey, cmd))
 
         # get key from query
