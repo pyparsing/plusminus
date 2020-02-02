@@ -91,7 +91,8 @@ Variable names may be defined using any of the following characters:
 
 (Numeric digits may not be used as the first character of a name.)
 
-Trailing subscripts can be added to any variable name (the subscripts do
+Trailing subscripts using subscript digits `₀₁₂₃₄₅₆₇₈₉` can be added to any variable 
+name (the subscripts do
 not reflect any ordering or array storage of values, they are merely additional 
 characters you may use at the end of a variable name):
   
