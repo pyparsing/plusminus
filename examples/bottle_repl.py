@@ -360,16 +360,10 @@ class BottleArithReplRequestHandler:
         button_row('°√×÷≠≤≥∧∨', "Operators")
         button_row('+-*/=<>!()²³')
         button('⁻¹')
-        button_row('ABCDEFGHIJKLM')
-        button_row('NOPQRSTUVWXYZ')
         button_row('abcdefghijklm')
         button_row('nopqrstuvwxyz_')
-        button_row('ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ')
-        button_row('ÐÑÒÓÔÕÖØÙÚÛÜÝÞßªº')
         button_row('àáâãäåæçèéêëìíîï')
         button_row('ßðñòóôõöøùúûüýþÿ')
-        button_row('ΑΒΓΔΕΖΗΘΙΚΛΜ')
-        button_row('ΝΞΟΠΡΣΤΥΦΧΨΩ')
         button_row('αβγδεζηθικλμ')
         button_row('νξοπρστυφχψω')
         button_row('₀₁₂₃₄₅₆₇₈₉', "Subscripts")
@@ -388,7 +382,7 @@ class BottleArithReplRequestHandler:
 
         # output input field
         self.write_html('\n<br>\n<p>')
-        self.write_html('\n<form name="turnForm"> Command: <input type="text" name="c" size="60">')
+        self.write_html('\n<form name="turnForm"> Expression: <input type="text" name="c" size="60">')
         self.write_html('\n<button name="go" type="submit">Submit</button>')
         # output hidden key
         self.write_html('\n<input type="hidden" name="k" value="KEY">'.replace("KEY", sessionkey))
@@ -398,22 +392,10 @@ class BottleArithReplRequestHandler:
         if game:
             game_over = False
             success, command_status, output = game.do_command(cmd, sessionkey)
-            # print(repr(cmd))
-            # print(success)
-            # print(output)
             if command_status is Repl.CommandStatus.META_QUIT:
                 game_over = True
 
             if game_over:
-                # self._sayRaw('<p>You ended the game with:\n<ul>\n')
-                # for item in player.inv:
-                #     self._sayRaw('<li>%s %s\n' % (advEng._aOrAn(str(item)), item))
-                # self._sayRaw('</ul>\n')
-                # if player.eventLog:
-                #     self._sayRaw('<p><p>During the game you:\n<ul>\n')
-                #     for evt in player.showLog():
-                #         self._sayRaw('<li>%s\n' % evt)
-                #     self._sayRaw('</ul>\n')
                 pass
             else:
                 if success or output:
@@ -455,22 +437,6 @@ class BottleArithReplRequestHandler:
                 sessionsData = list(sessions.items())
             sessionsData.sort(key=lambda x:str(x[1].data[last_update]), reverse=True)
             for k, info in sessionsData:
-                # explog = info.player.eventLog[:]
-                # if explog:
-                #     seen = set()
-                #     exp = []
-                #     for item in explog:
-                #         if item in seen:
-                #             continue
-                #         times = explog.count(item)
-                #         if times == 1:
-                #             exp.append('%s' % item)
-                #         else:
-                #             exp.append('%s (%d times!)' % (item, times))
-                #         seen.add(item)
-                # else:
-                #     exp = []
-
                 connect_time = now - info.start_time
                 connect_time_str = timedelta_to_str(connect_time)
                 idle_time_str = timedelta_to_str(now - info.data[last_update])
@@ -497,21 +463,6 @@ class BottleArithReplRequestHandler:
         if sessions_data:
             sessions_data.sort(key=lambda x:str(x[1].data[last_update]), reverse=True)
             for k, info in sessions_data:
-                # explog = info.player.eventLog[:]
-                # if explog:
-                #     seen = set()
-                #     exp = []
-                #     for item in explog:
-                #         if item in seen:
-                #             continue
-                #         times = explog.count(item)
-                #         if times == 1:
-                #             exp.append('%s' % item)
-                #         else:
-                #             exp.append('%s (%d times!)' % (item, times))
-                #         seen.add(item)
-                # else:
-                #     exp = []
                 connect_time = (info.data[last_update] - info.start_time)
                 connect_time_str = timedelta_to_str(connect_time)
                 self.write_html('<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td>'
@@ -586,7 +537,7 @@ def handle_app_command():
 
 @route('/')
 def hello_world():
-    return 'Hello from arith repl!'
+    return 'Hello from plusminus repl!'
 
 
 if __name__ == '__main__':
