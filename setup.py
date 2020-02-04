@@ -1,4 +1,4 @@
-`# setup.py
+# setup.py
 from setuptools import setup, find_packages
 from plusminus import __version__ as pm_version
 
