@@ -1,4 +1,4 @@
-# setup.py
+`# setup.py
 from setuptools import setup, find_packages
 from plusminus import __version__ as pm_version
 
@@ -15,8 +15,8 @@ setup(
     # metadata to display on PyPI
     author="Paul McGuire",
     author_email="ptmcg@austin.rr.com",
-    description="""/
-        plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and 
+    description="""
+        +/- plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and 
         easy-to-use parsers for parsing and evaluating infix arithmetic expressions. plusminus's ArithmeticParser 
         class includes separate parse and evaluate methods, handling operator precedence, override with parentheses, 
         presence or absence of whitespace, built-in functions, and pre-defined and user-defined variables, functions, 
