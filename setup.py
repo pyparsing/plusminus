@@ -6,22 +6,19 @@ setup(
     name="plusminus",
     version=pm_version,
     packages=find_packages(),
-    scripts=["say_hello.py"],
 
     install_requires=["pyparsing >= 2.4.6"],
 
-    package_data={
-        # If any package contains *.txt or *.rst files, include them:
-        "": ["*.txt", "*.rst"],
-        # And include any *.msg files found in the "hello" package, too:
-        "hello": ["*.msg"],
-    },
+    # package_data={
+    #     # If any package contains *.txt or *.rst files, include them:
+    #     "": ["*.txt", "*.rst"],
+    # },
 
     # metadata to display on PyPI
     author="Paul McGuire",
-    author_email="me@example.com",
-    description="This is an Example Package",
-    keywords="hello world example examples",
+    author_email="ptmcg@austin.rr.com",
+    description="safe arithmetic expression evaluator library",
+    keywords="infix notation arithmetic safe eval",
     url="http://example.com/HelloWorld/",   # project home page, if any
     project_urls={
         "Bug Tracker": "https://bugs.example.com/HelloWorld/",
@@ -29,8 +26,21 @@ setup(
         "Source Code": "https://code.example.com/HelloWorld/",
     },
     classifiers=[
-        "License :: OSI Approved :: MIT License"
+        "License :: OSI Approved :: MIT License",
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: User Interfaces",
+        "Topic :: Text Processing",
+        "Topic :: Text Processing :: General",
+        "Topic :: Utilities",
     ]
 
-    # could also include long_description, download_url, etc.
 )

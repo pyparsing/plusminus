@@ -27,17 +27,22 @@ SOFTWARE.
 """
 
 from collections import namedtuple
+from contextlib import contextmanager
 from functools import partial
 import math
 import operator
 import random
 import pyparsing as pp
+import sys
+import traceback
 
-ppc = pp.pyparsing_common
-pp.ParserElement.enablePackrat()
 
 __all__ = "ArithmeticParser BasicArithmeticParser expressions any_keyword __version__".split()
 __version__ = "0.1"
+
+
+ppc = pp.pyparsing_common
+pp.ParserElement.enablePackrat()
 
 expressions = {}
 
@@ -65,6 +70,18 @@ _gt = lambda a, b, eps: a > b and not math.isclose(a, b, abs_tol=eps) if isinsta
 _ge = lambda a, b, eps: a >= b or math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a >= b
 _eq = lambda a, b, eps: a == b or math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a == b
 _ne = lambda a, b, eps: not math.isclose(a, b, abs_tol=eps) if isinstance(a, _numeric_type) and isinstance(b, _numeric_type) else a != b
+
+
+@contextmanager
+def _trimming_exception_traceback():
+    try:
+        yield
+    except Exception as e:
+        tb = e.__traceback__
+        while tb.tb_next:
+            tb = tb.tb_next
+        e.__traceback__ = tb
+        raise e
 
 
 def collapse_operands(seq, eps=1e-15):
@@ -197,6 +214,7 @@ class UnaryNode(ArithNode):
     def __repr__(self):
         return ''.join(map(repr, self.tokens))
 
+
 class BinaryNode(ArithNode):
     def right_associative_evaluate(self, oper_fn_map):
         ret = self.tokens[-1].evaluate()
@@ -213,6 +231,7 @@ class BinaryNode(ArithNode):
     def __repr__(self):
         return "({})".format(''.join(map(repr, self.tokens)))
 
+
 class TernaryNode(ArithNode):
     def left_associative_evaluate(self, oper_fn_map):
         operands = self.tokens
@@ -228,7 +247,8 @@ class TernaryNode(ArithNode):
     right_associative_evaluate = left_associative_evaluate
 
     def evaluate(self):
-        return self.left_associative_evaluate(self.opns_map)
+        with _trimming_exception_traceback():
+            return self.left_associative_evaluate(self.opns_map)
 
     def __repr__(self):
         return "({})".format(''.join(map(repr, self.tokens)))
@@ -251,12 +271,14 @@ class ArithmeticParser:
         }
 
         def evaluate(self):
-            return self.right_associative_evaluate(self.opns_map)
+            with _trimming_exception_traceback():
+                return self.right_associative_evaluate(self.opns_map)
 
     class ArithmeticUnaryPostOp(UnaryNode):
         opns_map = {}
         def evaluate(self):
-            return self.left_associative_evaluate(self.opns_map)
+            with _trimming_exception_traceback():
+                return self.left_associative_evaluate(self.opns_map)
 
     class ArithmeticBinaryOp(BinaryNode):
         opns_map = {
@@ -271,28 +293,19 @@ class ArithmeticParser:
         }
 
         def evaluate(self):
-            return self.left_associative_evaluate(self.opns_map)
+            with _trimming_exception_traceback():
+                return self.left_associative_evaluate(self.opns_map)
 
     class ExponentBinaryOp(ArithmeticBinaryOp):
 
         def evaluate(self):
-            # parsed left-to-right, but evaluate right-to-left
-            operands = [t.evaluate() for t in self.tokens[::2]]
-            if not all(isinstance(op, (int, float, complex)) for op in operands):
-                raise TypeError("invalid operators for exponentiation")
+            with _trimming_exception_traceback():
+                # parsed left-to-right, but evaluate right-to-left
+                operands = [t.evaluate() for t in self.tokens[::2]]
+                if not all(isinstance(op, (int, float, complex)) for op in operands):
+                    raise TypeError("invalid operators for exponentiation")
 
-            return safe_pow(operands)
-
-        def evaluateX(self):
-            # parsed left-to-right, but evaluate right-to-left
-            ret = self.tokens[-1].evaluate()
-            for operand in self.tokens[-3::-2]:
-                op1 = operand.evaluate()
-                # rough guard against too large values in expression
-                if math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
-                    raise OverflowError("operands too large for expression")
-                ret = op1 ** ret
-            return ret
+                return safe_pow(operands)
 
     class IdentifierNode(ArithNode):
         _assigned_vars = {}
@@ -302,26 +315,28 @@ class ArithmeticParser:
             return self.tokens
 
         def evaluate(self):
-            if self.name in self._assigned_vars:
-                return self._assigned_vars[self.name].evaluate()
-            else:
-                raise NameError("variable {!r} not known".format(self.name))
+            with _trimming_exception_traceback():
+                if self.name in self._assigned_vars:
+                    return self._assigned_vars[self.name].evaluate()
+                else:
+                    raise NameError("variable {!r} not known".format(self.name))
 
         def __repr__(self):
             return self.name
 
     class ArithmeticFunction(ArithNode):
         def evaluate(self):
-            fn_name, *fn_args = self.tokens
-            if fn_name not in self.fn_map:
-                raise ValueError("{!r} is not a recognized function".format(fn_name))
-            fn_spec = self.fn_map[fn_name]
-            if fn_spec.arity != len(fn_args):
-                raise TypeError("{} takes {} arg{}, {} given".format(fn_name,
-                                                                     fn_spec.arity,
-                                                                     ('', 's')[fn_spec.arity != 1],
-                                                                     len(fn_args)))
-            return fn_spec.method(*[arg.evaluate() for arg in fn_args])
+            with _trimming_exception_traceback():
+                fn_name, *fn_args = self.tokens
+                if fn_name not in self.fn_map:
+                    raise ValueError("{!r} is not a recognized function".format(fn_name))
+                fn_spec = self.fn_map[fn_name]
+                if fn_spec.arity != len(fn_args):
+                    raise TypeError("{} takes {} arg{}, {} given".format(fn_name,
+                                                                         fn_spec.arity,
+                                                                         ('', 's')[fn_spec.arity != 1],
+                                                                         len(fn_args)))
+                return fn_spec.method(*[arg.evaluate() for arg in fn_args])
 
         def __repr__(self):
             return "{}({})".format(self.tokens[0], ','.join(map(repr, self.tokens[1:])))
@@ -400,11 +415,9 @@ class ArithmeticParser:
         return self.get_parser().parseString(*args, **kwargs)[0]
 
     def evaluate(self, arith_expression):
-        try:
+        with _trimming_exception_traceback():
             parsed = self.parse(arith_expression, parseAll=True)
             return parsed.evaluate()
-        except Exception as e:
-            raise e.with_traceback(None)
 
     def __getattr__(self, attr):
         parser = self._parser
@@ -489,16 +502,18 @@ class ArithmeticParser:
             }
 
             def evaluate(self):
-                return self.left_associative_evaluate(self.opns_map)
+                with _trimming_exception_traceback():
+                    return self.left_associative_evaluate(self.opns_map)
 
             def left_associative_evaluate(self, oper_fn_map):
-                last = self.tokens[0].evaluate()
-                ret = True
-                for oper, operand in zip(self.tokens[1::2], self.tokens[2::2]):
-                    next_ = operand.evaluate()
-                    ret = ret and oper_fn_map[oper](last, next_)
-                    last = next_
-                return ret
+                with _trimming_exception_traceback():
+                    last = self.tokens[0].evaluate()
+                    ret = True
+                    for oper, operand in zip(self.tokens[1::2], self.tokens[2::2]):
+                        next_ = operand.evaluate()
+                        ret = ret and oper_fn_map[oper](last, next_)
+                        last = next_
+                    return ret
 
         class IntervalComparison(TernaryNode):
             def __init__(self, tokens):
@@ -513,7 +528,8 @@ class ArithmeticParser:
 
         class UnaryNot(UnaryNode):
             def evaluate(self):
-                return self.right_associative_evaluate({'not': operator.not_})
+                with _trimming_exception_traceback():
+                    return self.right_associative_evaluate({'not': operator.not_})
 
         class BinaryComp(BinaryNode):
             opns_map = {
@@ -524,18 +540,20 @@ class ArithmeticParser:
             }
 
             def evaluate(self):
-                return self.left_associative_evaluate(self.opns_map)
+                with _trimming_exception_traceback():
+                    return self.left_associative_evaluate(self.opns_map)
 
             def left_associative_evaluate(self, oper_fn_map):
-                last = bool(self.tokens[0].evaluate())
-                ret = True
-                for oper, operand in zip(self.tokens[1::2], self.tokens[2::2]):
-                    next_ = bool(operand.evaluate())
-                    ret = ret and oper_fn_map[oper](last, next_)
-                    if not ret:
-                        break
-                    last = next_
-                return ret
+                with _trimming_exception_traceback():
+                    last = bool(self.tokens[0].evaluate())
+                    ret = True
+                    for oper, operand in zip(self.tokens[1::2], self.tokens[2::2]):
+                        next_ = bool(operand.evaluate())
+                        ret = ret and oper_fn_map[oper](last, next_)
+                        if not ret:
+                            break
+                        last = next_
+                    return ret
 
         class TernaryComp(TernaryNode):
             opns_map = {
@@ -548,21 +566,22 @@ class ArithmeticParser:
                 self.epsilon = 1e-15
 
             def evaluate(self):
-                # print(self._result.dump())
-                ret = self._result[0].evaluate()
-                if isinstance(ret, (float, complex)):
-                    if math.isclose(ret.imag, 0, abs_tol=self.epsilon):
-                        ret = round(ret.real, 15)
-                    if math.isclose(ret.real, 0, abs_tol=self.epsilon):
-                        if ret.imag:
-                            ret = complex(0, ret.imag)
-                        else:
-                            ret = 0
-                    if (not isinstance(ret, complex)
-                            and abs(ret) < 1e15
-                            and math.isclose(ret, int(ret), abs_tol=self.epsilon)):
-                        return int(ret)
-                return ret
+                with _trimming_exception_traceback():
+                    # print(self._result.dump())
+                    ret = self._result[0].evaluate()
+                    if isinstance(ret, (float, complex)):
+                        if math.isclose(ret.imag, 0, abs_tol=self.epsilon):
+                            ret = round(ret.real, 15)
+                        if math.isclose(ret.real, 0, abs_tol=self.epsilon):
+                            if ret.imag:
+                                ret = complex(0, ret.imag)
+                            else:
+                                ret = 0
+                        if (not isinstance(ret, complex)
+                                and abs(ret) < 1e15
+                                and math.isclose(ret, int(ret), abs_tol=self.epsilon)):
+                            return int(ret)
+                    return ret
 
         identifier_node_class = type('Identifier', (self.IdentifierNode,), {'_assigned_vars': self._variable_map})
         var_name.addParseAction(identifier_node_class)
