@@ -19,12 +19,12 @@ setup(
         presence or absence of whitespace, built-in functions, and pre-defined and user-defined variables, functions, 
         and operators.
     """,
-    keywords="infix notation arithmetic safe eval",
-    url="http://example.com/HelloWorld/",   # project home page, if any
+    keywords="python infix notation arithmetic safe eval",
+    url="https://github.com/pyparsing/plusminus",   # project home page, if any
     project_urls={
-        "Bug Tracker": "https://bugs.example.com/HelloWorld/",
-        "Documentation": "https://docs.example.com/HelloWorld/",
-        "Source Code": "https://code.example.com/HelloWorld/",
+        "Bug Tracker": "https://github.com/pyparsing/plusminus/issues",
+        "Documentation": "https://github.com/pyparsing/plusminus",
+        "Source Code": "https://github.com/pyparsing/plusminus",
     },
     classifiers=[
         "License :: OSI Approved :: MIT License",
@@ -43,5 +43,4 @@ setup(
         "Topic :: Text Processing :: General",
         "Topic :: Utilities",
     ]
-
 )
