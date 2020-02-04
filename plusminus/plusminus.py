@@ -5,9 +5,9 @@
 plusminus
 
 plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and easy-to-use
-parsers for parsing and evaluating infix arithmetic expressions. arithmetic_parsing's ArithmeticParser class includes
+parsers for parsing and evaluating infix arithmetic expressions. plusminus's ArithmeticParser class includes
 separate parse and evaluate methods, handling operator precedence, override with parentheses, presence or absence of
-whitespace, built-in functions, and pre-defined and user-defined variables.
+whitespace, built-in functions, and pre-defined and user-defined variables, functions, and operators.
 
 Copyright 2020, by Paul McGuire
 

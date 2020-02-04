@@ -9,15 +9,16 @@ setup(
 
     install_requires=["pyparsing >= 2.4.6"],
 
-    # package_data={
-    #     # If any package contains *.txt or *.rst files, include them:
-    #     "": ["*.txt", "*.rst"],
-    # },
-
     # metadata to display on PyPI
     author="Paul McGuire",
     author_email="ptmcg@austin.rr.com",
-    description="safe arithmetic expression evaluator library",
+    description="""/
+        plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and 
+        easy-to-use parsers for parsing and evaluating infix arithmetic expressions. plusminus's ArithmeticParser 
+        class includes separate parse and evaluate methods, handling operator precedence, override with parentheses, 
+        presence or absence of whitespace, built-in functions, and pre-defined and user-defined variables, functions, 
+        and operators.
+    """,
     keywords="infix notation arithmetic safe eval",
     url="http://example.com/HelloWorld/",   # project home page, if any
     project_urls={
