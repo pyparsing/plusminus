@@ -2,12 +2,15 @@
 from setuptools import setup, find_packages
 from plusminus import __version__ as pm_version
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name="plusminus",
     version=pm_version,
     packages=find_packages(),
 
-    install_requires=["pyparsing >= 2.4.6"],
+    install_requires=["pyparsing>=2.4.6"],
 
     # metadata to display on PyPI
     author="Paul McGuire",
@@ -19,6 +22,8 @@ setup(
         presence or absence of whitespace, built-in functions, and pre-defined and user-defined variables, functions, 
         and operators.
     """,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords="python infix notation arithmetic safe eval",
     url="https://github.com/pyparsing/plusminus",   # project home page, if any
     project_urls={
@@ -42,5 +47,6 @@ setup(
         "Topic :: Text Processing",
         "Topic :: Text Processing :: General",
         "Topic :: Utilities",
-    ]
+    ],
+    python_requires = '>=3.5.2',
 )
