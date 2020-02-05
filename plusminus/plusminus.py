@@ -34,11 +34,12 @@ import operator
 import random
 import pyparsing as pp
 import sys
-import traceback
 
 
-__all__ = "ArithmeticParser BasicArithmeticParser expressions any_keyword __version__".split()
-__version__ = "0.1"
+__all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
+             safe_pow safe_str_mult constrained_factorial 
+             """.split()
+__version__ = "0.1.1"
 
 
 ppc = pp.pyparsing_common
@@ -153,7 +154,7 @@ def safe_pow(seq, eps=1e-15):
     return ret
 
 
-def safe_mult(a, b):
+def safe_str_mult(a, b):
     for _ in range(2):
         if isinstance(a, str):
             if b <= 0:
@@ -162,6 +163,12 @@ def safe_mult(a, b):
                 raise MemoryError("expression creates too large a string")
         a, b = b, a
     return a * b
+
+
+def constrained_factorial(x):
+    if not (0 <= x < 32768):
+        raise ValueError("{!r} not in working 0-32,767 range".format(x))
+    return math.factorial(int(x))
 
 
 class ArithNode:
@@ -285,10 +292,10 @@ class ArithmeticParser:
             '+': operator.add,
             '-': operator.sub,
             '−': operator.sub,
-            '*': safe_mult,
+            '*': safe_str_mult,
             '/': operator.truediv,
             'mod': operator.mod,
-            '×': safe_mult,
+            '×': safe_str_mult,
             '÷': operator.truediv,
         }
 
@@ -684,11 +691,6 @@ class ArithmeticParser:
 
 class BasicArithmeticParser(ArithmeticParser):
     def customize(self):
-        def constrained_factorial(x):
-            if not(0 <= x < 32768):
-                raise ValueError("{!r} not in working 0-32,767 range".format(x))
-            return math.factorial(int(x))
-
         super().customize()
         self.initialize_variable("pi", math.pi)
         self.initialize_variable("π", math.pi)
@@ -700,7 +702,7 @@ class BasicArithmeticParser(ArithmeticParser):
         self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
         self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
         self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
-        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x ** 2)
-        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x ** 3)
+        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 2))
+        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 3))
         self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
         self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)

@@ -1,4 +1,4 @@
-from plusminus import ArithmeticParser, BasicArithmeticParser
+from plusminus import ArithmeticParser, BasicArithmeticParser, safe_pow, constrained_factorial
 
 
 class DiceRollParser(ArithmeticParser):
@@ -50,11 +50,11 @@ class CombinatoricsParser(BasicArithmeticParser):
     def customize(self):
         import math
         super().customize()
-        self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
-                                                                          / math.factorial(a - b)))
-        self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
-                                                                          / math.factorial(b)
-                                                                          / math.factorial(a - b)))
+        self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(constrained_factorial(a)
+                                                                          / constrained_factorial(a - b)))
+        self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(constrained_factorial(a)
+                                                                          / constrained_factorial(b)
+                                                                          / constrained_factorial(a - b)))
 parser = CombinatoricsParser()
 parser.runTests("""\
     3!
@@ -73,13 +73,13 @@ parser.runTests("""\
 class BusinessArithmeticParser(ArithmeticParser):
     def customize(self):
         def pv(fv, rate, n_periods):
-            return fv / (1 + rate) ** n_periods
+            return fv / safe_pow(1 + rate, n_periods)
 
         def fv(pv, rate, n_periods):
-            return pv * (1 + rate) ** n_periods
+            return pv * safe_pow(1 + rate, n_periods)
 
         def pp(pv, rate, n_periods):
-            return rate * pv / (1 - (1 + rate) ** (-n_periods))
+            return rate * pv / (1 - safe_pow(1 + rate, -n_periods))
 
         super().customize()
         self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)

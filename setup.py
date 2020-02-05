@@ -48,5 +48,5 @@ setup(
         "Topic :: Text Processing :: General",
         "Topic :: Utilities",
     ],
-    python_requires = '>=3.5.2',
+    python_requires='>=3.5.2',
 )

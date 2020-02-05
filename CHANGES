@@ -1,0 +1,26 @@
+plusminus Change Log
+
+0.1.1 -
+
+    - Added useful customization methods to public API
+      - safe_pow
+      - safe_str_mult
+      - constrained_factorial
+
+    - Modified example parsers to use these safe methods
+
+
+0.1 - initial release
+
+    - Core API classes and methods
+      - ArithmeticParser
+      - BasicArithmeticParser
+
+    - examples
+      - example_parsers.py
+        - DiceRollerArithmeticParser
+        - CombinatoricsArithmeticParser
+        - BusinessArithmeticParser
+        - DatetimeArithmeticParser
+      - bottle_repl.py
+      - console_repl.py

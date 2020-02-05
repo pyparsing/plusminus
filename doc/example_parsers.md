@@ -14,17 +14,17 @@ Class implementation:
     class BusinessArithmeticParser(ArithmeticParser):
         def customize(self):
             def pv(fv, rate, n_periods):
-                return fv / (1 + rate)**n_periods
-
+                return fv / safe_pow(1 + rate, n_periods)
+    
             def fv(pv, rate, n_periods):
-                return pv * (1 + rate)**n_periods
-
+                return pv * safe_pow(1 + rate, n_periods)
+    
             def pp(pv, rate, n_periods):
-                return rate * pv / (1 - (1 + rate)**(-n_periods))
+                return rate * pv / (1 - safe_pow(1 + rate, -n_periods))
 
             super().customize()
-            self.add_operator('%', 1, ArithmeticParser.LEFT, math.radians)
             self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
+            self.add_operator('%', 1,ArithmeticParser.LEFT, lambda a: a / 100)
             self.add_function('PV', 3, pv)
             self.add_function('FV', 3, fv)
             self.add_function('PP', 3, pp)
@@ -54,12 +54,11 @@ Class implementation:
     class CombinatoricsParser(BasicArithmeticParser):
         def customize(self):
             super().customize()
-            self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
-                                                                              / math.factorial(a-b)))
-            self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
-                                                                              / math.factorial(b)
-                                                                              / math.factorial(a-b)))
-
+                self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(constrained_factorial(a)
+                                                                                  / constrained_factorial(a - b)))
+                self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(constrained_factorial(a)
+                                                                                  / constrained_factorial(b)
+                                                                                  / constrained_factorial(a - b)))
     parser = CombinatoricsArithmeticParser()
     parser.runTests("""\
         3!
