@@ -1,36 +1,13 @@
+#
+# arith_tests.py
+#
+# Demo/tests of various plusminus parsers
+#
+# Copyright 2020, Paul McGuire
+#
 from plusminus import *
+from plusminus.examples.example_parsers import DiceRollParser, CombinatoricsArithmeticParser, BusinessArithmeticParser
 from pprint import pprint
-import math
-
-
-class restore:
-    """
-    Context manager for restoring an object's attributes back the way they were if they were
-    changed or deleted, or to remove any attributes that were added.
-    """
-    def __init__(self, obj, *attr_names):
-        self._obj = obj
-        self._attrs = attr_names
-        if not self._attrs:
-            self._attrs = [name for name in vars(obj) if name not in ('__dict__', '__slots__')]
-        self._no_attr_value = object()
-        self._save_values = {}
-
-    def __enter__(self):
-        for attr in self._attrs:
-            self._save_values[attr] = getattr(self._obj, attr, self._no_attr_value)
-        return self
-
-    def __exit__(self, *args):
-        for attr in self._attrs:
-            save_value = self._save_values[attr]
-            if save_value is not self._no_attr_value:
-                if getattr(self._obj, attr, self._no_attr_value) != save_value:
-                    print("reset", attr, "to", save_value)
-                    setattr(self._obj, attr, save_value)
-            else:
-                if hasattr(self._obj, attr):
-                    delattr(self._obj, attr)
 
 
 parser = BasicArithmeticParser()
@@ -114,15 +91,6 @@ print('circle_area =', parser['circle_area'])
 print(parser.parse("6.02e24 * 100").evaluate())
 
 
-class CombinatoricsArithmeticParser(ArithmeticParser):
-    def customize(self):
-        super().customize()
-        self.add_operator("!", 1, ArithmeticParser.LEFT, math.factorial)
-        self.add_operator("P", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a) / math.factorial(a-b)))
-        self.add_operator("C", 2, ArithmeticParser.LEFT, lambda a, b: int(math.factorial(a)
-                                      / math.factorial(b)
-                                                                  / math.factorial(a-b)))
-
 parser = CombinatoricsArithmeticParser()
 parser.runTests("""\
     3!
@@ -138,25 +106,6 @@ parser.runTests("""\
     postParse=lambda _, result: result[0].evaluate())
 
 
-class BusinessArithmeticParser(ArithmeticParser):
-    def customize(self):
-        def pv(fv, rate, n_periods):
-            return fv / (1 + rate) ** n_periods
-
-        def fv(pv, rate, n_periods):
-            return pv * (1 + rate) ** n_periods
-
-        def pp(pv, rate, n_periods):
-            return rate * pv / (1 - (1 + rate) ** (-n_periods))
-
-        super().customize()
-        self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda x: x / 100.0)
-        self.add_function('PV', 3, pv)
-        self.add_function('FV', 3, fv)
-        self.add_function('PP', 3, pp)
-
-
 parser = BusinessArithmeticParser()
 parser.runTests("""\
     25%
@@ -166,6 +115,7 @@ parser.runTests("""\
     (100-20)% of 20
     5 / 20%
     FV(20000, 3%, 30)
+    PV(FV(20000, 3%, 30), 3%, 30)
     FV(20000, 3%/12, 30*12)
     """,
     postParse=lambda _, result: result[0].evaluate())
@@ -200,13 +150,6 @@ parser.runTests("""\
     postParse=lambda _, result: result[0].evaluate())
 
 
-import random
-class DiceRollParser(ArithmeticParser):
-    def customize(self):
-        super().customize()
-        self.add_operator('d', 1, ArithmeticParser.RIGHT, lambda x: random.randint(1, x))
-        self.add_operator('d', 2, ArithmeticParser.LEFT, lambda x, y: x * random.randint(1, y))
-
 parser = DiceRollParser()
 parser.runTests("""
 d20
@@ -218,7 +161,38 @@ d20 + 3d4
 
 print()
 
+
 # override max number of variables
+class restore:
+    """
+    Context manager for restoring an object's attributes back the way they were if they were
+    changed or deleted, or to remove any attributes that were added.
+    """
+    def __init__(self, obj, *attr_names):
+        self._obj = obj
+        self._attrs = attr_names
+        if not self._attrs:
+            self._attrs = [name for name in vars(obj) if name not in ('__dict__', '__slots__')]
+        self._no_attr_value = object()
+        self._save_values = {}
+
+    def __enter__(self):
+        for attr in self._attrs:
+            self._save_values[attr] = getattr(self._obj, attr, self._no_attr_value)
+        return self
+
+    def __exit__(self, *args):
+        for attr in self._attrs:
+            save_value = self._save_values[attr]
+            if save_value is not self._no_attr_value:
+                if getattr(self._obj, attr, self._no_attr_value) != save_value:
+                    print("reset", attr, "to", save_value)
+                    setattr(self._obj, attr, save_value)
+            else:
+                if hasattr(self._obj, attr):
+                    delattr(self._obj, attr)
+
+
 print('test defining too many vars (set max to 20)')
 with restore(ArithmeticParser):
     ArithmeticParser.MAX_VARS = 20

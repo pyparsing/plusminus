@@ -4,6 +4,8 @@
 # A simple demonstration REPL implemented in a bottle web server.
 # NOT FOR PRODUCTION USE.
 #
+# Copyright 2020, Paul McGuire
+#
 from bottle import default_app, route, request
 from enum import Enum
 import inspect
@@ -11,11 +13,11 @@ import threading
 import random
 from pprint import pprint
 import io
-# from markup import markupToHTML
+
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
-from plusminus import BasicArithmeticParser
+from plusminus import BasicArithmeticParser, ArithmeticParseException
 import cgitb
 cgitb.enable()
 
@@ -65,14 +67,6 @@ def time_to_str(dt):
 
 def make_random_key(n=SESSION_KEY_LENGTH):
     return ''.join(random.choice("bcdfghjklmnpqrstvwxz0123456789") for _ in range(n))
-
-
-def unique(seq):
-    seen = set()
-    for obj in seq:
-        if obj not in seen:
-            seen.add(obj)
-            yield obj
 
 
 class Repl:
@@ -149,6 +143,9 @@ class Repl:
             try:
                 result = self.parser.evaluate(cmd)
                 # print(cmd, result)
+            except ArithmeticParseException as pe:
+                self._update_session(key, cmd, False)
+                return False, self.CommandStatus.APP_FAILURE, pe.explain()
             except Exception as e:
                 self._update_session(key, cmd, False)
                 return False, self.CommandStatus.APP_FAILURE, "{}: {}".format(type(e).__name__, e)
@@ -169,41 +166,11 @@ class Repl:
         return ''
 
     @classmethod
-    def make_name_list_string(cls, names, indent=''):
-        import math
-        import itertools
-        names = list(unique(names))
-        chunk_size = math.ceil(len(names) ** 0.5)
-        chunks = [list(c) for c in itertools.zip_longest(*[iter(names)] * chunk_size, fillvalue='')]
-        col_widths = [max(map(len, chunk)) for chunk in chunks]
-        ret = []
-        for transpose in zip(*chunks):
-            line = indent
-            for item, wid in zip(transpose, col_widths):
-                line += "{:{}s}".format(item, wid + 2)
-            ret.append(line.rstrip())
-        return '\n'.join(ret)
-
-    @classmethod
     def usage(cls, parser):
         msg = textwrap.dedent("""\
-        Interactive utility to use the plusminus BaseArithmeticParser.
+        Interactive utility to use the plusminus {classname}.
 
-        Use your keyboard or the buttons below to enter an arithmetic expression
-        or assignment statement, using the following operators:
-        {operator_list}
-
-        Multiple assignments can be made using lists of variable names and
-        corresponding lists of expressions (lists must be of matching lengths).
-            x₁, y₁ = 1, 2
-            a, b, c = 1, 2, a+b
-
-        Deferred evaluation assignments can be defined using "@=":
-            circle_area @= pi * r**2
-        will re-evaluate 'circle_area' using the current value of 'r'.
-
-        Expression can include the following functions:
-        {function_list}
+        {usage}
 
         Other commands:
         - vars - list all saved variable names
@@ -212,13 +179,7 @@ class Repl:
         - quit - close your session (automatically starts a new one)
         - code - view sample code for creating and running this evaluator/parser
         """)
-        func_list = cls.make_name_list_string(names=list({**parser.base_function_map, **parser.added_function_specs}),
-                                              indent='  ')
-        custom_operators = [str(oper_defn[0]) for oper_defn in parser.added_operator_specs]
-        operators = parser.base_operators
-
-        oper_list = cls.make_name_list_string(names=custom_operators + operators + ['|absolute-value|'], indent='  ')
-        return msg.format(function_list=func_list, operator_list=oper_list)
+        return msg.format(classname=cls.__name__, usage=parser.usage())
 
     @classmethod
     def examples(cls, parser):
@@ -322,9 +283,6 @@ class BottleArithReplRequestHandler:
             player, game = session_info.player, session_info.game
         else:
             if len(sessions) < MAX_SESSIONS:
-                # advEng.HelpCommand(None)._doCommand(None)
-                # self._sayRaw(advEng.NLCHAR+'\n')
-                # start new game
                 game = Repl(BasicArithmeticParser)
                 # create player session
                 sessionkey = game.start_new_session()
@@ -540,7 +498,7 @@ def hello_world():
     return 'Hello from plusminus repl!'
 
 
-if __name__ == '__main__':
-    import sys
-    sys.setrecursionlimit(2000)
-    application = default_app()
+# bottle server "main"
+import sys
+sys.setrecursionlimit(2000)
+application = default_app()

@@ -4,6 +4,8 @@
 # A simple demonstration REPL around a BasicArithmeticParser.
 # NOT FOR PRODUCTION USE.
 #
+# Copyright 2020, Paul McGuire
+#
 from pprint import pprint
 import textwrap
 from plusminus import BasicArithmeticParser
@@ -24,19 +26,9 @@ def make_name_list_string(names, indent=''):
 
 def usage(parser):
     msg = textwrap.dedent("""\
-    Pyrithmetic REPL
-    Interactive utility to use the pyrithmetic BaseArithmeticParser.
-    
-    Enter an arithmetic expression or assignment statement, using the following
-    operators:
-    {operator_list}
-    
-    Deferred evaluation assignments can be defined using "@=":
-        circle_area @= pi * r**2
-    will re-evaluate 'circle_area' using the current value of 'r'.
-    
-    Expression can include the following functions:
-    {function_list}
+    Interactive utility to use the plusminus BaseArithmeticParser.
+
+    {parser_usage}    
 
     Other commands:
     - vars - list all saved variable names
@@ -44,14 +36,7 @@ def usage(parser):
     - quit - quit the REPL
     - help - display this help text
     """)
-    func_list = make_name_list_string(names=list({**parser.base_function_map, **parser.added_function_specs}),
-                                      indent='  ')
-    custom_operators = [str(oper_defn[0]) for oper_defn in parser.added_operator_specs]
-    operators = ("** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ between-and within-and"
-                 " in-range-from-to not and ∧ or ∨ ?:").split()
-
-    oper_list = make_name_list_string(names=custom_operators + operators, indent='  ')
-    print(msg.format(function_list=func_list, operator_list=oper_list))
+    print(msg.format(parser_usage=parser.usage()))
 
 def run_repl(parser_class):
     MAX_INPUT_LEN = 100

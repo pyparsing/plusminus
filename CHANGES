@@ -6,8 +6,25 @@ plusminus Change Log
       - safe_pow
       - safe_str_mult
       - constrained_factorial
+      - ArithmeticParseException
 
     - Modified example parsers to use these safe methods
+
+    - Moved many functions out of the base ArithmeticParser class and into
+      BasicArithmeticParser, so that applications can choose to extend
+      from the base class if trigonometric, etc. functions are not
+      relevant to their particular domain.
+
+    - Moved example parsers into plusminus import tree, so that they can be
+      imported and used:
+
+          from plusminus.examples.example_parsers import DiceRollParser
+
+          parser = DiceRollParser()
+          print(parser.evaluate("3d20")
+
+    - Moved body of usage() out of bottle_repl and into the parser class
+      itself so that repls can get basic usage text directly from the parser.
 
 
 0.1 - initial release

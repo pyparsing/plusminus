@@ -35,9 +35,19 @@ import random
 import pyparsing as pp
 import sys
 
+# monkeypatch explain into an instance method
+from pyparsing import ParseBaseException, ParseException
+if not hasattr(ParseException, 'explain_exception'):
+    _ParseException = ParseBaseException
+    _ParseException.explain = lambda self, fn=ParseException.explain, **kwargs: fn(self, depth=0, **kwargs)
+    ParseException.explain_exception = ParseException.explain
+    ParseException.explain = lambda e, *args, **kwargs: _ParseException.explain(e, **kwargs)
+
+ArithmeticParseException = ParseBaseException
+
 
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
-             safe_pow safe_str_mult constrained_factorial 
+             safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
 __version__ = "0.1.1"
 
@@ -128,9 +138,7 @@ def collapse_operands(seq, eps=1e-15):
 
 
 def safe_pow(seq, eps=1e-15):
-    # print(seq)
     operands = collapse_operands(seq, eps)
-    # print(operands)
     ret = 1
     for operand in operands[::-1]:
         op1 = operand  # .evaluate()
@@ -270,6 +278,57 @@ class ArithmeticParser:
     MAX_VARS = 1000
     MAX_VAR_MEMORY = 10**6
 
+    def usage(self):
+        import textwrap
+
+        def make_name_list_string(names, indent=''):
+            import itertools
+
+            def unique(seq):
+                seen = set()
+                for obj in seq:
+                    if obj not in seen:
+                        seen.add(obj)
+                        yield obj
+
+            names = list(unique(names))
+            chunk_size = -int(-len(names) ** 0.5 // 1)
+            chunks = [list(c) for c in itertools.zip_longest(*[iter(names)] * chunk_size, fillvalue='')]
+            col_widths = [max(map(len, chunk)) for chunk in chunks]
+            ret = []
+            for transpose in zip(*chunks):
+                line = indent
+                for item, wid in zip(transpose, col_widths):
+                    line += "{:{}s}".format(item, wid + 2)
+                ret.append(line.rstrip())
+            return '\n'.join(ret)
+
+        msg = textwrap.dedent("""\
+        Enter an arithmetic expression or assignment statement, using
+        the following operators:
+        {operator_list}
+
+        Multiple assignments can be made using lists of variable names and
+        corresponding lists of expressions (lists must be of matching lengths).
+            x₁, y₁ = 1, 2
+            a, b, c = 1, 2, a+b
+
+        Deferred evaluation assignments can be defined using "@=":
+            circle_area @= pi * r**2
+        will re-evaluate 'circle_area' using the current value of 'r'.
+
+        Expression can include the following functions:
+        {function_list}
+        """)
+        func_list = make_name_list_string(names=list({**self.base_function_map, **self.added_function_specs}),
+                                          indent='  ')
+        custom_operators = [str(oper_defn[0]) for oper_defn in self.added_operator_specs]
+        operators = self.base_operators
+
+        oper_list = make_name_list_string(names=custom_operators + operators + ['|absolute-value|'],
+                                          indent='  ')
+        return msg.format(function_list=func_list, operator_list=oper_list)
+
     class ArithmeticUnaryOp(UnaryNode):
         opns_map = {
             '+': lambda x: x,
@@ -354,32 +413,15 @@ class ArithmeticParser:
         self._base_operators = ("** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ between-and within-and"
                                " in-range-from-to not and ∧ or ∨ ?:").split()
         self._base_function_map = {
-            'sin': FunctionSpec(math.sin, 1),
-            'cos': FunctionSpec(math.cos, 1),
-            'tan': FunctionSpec(math.tan, 1),
-            'asin': FunctionSpec(math.asin, 1),
-            'acos': FunctionSpec(math.acos, 1),
-            'atan': FunctionSpec(math.atan, 1),
-            'sinh': FunctionSpec(math.sinh, 1),
-            'cosh': FunctionSpec(math.cosh, 1),
-            'tanh': FunctionSpec(math.tanh, 1),
-            'rad': FunctionSpec(math.radians, 1),
-            'deg': FunctionSpec(math.degrees, 1),
             'sgn': FunctionSpec((lambda x: -1 if x < 0 else 1 if x > 0 else 0), 1),
             'abs': FunctionSpec(abs, 1),
             'round': FunctionSpec(round, 2),
             'trunc': FunctionSpec(math.trunc, 1),
             'ceil': FunctionSpec(math.ceil, 1),
             'floor': FunctionSpec(math.floor, 1),
-            'ln': FunctionSpec(math.log, 1),
-            'log2': FunctionSpec(math.log2, 1),
-            'log10': FunctionSpec(math.log10, 1),
-            'gcd': FunctionSpec(math.gcd, 2),
-            'lcm': FunctionSpec((lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0), 2),
-            'gamma': FunctionSpec(math.gamma, 2),
-            'hypot': FunctionSpec(math.hypot, 2),
             'min': FunctionSpec(min, 2),
             'max': FunctionSpec(max, 2),
+            'str': FunctionSpec(lambda x: str(x), 1),
         }
 
         # epsilon for computing "close" floating point values - can be updated in customize
@@ -572,6 +614,9 @@ class ArithmeticParser:
                 self._result = result
                 self.epsilon = 1e-15
 
+            def __repr__(self):
+                return '~' + str(self._result)
+
             def evaluate(self):
                 with _trimming_exception_traceback():
                     # print(self._result.dump())
@@ -691,18 +736,38 @@ class ArithmeticParser:
 
 class BasicArithmeticParser(ArithmeticParser):
     def customize(self):
+        import math
+        
         super().customize()
         self.initialize_variable("pi", math.pi)
         self.initialize_variable("π", math.pi)
         self.initialize_variable("τ", math.pi * 2)
         self.initialize_variable("e", math.e)
         self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
+        self.add_function('sin', 1, math.sin)
+        self.add_function('cos', 1, math.cos)
+        self.add_function('tan', 1, math.tan)
+        self.add_function('asin', 1, math.asin)
+        self.add_function('acos', 1, math.acos)
+        self.add_function('atan', 1, math.atan)
+        self.add_function('sinh', 1, math.sinh)
+        self.add_function('cosh', 1, math.cosh)
+        self.add_function('tanh', 1, math.tanh)
+        self.add_function('rad', 1, math.radians)
+        self.add_function('deg', 1, math.degrees)
+        self.add_function('ln', 1, math.log)
+        self.add_function('log2', 1, math.log2)
+        self.add_function('log10', 1, math.log10)
+        self.add_function('gcd', 2, math.gcd)
+        self.add_function('lcm', 2, (lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0))
+        self.add_function('gamma', 2, math.gamma)
+        self.add_function('hypot', 2, math.hypot)
         self.add_function('rnd', 0, random.random)
         self.add_function('randint', 2, random.randint)
         self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
         self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
         self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
-        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 2))
-        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 3))
+        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 2)))
+        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 3)))
         self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
         self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)
