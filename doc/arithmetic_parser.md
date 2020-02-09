@@ -22,30 +22,15 @@
 
 - Defined functions
 
-  - `sin`
-  - `cos`
-  - `tan`
-  - `asin`
-  - `acos`
-  - `atan`
-  - `sinh`
-  - `cosh`
-  - `tanh`
-  - `rad`
-  - `deg`
   - `sgn`
   - `abs`
   - `round`
   - `trunc`
   - `ceil`
   - `floor`
-  - `ln`
-  - `log2`
-  - `log10`
-  - `gcd`
-  - `lcm`
-  - `gamma`
-  - `hypot`
+  - `min`
+  - `max`
+  - `str`
 
 - Multiple assignment
 
@@ -95,6 +80,24 @@ functions, and common mathematical variables
   - `²` - superscript 2 - `x**2`
   - `³` - superscript 3 - `x**3`
 - functions
+  - `sin`
+  - `cos`
+  - `tan`
+  - `asin`
+  - `acos`
+  - `atan`
+  - `sinh`
+  - `cosh`
+  - `tanh`
+  - `rad`
+  - `deg`
+  - `ln`
+  - `log2`
+  - `log10`
+  - `gcd`
+  - `lcm`
+  - `gamma`
+  - `hypot`
   - `rnd`
   - `randint`
 - variables
@@ -135,23 +138,38 @@ functions, and common mathematical variables
 
         class BasicArithmeticParser(ArithmeticParser):
             def customize(self):
-                def constrained_factorial(x):
-                    if not(0 <= x < 32768):
-                        raise ValueError("{!r} not in working 0-32,767 range".format(x))
-                    return math.factorial(int(x))
-        
+                import math
+                
                 super().customize()
                 self.initialize_variable("pi", math.pi)
                 self.initialize_variable("π", math.pi)
                 self.initialize_variable("τ", math.pi * 2)
                 self.initialize_variable("e", math.e)
                 self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
+                self.add_function('sin', 1, math.sin)
+                self.add_function('cos', 1, math.cos)
+                self.add_function('tan', 1, math.tan)
+                self.add_function('asin', 1, math.asin)
+                self.add_function('acos', 1, math.acos)
+                self.add_function('atan', 1, math.atan)
+                self.add_function('sinh', 1, math.sinh)
+                self.add_function('cosh', 1, math.cosh)
+                self.add_function('tanh', 1, math.tanh)
+                self.add_function('rad', 1, math.radians)
+                self.add_function('deg', 1, math.degrees)
+                self.add_function('ln', 1, math.log)
+                self.add_function('log2', 1, math.log2)
+                self.add_function('log10', 1, math.log10)
+                self.add_function('gcd', 2, math.gcd)
+                self.add_function('lcm', 2, (lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0))
+                self.add_function('gamma', 2, math.gamma)
+                self.add_function('hypot', 2, math.hypot)
                 self.add_function('rnd', 0, random.random)
                 self.add_function('randint', 2, random.randint)
                 self.add_operator('°', 1, ArithmeticParser.LEFT, math.radians)
                 self.add_operator("!", 1, ArithmeticParser.LEFT, constrained_factorial)
                 self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
-                self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: x ** 2)
-                self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: x ** 3)
+                self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 2)))
+                self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 3)))
                 self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
                 self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)
