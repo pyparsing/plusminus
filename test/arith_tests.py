@@ -37,10 +37,13 @@ parser.runTests("""\
     (11 between 10 and 15) == (10 < 11 < 15)
     32 + 37 * 9 / 5 == 98.6
     ctemp = 37
+    temp_f = 100.2
     temp_f > 98.6 ? "fever" : "normal"
     "You " + (temp_f > 98.6 ? "have" : "don't have") + " a fever"
     ctemp = 38
     feverish @= temp_f > 98.6
+    "You " + (feverish ? "have" : "don't have") + " a fever"    
+    temp_f = 98.2
     "You " + (feverish ? "have" : "don't have") + " a fever"    
     a = 100
     b @= a / 10
@@ -83,6 +86,24 @@ parser.runTests("""\
     0**(-1)**3
     1000000000000**1000000000000**0
     1000000000000**0**1000000000000**1000000000000
+    100 < 101
+    100 <= 101
+    100 > 101
+    100 >= 101
+    100 == 101
+    100 != 101
+    100 < 99
+    100 <= 99
+    100 > 99
+    100 >= 99
+    100 == 99
+    100 != 99
+    100 < 100+1E-18
+    100 <= 100+1E-18
+    100 > 100+1E-18
+    100 >= 100+1E-18
+    100 == 100+1E-18
+    100 != 100+1E-18
     """,
     postParse=lambda teststr, result: result[0].evaluate() if '@=' not in teststr else None)
 
