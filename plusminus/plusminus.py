@@ -165,7 +165,7 @@ def safe_pow(seq, eps=1e-15):
         elif ret == 1:
             ret = op1
         else:
-            if 0 not in (ret, op1) and math.log10(abs(op1)) + math.log10(abs(ret)) > 8:
+            if 0 not in (ret, op1) and math.log10(abs(op1)) + math.log10(abs(ret)) > 7:
                 raise OverflowError("operands too large for expression")
             ret = op1 ** ret
     return ret
