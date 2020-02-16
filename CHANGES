@@ -1,5 +1,13 @@
 plusminus Change Log
 
+0.1.2 -
+
+    - Updated the values returned from evaluating an assignment
+      expression. If a single value is assigned, then a single
+      value is returned. If multiple values are assigned, a tuple
+      of the values is returned. (Previously, the underlying
+      list of values was returned.)
+
 0.1.1 -
 
     - Added useful customization methods to public API

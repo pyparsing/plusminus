@@ -214,7 +214,10 @@ class ArithNode:
 
 class LiteralNode(ArithNode):
     def evaluate(self):
-        return self.tokens
+        if isinstance(self.tokens, list):
+            return tuple(self.tokens)
+        else:
+            return self.tokens
 
     def __repr__(self):
         return repr(self.tokens)
@@ -701,7 +704,7 @@ class ArithmeticParser:
                     raise Exception("too many variables defined")
                 identifier_node_class._assigned_vars[var_name] = rval
                 assignments.append(rval)
-            return LiteralNode([assignments])
+            return LiteralNode([assignments]) if len(assignments) > 1 else rval
 
         value_assignment_statement.addParseAction(eval_and_store_value)
         value_assignment_statement.setName("assignment statement")
