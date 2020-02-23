@@ -37,7 +37,7 @@ class TestMultipleRolls:
                              )
     def test_multiple_rolls_max_one(self, die,
                                     num_rolls):
-        assert num_rolls <= die.evaluate(f'{num_rolls}d1') == num_rolls
+        assert die.evaluate(f'{num_rolls}d1') == num_rolls
 
     @pytest.mark.parametrize('num_rolls',
                              [1, 2, 4, 5, 10, 100, ],
