@@ -8,7 +8,7 @@ def die():
     return DiceRollParser()
 
 
-class TestSingleROll:
+class TestSingleRoll:
     def test_single_roll_max_one(self, die):
         assert die.evaluate('d1') == 1
 
