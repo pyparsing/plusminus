@@ -65,7 +65,5 @@ class TestCompoundExamples:
         assert result_min <= die.evaluate(evaluation_string) <= result_max
 
     def test_rolls_are_distinct(self, die):
-        pairs_of_rolls = []
-        for pair in range(100):
-            pairs_of_rolls.append(die.evaluate('2d6'))
-        assert any(pair%22 != 0 for pair in pairs_of_rolls)
+        pairs_of_rolls = [die.evaluate('2d6') for _ in range(100)]
+        assert any(pair%2 != 0 for pair in pairs_of_rolls)
