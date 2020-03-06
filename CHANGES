@@ -8,6 +8,11 @@ plusminus Change Log
       of the values is returned. (Previously, the underlying
       list of values was returned.)
 
+    - Guard against overly-nested ()'s (10 levels is the max).
+
+    - New unit tests, thanks toonarmycaptain!
+
+
 0.1.1 -
 
     - Added useful customization methods to public API
