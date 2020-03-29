@@ -454,10 +454,10 @@ class ArithmeticParser:
                 fn_spec = self.fn_map[fn_name]
                 if fn_spec.arity not in (len(fn_args), ...):
                     raise TypeError(
-                        "{} takes {} arg{}, {} given".format(
+                        "{} takes {} {}, {} given".format(
                             fn_name,
                             fn_spec.arity,
-                            ("", "s")[fn_spec.arity != 1],
+                            ("arg", "args")[fn_spec.arity != 1],
                             len(fn_args),
                         )
                     )
@@ -595,13 +595,14 @@ class ArithmeticParser:
         )
         function_expression.addParseAction(function_node_class)
 
-        range_punc = pp.oneOf("( ) [ ]")
+        range_punc = (pp.oneOf("( )").setParseAction(lambda: False)
+                      | pp.oneOf("[ ]").setParseAction(lambda: True))
         range_expression = pp.Group(
-            range_punc("lower_incl_excl")
+            range_punc("lower_inclusive")
             + arith_operand("lower")
             + COMMA
             + arith_operand("upper")
-            + range_punc("upper_incl_excl")
+            + range_punc("upper_inclusive")
         )
 
         numeric_operand = ppc.number().addParseAction(LiteralNode)
@@ -656,11 +657,11 @@ class ArithmeticParser:
             def evaluate(self):
                 operand, op, range_expr = self.tokens
                 range_fn = {
-                    ("(", ")"): lambda a, b, c: a < b < c,
-                    ("(", "]"): lambda a, b, c: a < b <= c,
-                    ("[", ")"): lambda a, b, c: a <= b < c,
-                    ("[", "]"): lambda a, b, c: a <= b <= c,
-                }[range_expr.lower_incl_excl, range_expr.upper_incl_excl]
+                    (False, False): lambda a, b, c: a < b < c,
+                    (False, True): lambda a, b, c: a < b <= c,
+                    (True, False): lambda a, b, c: a <= b < c,
+                    (True, True): lambda a, b, c: a <= b <= c,
+                }[range_expr.lower_inclusive, range_expr.upper_inclusive]
 
                 with _trimming_exception_traceback():
                     return range_fn(range_expr.lower.evaluate(),

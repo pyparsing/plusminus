@@ -220,7 +220,7 @@ class Repl:
             100 inrange (0, 100)     (0 < 100 < 100    = False)
             100 inrange [0, 100]     (0 <= 100 <= 100  = True)
             100 inrange [0, 100)     (0 <= 100 < 100   = False)
-            99.9 in range from 0 to 100
+            99.9 inrange (0, 100)
             dist @= ((x2-x1)**2 + (y2-y1)**2)**0.5
             dist @= √((x₂-x₁)² + (y₂-y₁)²)
             x₁, y₁ = 1, 2
