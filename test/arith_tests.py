@@ -9,6 +9,8 @@ from plusminus import *
 from plusminus.examples.example_parsers import DiceRollParser, CombinatoricsArithmeticParser, BusinessArithmeticParser
 from pprint import pprint
 
+import sys
+sys.setrecursionlimit(2000)
 
 parser = BasicArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
@@ -16,25 +18,41 @@ parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
 parser.runTests("""\
     sin(rad(30))
     sin(30°)
+
+    # test rejection of functions with wrong number of args
     sin()
     sin(1, 2)
+    hypot(1)
+
     sin(pi)
     sin(π/2)
     rnd()
     1/0
     0**0
     32 + 37 * 9 / 5
+    
+    # verify right-to-left eval of exponents
+    # 3**2**3 should eval as 3**(2**3)
     3**2**3
-    9**3
-    3**8
+    3**(2**3)
+    (3**2)**3
+
+    # addition and multiplication of strings
     "You" + " win"
     "You" + " win"*3
+
+    # ints as bools
+    not not 0
+    not not 1
     1 or 0
     1 and not 0
+
+    # inrange operator
     1 inrange (0, 2)
     100 inrange [0, 100)
     99.9999 inrange [0, 100)
     (11 inrange (10,15)) == (10 < 11 < 15)
+
     32 + 37 * 9 / 5 == 98.6
     ctemp = 37
     temp_f = 100.2
@@ -55,14 +73,7 @@ parser.runTests("""\
     b
     a = b + 3
     a + c
-    "Y" inrange ("X", "Z")
-    btwn @= b inrange (a,c)
-    a = 'x'
-    b = 'y'
-    c = 'z'
-    btwn
-    b = 'a'
-    btwn
+    
     'x' < 'y' < 'z'
     5 mod 3
     circle_area @= pi * circle_radius**2
@@ -77,15 +88,22 @@ parser.runTests("""\
     die_roll
     die_roll
     die_roll
+    
+    # unary and binary square root
+    # and imaginary square root
     √2
     2√2
     √-1
+
+    # test safe_pow
     10000**100000
     0**10000000000**10000000000
     0**(-1)**2
     0**(-1)**3
     1000000000000**1000000000000**0
     1000000000000**0**1000000000000**1000000000000
+    
+    # test all comparison operators
     100 < 101
     100 <= 101
     100 > 101
@@ -104,13 +122,33 @@ parser.runTests("""\
     100 >= 100+1E-18
     100 == 100+1E-18
     100 != 100+1E-18
+    
+    # inrange checks
     100 inrange [100, 101]
     100 inrange [100, 101)
     100 inrange (100, 101]
     100 inrange (100, 101)
     100.5 inrange (100, 101)
+    
+    # inrange with strings
+    "Y" inrange ("X", "Z")
+    btwn @= b inrange (a,c)
+    a = 'x'
+    b = 'y'
+    c = 'z'
+    btwn
+    b = 'a'
+    btwn
+
+    # function call with variable number of args
     hypot(3, 4)
-    nhypot(3, 4, 5)
+    nhypot(3, 4)
+    nhypot(3, 4) == hypot(3, 4)
+    nhypot(3, 4, 5, 6) == hypot(3, hypot(4, hypot(5, 6)))
+    nhypot()
+    
+    # mismatched parentheses
+    5 + (3*
     """,
     postParse=lambda teststr, result: result[0].evaluate() if '@=' not in teststr else None)
 
