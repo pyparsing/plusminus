@@ -10,6 +10,22 @@ plusminus Change Log
 
     - Guard against overly-nested ()'s (10 levels is the max).
 
+    - Replaced "between", "within", and "in range from-to" operators
+      to single "inrange" operator, taking an argument of the form:
+          [1, 10] between 1 and 10 (including the values 1 and 10)
+          [1, 10) between 1 and 10 (excluding the value 10)
+          (1, 10] between 1 and 10 (excluding the value 1)
+          (1, 10) between 1 and 10 (excluding the values 1 and 10)
+
+    - Changed signature of safe_pow, now takes multiple operands
+      instead of a tuple of operands.
+
+    - Custom functions can now take variable numbers of arguments,
+      using ... for the arity. For example, here is a variant of
+      hypot computing an n-dimensional distance:
+
+          self.add_function("nhypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
+
     - New unit tests, thanks toonarmycaptain!
 
 

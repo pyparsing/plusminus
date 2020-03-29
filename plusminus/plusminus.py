@@ -65,14 +65,12 @@ expressions = {}
 # keywords
 keywords = {
     k.upper(): pp.Keyword(k)
-    for k in """between within from to in range and or not True False if else mod""".split()
+    for k in """inrange and or not True False if else mod""".split()
 }
 vars().update(keywords)
 expressions.update(keywords)
 
 any_keyword = pp.MatchFirst(keywords.values())
-# noinspection PyUnresolvedReferences
-IN_RANGE_FROM = (IN + RANGE + FROM).addParseAction("_".join)
 # noinspection PyUnresolvedReferences
 TRUE.addParseAction(lambda: True)
 # noinspection PyUnresolvedReferences
@@ -128,9 +126,7 @@ def _trimming_exception_traceback():
 
 
 def collapse_operands(seq, eps=1e-15):
-    cur = seq[:]
-    # if any((a == 0 and b < 0) for a, b in zip(seq, seq[1:])):
-    #     1 / 0
+    cur = list(seq)
     last = cur[:]
     while True:
         # print(cur)
@@ -169,7 +165,7 @@ def collapse_operands(seq, eps=1e-15):
     return cur
 
 
-def safe_pow(seq, eps=1e-15):
+def safe_pow(*seq, eps=1e-15):
     operands = collapse_operands(seq, eps)
     ret = 1
     for operand in operands[::-1]:
@@ -428,7 +424,7 @@ class ArithmeticParser:
                 if not all(isinstance(op, (int, float, complex)) for op in operands):
                     raise TypeError("invalid operators for exponentiation")
 
-                return safe_pow(operands)
+                return safe_pow(*operands)
 
     class IdentifierNode(ArithNode):
         _assigned_vars = {}
@@ -456,7 +452,7 @@ class ArithmeticParser:
                         "{!r} is not a recognized function".format(fn_name)
                     )
                 fn_spec = self.fn_map[fn_name]
-                if fn_spec.arity != len(fn_args):
+                if fn_spec.arity not in (len(fn_args), ...):
                     raise TypeError(
                         "{} takes {} arg{}, {} given".format(
                             fn_name,
@@ -474,8 +470,7 @@ class ArithmeticParser:
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ between-and within-and"
-            " in-range-from-to not and ∧ or ∨ ?:"
+            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ inrange not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "sgn": FunctionSpec((lambda x: -1 if x < 0 else 1 if x > 0 else 0), 1),
@@ -484,8 +479,8 @@ class ArithmeticParser:
             "trunc": FunctionSpec(math.trunc, 1),
             "ceil": FunctionSpec(math.ceil, 1),
             "floor": FunctionSpec(math.floor, 1),
-            "min": FunctionSpec(min, 2),
-            "max": FunctionSpec(max, 2),
+            "min": FunctionSpec(min, ...),
+            "max": FunctionSpec(max, ...),
             "str": FunctionSpec(lambda x: str(x), 1),
         }
 
@@ -493,10 +488,10 @@ class ArithmeticParser:
         self.epsilon = 1e-15
 
         # customize can update or replace with different characters
-        self.ident_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ" + pp.srange(
-            "[Α-Ω]"
-        ) + pp.srange(
-            "[α-ω]"
+        self.ident_letters = (
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
+            + pp.srange("[Α-Ω]")
+            + pp.srange("[α-ω]")
         )
 
         # storage for assigned variables
@@ -583,7 +578,7 @@ class ArithmeticParser:
 
     def make_parser(self):
         arith_operand = pp.Forward()
-        LPAR, RPAR = map(pp.Suppress, "()")
+        LPAR, RPAR, COMMA = map(pp.Suppress, "(),")
         fn_name_expr = pp.Word(
             "_" + self.ident_letters, "_" + self.ident_letters + pp.nums
         )
@@ -599,6 +594,15 @@ class ArithmeticParser:
             {"fn_map": {**self._base_function_map, **self._added_function_specs}},
         )
         function_expression.addParseAction(function_node_class)
+
+        range_punc = pp.oneOf("( ) [ ]")
+        range_expression = pp.Group(
+            range_punc("lower_incl_excl")
+            + arith_operand("lower")
+            + COMMA
+            + arith_operand("upper")
+            + range_punc("upper_incl_excl")
+        )
 
         numeric_operand = ppc.number().addParseAction(LiteralNode)
         qs = pp.QuotedString('"', escChar="\\") | pp.QuotedString("'", escChar="\\")
@@ -643,30 +647,25 @@ class ArithmeticParser:
                         last = next_
                     return ret
 
-        class IntervalComparison(TernaryNode):
-            def __init__(self, tokens):
-                super().__init__(tokens)
-                self.epsilon = 1e-15
-
-            opns_map = {
-                ("between", "and"): (
-                    lambda a, b, c: _lt(b, a, eps=self.epsilon)
-                    and _lt(a, c, eps=self.epsilon)
-                ),
-                ("within", "and"): (
-                    lambda a, b, c: _le(b, a, eps=self.epsilon)
-                    and _le(a, c, eps=self.epsilon)
-                ),
-                ("in_range_from", "to"): (
-                    lambda a, b, c: _le(b, a, eps=self.epsilon)
-                    and _lt(a, c, eps=self.epsilon)
-                ),
-            }
-
         class UnaryNot(UnaryNode):
             def evaluate(self):
                 with _trimming_exception_traceback():
                     return self.right_associative_evaluate({"not": operator.not_})
+
+        class InRangeNode(UnaryNode):
+            def evaluate(self):
+                operand, op, range_expr = self.tokens
+                range_fn = {
+                    ("(", ")"): lambda a, b, c: a < b < c,
+                    ("(", "]"): lambda a, b, c: a < b <= c,
+                    ("[", ")"): lambda a, b, c: a <= b < c,
+                    ("[", "]"): lambda a, b, c: a <= b <= c,
+                }[range_expr.lower_incl_excl, range_expr.upper_incl_excl]
+
+                with _trimming_exception_traceback():
+                    return range_fn(range_expr.lower.evaluate(),
+                                    operand.evaluate(),
+                                    range_expr.upper.evaluate())
 
         class BinaryComp(BinaryNode):
             opns_map = {
@@ -736,8 +735,7 @@ class ArithmeticParser:
             (pp.oneOf("* / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("+ - −"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
-            ((BETWEEN | WITHIN, AND), 3, pp.opAssoc.LEFT, IntervalComparison),
-            ((IN_RANGE_FROM, TO), 3, pp.opAssoc.LEFT, IntervalComparison),
+            (INRANGE + range_expression, 1, pp.opAssoc.LEFT, InRangeNode),
             (NOT, 1, pp.opAssoc.RIGHT, UnaryNot),
             (AND | "∧", 2, pp.opAssoc.LEFT, BinaryComp),
             (OR | "∨", 2, pp.opAssoc.LEFT, BinaryComp),
@@ -882,6 +880,7 @@ class BasicArithmeticParser(ArithmeticParser):
         )
         self.add_function("gamma", 2, math.gamma)
         self.add_function("hypot", 2, math.hypot)
+        self.add_function("nhypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
         self.add_function("rnd", 0, random.random)
         self.add_function("randint", 2, random.randint)
         self.add_operator("°", 1, ArithmeticParser.LEFT, math.radians)
@@ -891,7 +890,7 @@ class BasicArithmeticParser(ArithmeticParser):
             factorial_operator, 1, ArithmeticParser.LEFT, constrained_factorial
         )
         self.add_operator("⁻¹", 1, ArithmeticParser.LEFT, lambda x: 1 / x)
-        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 2)))
-        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow((x, 3)))
+        self.add_operator("²", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 2))
+        self.add_operator("³", 1, ArithmeticParser.LEFT, lambda x: safe_pow(x, 3))
         self.add_operator("√", 1, ArithmeticParser.RIGHT, lambda x: x ** 0.5)
         self.add_operator("√", 2, ArithmeticParser.LEFT, lambda x, y: x * y ** 0.5)

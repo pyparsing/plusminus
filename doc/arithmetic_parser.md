@@ -12,12 +12,22 @@
 
 - Additional operators
 
-  - `between <lower> and <higher>`
-  - `within <lower> and <higher>`
-  - `in range from <lower> to <higher>`
+  - `inrange lower-upper-range-specification`
+
+    `inrange` operator takes a value and a range, specified with lower and upper values,
+    enclosed in `()` characters (indicating exclusion of the boundary values) or`[]` 
+    characters (indicating inclusion of the boundary values):
+    
+          x inrange (a, b)  -  a < x < b
+          x inrange (a, b]  -  a < x <= b
+          x inrange [a, b)  -  a <= x < b
+          x inrange [a, b]  -  a <= x <= b
+    
+    This operator can be used on integers, reals, and strings.
+        
   - `?:` ternary if-then-else
   - `not, and, or`
-  - `mod`
+  - `mod` - modulo arithmetic - `8 mod 3 = 2`
   - `|x|` - absolute value - `abs(x)`
 
 - Defined functions
@@ -35,6 +45,12 @@
 - Multiple assignment
 
       a, b, c = 1, 2, a+b
+      
+  Results in:
+  
+      a = 1
+      b = 2
+      c = 3
 
 - Deferred evaluation assignments
 
@@ -101,10 +117,10 @@ functions, and common mathematical variables
   - `rnd`
   - `randint`
 - variables
-  - `pi` and `π`
-  - `τ`
-  - `e`
-  - `φ`
+  - `pi` and `π` = 3.14159
+  - `τ (2π)` = 6.28319
+  - `e` = 2.71828
+  - `φ` = 1.61803
 
 - Example expressions
 

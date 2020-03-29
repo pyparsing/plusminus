@@ -31,10 +31,10 @@ parser.runTests("""\
     "You" + " win"*3
     1 or 0
     1 and not 0
-    1 between 0 and 2
-    100 in range from 0 to 100
-    99.9 in range from 0 to 100
-    (11 between 10 and 15) == (10 < 11 < 15)
+    1 inrange (0, 2)
+    100 inrange [0, 100)
+    99.9999 inrange [0, 100)
+    (11 inrange (10,15)) == (10 < 11 < 15)
     32 + 37 * 9 / 5 == 98.6
     ctemp = 37
     temp_f = 100.2
@@ -55,8 +55,8 @@ parser.runTests("""\
     b
     a = b + 3
     a + c
-    "Y" between "X" and "Z"
-    btwn @= b between a and c
+    "Y" inrange ("X", "Z")
+    btwn @= b inrange (a,c)
     a = 'x'
     b = 'y'
     c = 'z'
@@ -104,6 +104,13 @@ parser.runTests("""\
     100 >= 100+1E-18
     100 == 100+1E-18
     100 != 100+1E-18
+    100 inrange [100, 101]
+    100 inrange [100, 101)
+    100 inrange (100, 101]
+    100 inrange (100, 101)
+    100.5 inrange (100, 101)
+    hypot(3, 4)
+    nhypot(3, 4, 5)
     """,
     postParse=lambda teststr, result: result[0].evaluate() if '@=' not in teststr else None)
 

@@ -104,13 +104,13 @@ class BusinessArithmeticParser(ArithmeticParser):
     """
     def customize(self):
         def pv(fv, rate, n_periods):
-            return fv / safe_pow((1 + rate, n_periods))
+            return fv / safe_pow(1 + rate, n_periods)
 
         def fv(pv, rate, n_periods):
-            return pv * safe_pow((1 + rate, n_periods))
+            return pv * safe_pow(1 + rate, n_periods)
 
         def pp(pv, rate, n_periods):
-            return rate * pv / (1 - safe_pow((1 + rate, -n_periods)))
+            return rate * pv / (1 - safe_pow(1 + rate, -n_periods))
 
         super().customize()
         self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
