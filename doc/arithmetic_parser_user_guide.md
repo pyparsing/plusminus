@@ -19,17 +19,26 @@
 
 - Additional operators
 
-  - `between <lower> and <higher>` (`lower < x < higher`)
-  - `within <lower> and <higher>` (`lower <= x <= higher`)
-  - `in range from <lower> to <higher>`(`lower <= x < higher`)
+  - `inrange range-expression`
+    - where `range-expression` using enclosing `(`, `)`, `[`, and `]`
+      symbols:
+      
+          b inrange (a, c) evaluates a < b < c
+          b inrange [a, c) evaluates a <= b < c
+          b inrange (a, c] evaluates a < b <= c
+          b inrange [a, c] evaluates a <= b <= c
+
   - `?:` ternary if-then-else (`condition ? true-value : false-value`)
+    - conditions that evaluate to 0 or False will be treated as False
+    - conditions that evaluate to non-zero or True will be treated as True
+    
   - `not, and, or`
   - `mod`
   - `|x|` - absolute value - `abs(x)`
   - `°` - degree (convert to radians)
   - `!` - factorial
-  - `√` - square root (can be used a unary and binary operator)
-  - `⁻¹` - superscript -1 - `x**(-1) or 1/x`
+  - `√` - square root (can be used as a unary or binary operator)
+  - `⁻¹` - superscript (-1) - `x**(-1) or 1/x`
   - `²` - superscript 2 - `x**2`
   - `³` - superscript 3 - `x**3`
 
@@ -46,8 +55,7 @@
     * / × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
-    between_and within_and
-    in_range_from_to
+    inrange
     not
     and ∧
     or ∨
