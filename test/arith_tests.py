@@ -124,16 +124,16 @@ parser.runTests("""\
     100 == 100+1E-18
     100 != 100+1E-18
     
-    # inrange checks
-    100 inrange [100, 101]
-    100 inrange [100, 101)
-    100 inrange (100, 101]
-    100 inrange (100, 101)
-    100.5 inrange (100, 101)
+    # range checks
+    100 in [100, 101]
+    100 in [100, 101)
+    100 in (100, 101]
+    100 in (100, 101)
+    100.5 in (100, 101)
     
-    # inrange with strings
-    "Y" inrange ("X", "Z")
-    btwn @= b inrange (a,c)
+    # in range with strings
+    "Y" in ("X", "Z")
+    btwn @= b in (a,c)
     a = 'x'
     b = 'y'
     c = 'z'
