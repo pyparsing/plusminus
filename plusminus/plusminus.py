@@ -28,7 +28,7 @@ SOFTWARE.
 
 from collections import namedtuple
 from contextlib import contextmanager
-from functools import partial
+from functools import partial, total_ordering
 import math
 import operator
 import random
@@ -65,7 +65,7 @@ expressions = {}
 # keywords
 keywords = {
     k.upper(): pp.Keyword(k)
-    for k in """inrange and or not True False if else mod""".split()
+    for k in """in and or not True False if else mod""".split()
 }
 vars().update(keywords)
 expressions.update(keywords)
@@ -79,6 +79,11 @@ FALSE.addParseAction(lambda: False)
 FunctionSpec = namedtuple("FunctionSpec", "method arity")
 
 _numeric_type = (int, float, complex)
+
+class PrettyEmptySet(set):
+    def __repr__(self):
+        return "{}"
+empty_set = PrettyEmptySet()
 
 # define special versions of lt, le, etc. to comprehend "is close"
 _lt = lambda a, b, eps: (
@@ -207,6 +212,7 @@ def constrained_factorial(x):
     return math.factorial(int(x))
 
 
+@total_ordering
 class ArithNode:
     def __init__(self, tokens):
         self.tokens = tokens[0]
@@ -218,7 +224,7 @@ class ArithNode:
             self.iterable_tokens = not isinstance(self.tokens, str)
 
     def evaluate(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def right_associative_evaluate(self, oper_fn_map):
         pass
@@ -237,6 +243,9 @@ class ArithNode:
             )
         )
 
+    def __le__(self, other):
+        return self.evaluate() <= other.evaluate()
+
 
 class LiteralNode(ArithNode):
     def evaluate(self):
@@ -247,6 +256,14 @@ class LiteralNode(ArithNode):
 
     def __repr__(self):
         return repr(self.tokens)
+
+
+class SetNode(ArithNode):
+    def evaluate(self):
+        return set(t.evaluate() for t in self.tokens) or empty_set
+
+    def __repr__(self):
+        return "{" + repr(self.tokens) + "}" if self.tokens else "{}"
 
 
 class UnaryNode(ArithNode):
@@ -470,7 +487,7 @@ class ArithmeticParser:
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ inrange not and ∧ or ∨ ?:"
+            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "sgn": FunctionSpec((lambda x: -1 if x < 0 else 1 if x > 0 else 0), 1),
@@ -489,9 +506,9 @@ class ArithmeticParser:
 
         # customize can update or replace with different characters
         self.ident_letters = (
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
-            + pp.srange("[Α-Ω]")
-            + pp.srange("[α-ω]")
+            pp.srange("[A-Za-z]")
+            + pp.srange("[ªºÀ-ÖØ-öø-ÿ]")
+            + pp.srange("[Α-Ωα-ω]")
         )
 
         # storage for assigned variables
@@ -542,7 +559,7 @@ class ArithmeticParser:
         return self.vars()[key]
 
     def __iter__(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def customize(self):
         pass
@@ -578,7 +595,7 @@ class ArithmeticParser:
 
     def make_parser(self):
         arith_operand = pp.Forward()
-        LPAR, RPAR, COMMA = map(pp.Suppress, "(),")
+        LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, COMMA = map(pp.Suppress, "()[]{},")
         fn_name_expr = pp.Word(
             "_" + self.ident_letters, "_" + self.ident_letters + pp.nums
         )
@@ -595,8 +612,8 @@ class ArithmeticParser:
         )
         function_expression.addParseAction(function_node_class)
 
-        range_punc = (pp.oneOf("( )").setParseAction(lambda: False)
-                      | pp.oneOf("[ ]").setParseAction(lambda: True))
+        range_punc = ((LPAR() | RPAR()).setParseAction(lambda: False)
+                      | (LBRACK() | RBRACK()).setParseAction(lambda: True))
         range_expression = pp.Group(
             range_punc("lower_inclusive")
             + arith_operand("lower")
@@ -604,6 +621,7 @@ class ArithmeticParser:
             + arith_operand("upper")
             + range_punc("upper_inclusive")
         )
+        set_term = pp.Group(LBRACE + pp.Optional(pp.delimitedList(arith_operand))("elements") + RBRACE).addParseAction(SetNode)
 
         numeric_operand = ppc.number().addParseAction(LiteralNode)
         qs = pp.QuotedString('"', escChar="\\") | pp.QuotedString("'", escChar="\\")
@@ -655,18 +673,34 @@ class ArithmeticParser:
 
         class InRangeNode(UnaryNode):
             def evaluate(self):
+                nonlocal identifier_node_class
                 operand, op, range_expr = self.tokens
-                range_fn = {
-                    (False, False): lambda a, b, c: a < b < c,
-                    (False, True): lambda a, b, c: a < b <= c,
-                    (True, False): lambda a, b, c: a <= b < c,
-                    (True, True): lambda a, b, c: a <= b <= c,
-                }[range_expr.lower_inclusive, range_expr.upper_inclusive]
+                assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ('∉', 'not_in')]
+                if isinstance(range_expr, (identifier_node_class, SetBinaryOp)):
+                    range_expr = range_expr.evaluate()
+                if isinstance(range_expr, (set, SetNode)):
+                    with _trimming_exception_traceback():
+                        op_val = operand.evaluate()
+                        return assert_negate_fn(
+                            sum(op_val == elem for elem in range_expr.evaluate())
+                                if isinstance(range_expr, SetNode) else op_val in range_expr
+                        )
+                elif 'lower_inclusive' in range_expr:
+                    range_fn = {
+                        (False, False): lambda a, b, c: a < b < c,
+                        (False, True): lambda a, b, c: a < b <= c,
+                        (True, False): lambda a, b, c: a <= b < c,
+                        (True, True): lambda a, b, c: a <= b <= c,
+                    }[range_expr.lower_inclusive, range_expr.upper_inclusive]
 
-                with _trimming_exception_traceback():
-                    return range_fn(range_expr.lower.evaluate(),
-                                    operand.evaluate(),
-                                    range_expr.upper.evaluate())
+                    with _trimming_exception_traceback():
+                        return assert_negate_fn(range_fn(range_expr.lower.evaluate(),
+                                                operand.evaluate(),
+                                                range_expr.upper.evaluate()))
+                else:
+                    with _trimming_exception_traceback():
+                        return assert_negate_fn(operand.evaluate() in range_expr.evaluate())
+
 
         class BinaryComp(BinaryNode):
             opns_map = {
@@ -729,14 +763,42 @@ class ArithmeticParser:
             "Identifier", (self.IdentifierNode,), {"_assigned_vars": self._variable_map}
         )
         var_name.addParseAction(identifier_node_class)
+
+        def set_intersection(a, b):
+            a_set = a if isinstance(a, set) else set(elem.evaluate() for elem in a.elements)
+            b_set = b if isinstance(b, set) else set(elem.evaluate() for elem in b.elements)
+            return a_set.intersection(b_set) or empty_set
+
+        def set_union(a, b):
+            a_set = a if isinstance(a, set) else set(elem.evaluate() for elem in a.elements)
+            b_set = b if isinstance(b, set) else set(elem.evaluate() for elem in b.elements)
+            return a_set.union(b_set) or empty_set
+
+        class SetBinaryOp(BinaryNode):
+            opns_map = {
+                "∩": set_intersection,
+                "∪": set_union,
+            }
+
+            def evaluate(self):
+                with _trimming_exception_traceback():
+                    return self.left_associative_evaluate(self.opns_map)
+
+        set_expression = pp.infixNotation(set_term | var_name, [
+            ("∩", 2, pp.opAssoc.LEFT, SetBinaryOp),
+            ("∪", 2, pp.opAssoc.LEFT, SetBinaryOp),
+            ])
+
         # noinspection PyUnresolvedReferences
+        NOT_IN = (NOT() + IN()).addParseAction('_'.join)
         base_operator_specs = [
             ("**", 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
             ("-", 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             (pp.oneOf("* / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("+ - −"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
-            (INRANGE + range_expression, 1, pp.opAssoc.LEFT, InRangeNode),
+            ((IN | NOT_IN | pp.oneOf("∈ ∉")) - (range_expression | set_expression | var_name), 1, pp.opAssoc.LEFT,
+             InRangeNode),
             (NOT, 1, pp.opAssoc.RIGHT, UnaryNot),
             (AND | "∧", 2, pp.opAssoc.LEFT, BinaryComp),
             (OR | "∨", 2, pp.opAssoc.LEFT, BinaryComp),
@@ -764,7 +826,7 @@ class ArithmeticParser:
             ),
             self._added_operator_specs + base_operator_specs,
         )
-        rvalue = arith_operand.setName("rvalue")
+        rvalue = (arith_operand ^ set_expression).setName("rvalue")
         rvalue.setName("arithmetic expression")
         lvalue = var_name()
 

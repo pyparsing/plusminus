@@ -30,8 +30,8 @@ class TestBasicArithmetic:
             ("0**0", 1),
             ("3**2**3", 3 ** 2 ** 3),
             ('"You" + " win"*3', "You win win win"),
-            ("100 in range from 0 to 100", False),
-            ("99.9 in range from 0 to 100", True),
+            ("100 in [0, 100)", False),
+            ("99.9 in [0, 100)", True),
             ("((((((((((0))))))))))", 0),
             # ('ctemp = 38', [38]),
             # ('feverish @= temp_f > 98.6', True),
@@ -42,7 +42,7 @@ class TestBasicArithmetic:
         assert basic_arithmetic_parser.evaluate(input_string) == parse_result
 
     @pytest.mark.parametrize(
-        "input_string, returned_error",
+        "input_string, expected_error_type",
         [
             ("sin()", TypeError),
             ("sin(1, 2)", TypeError),

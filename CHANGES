@@ -11,11 +11,19 @@ plusminus Change Log
     - Guard against overly-nested ()'s (10 levels is the max).
 
     - Replaced "between", "within", and "in range from-to" operators
-      to single "inrange" operator, taking an argument of the form:
+      to single "in" operator, taking an argument of the form:
           [1, 10] between 1 and 10 (including the values 1 and 10)
           [1, 10) between 1 and 10 (excluding the value 10)
           (1, 10] between 1 and 10 (excluding the value 1)
           (1, 10) between 1 and 10 (excluding the values 1 and 10)
+
+    - Added set notation and arithmetic:
+          {1, 2, 3} is the set of the integers 1, 2, and 3
+          {} is the empty set
+          a ∩ b is the intersection of sets a and b
+          a ∪ b is the union of sets a and b
+          a ∈ b a is an element of b (can also be written 'a in b')
+          a ∉ b a is not an element of b (can also be written 'a not in b')
 
     - Changed signature of safe_pow, now takes multiple operands
       instead of a tuple of operands.

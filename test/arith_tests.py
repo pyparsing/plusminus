@@ -47,11 +47,12 @@ parser.runTests("""\
     1 or 0
     1 and not 0
 
-    # inrange operator
-    1 inrange (0, 2)
-    100 inrange [0, 100)
-    99.9999 inrange [0, 100)
-    (11 inrange (10,15)) == (10 < 11 < 15)
+    # in operator
+    1 in (0, 2)
+    100 in [0, 100)
+    99.9999 in [0, 100)
+    (11 in (10,15)) == (10 < 11 < 15)
+    2 in {1, 2, 3}
 
     32 + 37 * 9 / 5 == 98.6
     ctemp = 37
@@ -146,6 +147,32 @@ parser.runTests("""\
     nhypot(3, 4) == hypot(3, 4)
     nhypot(3, 4, 5, 6) == hypot(3, hypot(4, hypot(5, 6)))
     nhypot()
+    
+    # set operations
+    a, b = 1, 10
+    1 in (a, b)
+    1 in [a, b)
+    1 not in [a, b)
+    1 ∈ [a, b)
+    1 ∉ [a, b)
+    1 in { a, 11, 22, 53}
+    1 not in {b, 0}
+    myset = { a, 11, 22, 53}
+    myset
+    1 in myset
+    { 0, 2, 22}
+    { a, 11, 22, 53} ∩ { 0, 2, 22}
+    { a, 11, 22, 53} ∪ { 0, 2, 22}
+    { a, 11, 22, 53} ∩ {}
+    { a, 11, 22, 53} ∪ {}
+    myset ∩ { 0, 2, 22}
+    myset ∪ { 0, 2, 22}
+    1 in (myset ∩ { 0, 2, 22})
+    1 in (myset ∪ { 0, 2, 22})
+    1 ∈ (myset ∩ { 0, 2, 22})
+    1 ∉ (myset ∪ { 0, 2, 22})
+    1 in (myset ∩ {})
+    1 in (myset ∪ {})
     
     # mismatched parentheses
     5 + (3*
