@@ -9,6 +9,8 @@
 - `add_operator(operator_symbol, num_args, left_right_assoc, operator_function)`
 - `add_variable(variable, value)`
 - `add_function(function_name, num_args, function_method)`
+  - if a function can accept a variable number of arguments, pass `...` for the
+    `num_args` argument; see the `nhypot` function in the `BasicArithmeticParser`
 
 ### Parser parse/evaluation methods
 
