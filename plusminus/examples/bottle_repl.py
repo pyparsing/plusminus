@@ -17,7 +17,7 @@ import io
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
-from plusminus import BasicArithmeticParser, ArithmeticParseException
+from plusminus import BasicArithmeticParser, ArithmeticParseException, __version__ as plusminus_version
 import cgitb
 cgitb.enable()
 
@@ -264,7 +264,7 @@ class BottleArithReplRequestHandler:
         self.write_html('\n'.join(buffer))
 
     def _handle_app_request(self):
-        title_string = "Pyparsing-based Arithmetic Parser/Evaluator Tester"
+        title_string = "Plusminus +/- Parser/Evaluator Tester - {}".format(plusminus_version)
         # get any form input, pass to parser
         query = self.get_query()
         # print('query=', query)
@@ -315,11 +315,11 @@ class BottleArithReplRequestHandler:
                 button(c)
 
         button_row('°√×÷≠≤≥∧∨', "Operators")
-        button_row('+-*/=<>!()²³')
+        button_row('+-*/=<>!²³')
         button('⁻¹')
-        button_row('∩∪∈∉', "Set operators")
-        button('in')
-        button('not in')
+        button_row('()[]{}∩∪∈∉', "Range/Set operators")
+        button(' in ')
+        button(' not in ')
         button_row('abcdefghijklm')
         button_row('nopqrstuvwxyz_')
         button_row('àáâãäåæçèéêëìíîï')
