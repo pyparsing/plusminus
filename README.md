@@ -18,13 +18,14 @@ Arithmetic expressions are evaluated following standard rules for operator prece
 to override:
 
     ()
+    ∩ (set intersection)
+    ∪ (set union)
     -
     **
     * / × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
-    between-and within-and "in range from"-to (ternary) (between is exclusive, within is inclusive, and `in range from` is
-      inclusive lower-bound and exclusive upper-bound)
+    in ∈ ∉
     not
     and ∧
     or ∨
@@ -32,12 +33,12 @@ to override:
 
 Functions can be called:
 
-      sin   sinh  abs    log2   rnd
-      cos   cosh  round  log10  randint
-      tan   tanh  trunc  gcd    min
-      asin  rad   ceil   lcm    max
-      acos  deg   floor  gamma
-      atan  sgn   ln     hypot
+      sgn    min  asin  rad    lcm
+      abs    max  acos  deg    gamma
+      round  str  atan  ln     hypot
+      trunc  sin  sinh  log2   nhypot
+      ceil   cos  cosh  log10  rnd
+      floor  tan  tanh  gcd    
 
 
 The Basic ArithmeticParser also supports assignment of variables:
@@ -51,3 +52,9 @@ This last expression could be assigned using '@=' formula assignment:
 
 As `r` is updated, evaluating `area` will be reevaluated using the new value.
 
+
+Custom expressions can be defined using a simple API. Example parsers
+are included for dice rolling, combination/permutation expressions, and 
+common business calculations. These parsers can be incorporated into
+other applications to support the safe evaluation of user-defined 
+domain-specific expressions.
