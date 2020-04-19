@@ -54,7 +54,7 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 
 ppc = pp.pyparsing_common

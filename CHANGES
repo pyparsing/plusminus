@@ -1,21 +1,6 @@
 plusminus Change Log
 
-0.1.2 -
-
-    - Updated the values returned from evaluating an assignment
-      expression. If a single value is assigned, then a single
-      value is returned. If multiple values are assigned, a tuple
-      of the values is returned. (Previously, the underlying
-      list of values was returned.)
-
-    - Guard against overly-nested ()'s (10 levels is the max).
-
-    - Replaced "between", "within", and "in range from-to" operators
-      to single "in" operator, taking an argument of the form:
-          [1, 10] between 1 and 10 (including the values 1 and 10)
-          [1, 10) between 1 and 10 (excluding the value 10)
-          (1, 10] between 1 and 10 (excluding the value 1)
-          (1, 10) between 1 and 10 (excluding the values 1 and 10)
+0.2.0 -
 
     - Added set notation and arithmetic:
           {1, 2, 3} is the set of the integers 1, 2, and 3
@@ -25,14 +10,29 @@ plusminus Change Log
           a ∈ b a is an element of b (can also be written 'a in b')
           a ∉ b a is not an element of b (can also be written 'a not in b')
 
-    - Changed signature of safe_pow, now takes multiple operands
-      instead of a tuple of operands.
+    - Replaced "between", "within", and "in range from-to" operators
+      to single "in" operator, taking an argument of the form:
+          [1, 10] between 1 and 10 (including the values 1 and 10)
+          [1, 10) between 1 and 10 (excluding the value 10)
+          (1, 10] between 1 and 10 (excluding the value 1)
+          (1, 10) between 1 and 10 (excluding the values 1 and 10)
 
     - Custom functions can now take variable numbers of arguments,
       using ... for the arity. For example, here is a variant of
       hypot computing an n-dimensional distance:
 
           self.add_function("nhypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
+
+    - Updated the values returned from evaluating an assignment
+      expression. If a single value is assigned, then a single
+      value is returned. If multiple values are assigned, a tuple
+      of the values is returned. (Previously, the underlying
+      list of values was returned.)
+
+    - Guard against overly-nested ()'s (10 levels is the max).
+
+    - Changed signature of safe_pow, now takes multiple operands
+      instead of a tuple of operands.
 
     - New unit tests, thanks toonarmycaptain!
 
