@@ -28,16 +28,21 @@
           b in (a, c] evaluates a < b <= c
           b in [a, c] evaluates a <= b <= c
 
+    - can be negated using `not in`
+
   - `?:` ternary if-then-else (`condition ? true-value : false-value`)
     - conditions that evaluate to 0 or False will be treated as False
     - conditions that evaluate to non-zero or True will be treated as True
 
   - set operators `∩`, `∪`, `∈`, `∉`
-    - sets are defined in `{`, `}` symbols:
+    - sets are defined using `{`, `}` symbols    
+    - `∩` is intersection, `∪` is union
+    - `∈` is `is element of`, `∉` is `is not element of`
 
           1 ∈ {1, 2, 3} ∪ {10, 11, 12} evaluates True
           1 ∉ {1, 2, 3} ∩ {10, 11, 12} evaluates True
 
+    - `{}` is the empty set
     - `in` and `not in` are equivalent to `∈` and `∉`
 
   - `not, and, or`

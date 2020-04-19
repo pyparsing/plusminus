@@ -12,6 +12,18 @@
 
 - Additional operators
 
+  - define sets using `{}` notation and `∩` (intersection) and
+    `∪` (union) operators:
+  
+        {1, 2, 3}
+        {}  # this is the empty set
+        {1, 2, 3} ∪ {4, 5, 6}  # {1, 2, 3, 4, 5, 6}
+        {1, 2, 3} ∩ {3, 4, 5}  # {3}
+        {1, 2, 3} ∩ {4, 5, 6}  # {}
+
+    use `∈` for "is element of" and `∉` for "is not element of"; `in` and `not in` 
+    can also be used
+
   - `in range-specification`
 
     `in` operator takes a value and a range, specified with lower and upper values,
@@ -114,7 +126,7 @@ functions, and common mathematical variables
   - `lcm`
   - `gamma`
   - `hypot`
-  - 'nhypot'
+  - `nhypot`
   - `rnd`
   - `randint`
 - variables
