@@ -1,5 +1,15 @@
 plusminus Change Log
 
+0.2.1 -
+
+    - Set literals can be used as function arguments, if supported
+      by the function.
+
+          max({1, 2, 4})  -> 4
+          min({1, 2, 4})  -> 1
+          sin({1, 2, 4})  -> TypeError
+
+
 0.2.0 -
 
     - Added set notation and arithmetic:

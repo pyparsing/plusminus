@@ -15,6 +15,7 @@ sys.setrecursionlimit(2000)
 parser = BasicArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
+
 parser.runTests("""\
     sin(rad(30))
     sin(30°)
@@ -173,6 +174,14 @@ parser.runTests("""\
     1 ∉ (myset ∪ { 0, 2, 22})
     1 in (myset ∩ {})
     1 in (myset ∪ {})
+    
+    # sets as function arguments
+    a = {1, 2, 3}
+    max(a)
+    max({1, 2, 4})
+    max({1, 2} ∪ a)
+    min({1, 2, 4})
+    sin({1, 2, 4})
     
     # mismatched parentheses
     5 + (3*

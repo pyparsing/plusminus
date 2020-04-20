@@ -54,7 +54,7 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 ppc = pp.pyparsing_common
@@ -621,7 +621,9 @@ class ArithmeticParser:
             + arith_operand("upper")
             + range_punc("upper_inclusive")
         )
-        set_term = pp.Group(LBRACE + pp.Optional(pp.delimitedList(arith_operand))("elements") + RBRACE).addParseAction(SetNode)
+        set_operand = pp.Group(LBRACE
+                               + pp.Optional(pp.delimitedList(arith_operand))("elements")
+                               + RBRACE).addParseAction(SetNode)
 
         numeric_operand = ppc.number().addParseAction(LiteralNode)
         qs = pp.QuotedString('"', escChar="\\") | pp.QuotedString("'", escChar="\\")
@@ -784,7 +786,7 @@ class ArithmeticParser:
                 with _trimming_exception_traceback():
                     return self.left_associative_evaluate(self.opns_map)
 
-        set_expression = pp.infixNotation(set_term | var_name, [
+        set_expression = pp.infixNotation(set_operand | var_name, [
             ("∩", 2, pp.opAssoc.LEFT, SetBinaryOp),
             ("∪", 2, pp.opAssoc.LEFT, SetBinaryOp),
             ])
@@ -823,6 +825,7 @@ class ArithmeticParser:
                 | numeric_operand
                 | bool_operand
                 | var_name
+                | set_expression
             ),
             self._added_operator_specs + base_operator_specs,
         )
