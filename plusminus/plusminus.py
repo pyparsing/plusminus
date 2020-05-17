@@ -506,7 +506,6 @@ class ArithmeticParser:
             "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
-            "sgn": FunctionSpec((lambda x: -1 if x < 0 else 1 if x > 0 else 0), 1),
             "abs": FunctionSpec(abs, 1),
             "round": FunctionSpec(round, 2),
             "trunc": FunctionSpec(math.trunc, 1),
@@ -515,6 +514,7 @@ class ArithmeticParser:
             "min": FunctionSpec(min, ...),
             "max": FunctionSpec(max, ...),
             "str": FunctionSpec(lambda x: str(x), 1),
+            "bool": FunctionSpec(lambda x: not not x, 1),
         }
 
         # epsilon for computing "close" floating point values - can be updated in customize
@@ -866,15 +866,16 @@ class ArithmeticParser:
                 raise TypeError("not enough variable names given")
 
             assignments = []
+            assigned_vars = identifier_node_class._assigned_vars
             for lhs_name, rhs_expr in zip(tokens.lhs, tokens.rhs):
                 rval = LiteralNode([rhs_expr.evaluate()])
                 var_name = lhs_name.name
                 if (
-                    var_name not in identifier_node_class._assigned_vars
-                    and len(identifier_node_class._assigned_vars) >= self.MAX_VARS
+                    var_name not in assigned_vars
+                    and len(assigned_vars) >= self.MAX_VARS
                 ):
-                    raise Exception("too many variables defined")
-                identifier_node_class._assigned_vars[var_name] = rval
+                    raise Exception("too many variables defined (1)")
+                assigned_vars[var_name] = rval
                 assignments.append(rval)
             return LiteralNode([assignments]) if len(assignments) > 1 else rval
 
@@ -889,18 +890,16 @@ class ArithmeticParser:
 
         def store_parsed_value(tokens):
             rval = tokens.rhs
-            var_name = tokens.lhs.name
+            dest_var_name = tokens.lhs.name
+            assigned_vars = identifier_node_class._assigned_vars
             if (
-                var_name not in identifier_node_class._assigned_vars
-                and len(identifier_node_class._assigned_vars) >= self.MAX_VARS
-                or sum(
-                    sys.getsizeof(vv)
-                    for vv in identifier_node_class._assigned_vars.values()
-                )
-                > self.MAX_VAR_MEMORY
+                dest_var_name not in assigned_vars
+                    and len(assigned_vars) >= self.MAX_VARS
+                or sum(sys.getsizeof(vv) for vv in assigned_vars.values()) > self.MAX_VAR_MEMORY
             ):
-                raise Exception("too many variables defined")
-            identifier_node_class._assigned_vars[var_name] = rval
+                raise Exception("too many variables defined (2)")
+
+            assigned_vars[dest_var_name] = rval
             return rval
 
         value_assignment_statement.addParseAction(RoundToEpsilon)
@@ -969,6 +968,7 @@ class BasicArithmeticParser(ArithmeticParser):
         self.add_function("nhypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
         self.add_function("rnd", 0, random.random)
         self.add_function("randint", 2, random.randint)
+        self.add_function("sgn", 1, lambda x: 0 if _eq(x, 0, self.epsilon) else 1 if x > 0 else -1),
         self.add_operator("°", 1, ArithmeticParser.LEFT, math.radians)
         # avoid clash with '!=' operator
         factorial_operator = (~pp.Literal("!=") + "!").setName("!")
