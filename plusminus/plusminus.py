@@ -50,7 +50,6 @@ if not hasattr(ParseException, "explain_exception"):
 
 ArithmeticParseException = ParseBaseException
 
-
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
@@ -145,6 +144,8 @@ def _trimming_exception_traceback():
         e.__traceback__ = tb
         raise e
 
+from contextlib import ExitStack
+_trimming_exception_traceback = ExitStack
 
 def collapse_operands(seq, eps=1e-15):
     cur = list(seq)
@@ -562,7 +563,11 @@ class ArithmeticParser:
     def parse(self, *args, **kwargs):
         if _get_expression_depth(args[0]) > self.maximum_expression_depth:
             raise OverflowError("too deeply nested")
-        return self.get_parser().parseString(*args, **kwargs)[0]
+
+        parsed = self.get_parser().parseString(*args, **kwargs)
+
+        if parsed:
+            return parsed[0]
 
     def evaluate(self, arith_expression):
         with _trimming_exception_traceback():
@@ -730,7 +735,6 @@ class ArithmeticParser:
                     with _trimming_exception_traceback():
                         return assert_negate_fn(operand.evaluate() in range_expr.evaluate())
 
-
         class BinaryComp(BinaryNode):
             opns_map = {
                 "and": operator.and_,
@@ -866,6 +870,12 @@ class ArithmeticParser:
             + pp.delimitedList(rvalue)("rhs")
         )
 
+        value_clear_statement = (
+            pp.delimitedList(lvalue)("lhs")
+            + pp.oneOf("<- =")
+            + pp.StringEnd()
+        )
+
         def eval_and_store_value(tokens):
             if len(tokens.lhs) > len(tokens.rhs):
                 raise TypeError("not enough values given")
@@ -908,11 +918,18 @@ class ArithmeticParser:
             assigned_vars[dest_var_name] = rval
             return rval
 
+        def clear_parsed_value(tokens):
+            assigned_vars = identifier_node_class._assigned_vars
+            for var in tokens.lhs:
+                assigned_vars.pop(var.name, None)
+            return tokens.lhs.asList()
+
         value_assignment_statement.addParseAction(RoundToEpsilon)
         lone_rvalue = rvalue().addParseAction(RoundToEpsilon)
         formula_assignment_statement.addParseAction(store_parsed_value)
+        value_clear_statement.addParseAction(clear_parsed_value)
 
-        parser = value_assignment_statement | formula_assignment_statement | lone_rvalue
+        parser = value_assignment_statement | value_clear_statement | formula_assignment_statement | lone_rvalue
 
         # init _variable_map with any pre-defined values
         for varname, (varvalue, as_formula) in self._initial_variables.items():

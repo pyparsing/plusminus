@@ -10,6 +10,13 @@ plusminus Change Log
               parser.evaluate("y = x * x")
               print(parser['y'])
 
+    - Added syntax to clear a defined variable:
+
+          a, b = 1, 2
+          c = a + b
+          a =        -> clears variable a
+          c = a + b  -> NameError
+
     - Set literals can be used as function arguments, if supported
       by the function.
 

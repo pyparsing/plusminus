@@ -154,3 +154,21 @@ class TestBasicArithmetic:
         with pytest.raises(NameError):
             z_value = basic_arithmetic_parser['z']
             pytest.fail("returned unexpected 'z' value {!r}".format(z_value))
+
+    def test_clearing_parser_vars(self, basic_arithmetic_parser):
+
+        with pytest.raises(NameError):
+            a_value = basic_arithmetic_parser.evaluate("a")
+            pytest.fail("unexpected 'a' value {!r}".format(a_value))
+
+        print("a, b", basic_arithmetic_parser.parse("a, b = 1, 2"))
+        print("c", basic_arithmetic_parser.parse("c = a + b"))
+        print("clear a", basic_arithmetic_parser.parse("a ="))
+
+        with pytest.raises(NameError):
+            a_value = basic_arithmetic_parser["a"]
+            pytest.fail("returned unexpected 'a' value {!r}".format(a_value))
+
+        with pytest.raises(NameError):
+            a_value = basic_arithmetic_parser.evaluate("c = a + b")
+            pytest.fail("unexpected 'a' value {!r}".format(a_value))
