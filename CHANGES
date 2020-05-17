@@ -2,6 +2,14 @@ plusminus Change Log
 
 0.3.0 -
 
+    - Added dict-like access to set and get variables defined within
+      a parser:
+
+          for x in range(10):
+              parser['x'] = x
+              parser.evaluate("y = x * x")
+              print(parser['y'])
+
     - Set literals can be used as function arguments, if supported
       by the function.
 

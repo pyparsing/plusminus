@@ -576,10 +576,17 @@ class ArithmeticParser:
         raise AttributeError("no such attribute {!r}".format(attr))
 
     def __getitem__(self, key):
-        return self.vars()[key]
+        self_vars = self.vars()
+        if key in self_vars:
+            return self_vars[key]
+        else:
+            raise NameError("no such variable {!r}".format(key))
 
     def __iter__(self):
         raise NotImplementedError
+
+    def __setitem__(self, name, value):
+        self._variable_map[name] = LiteralNode([value])
 
     def customize(self):
         pass
@@ -897,8 +904,7 @@ class ArithmeticParser:
                     and len(assigned_vars) >= self.MAX_VARS
                 or sum(sys.getsizeof(vv) for vv in assigned_vars.values()) > self.MAX_VAR_MEMORY
             ):
-                raise Exception("too many variables defined (2)")
-
+                raise Exception("too many variables defined")
             assigned_vars[dest_var_name] = rval
             return rval
 

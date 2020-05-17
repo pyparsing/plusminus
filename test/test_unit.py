@@ -36,6 +36,13 @@ class TestBasicArithmetic:
             ('"You" + " win"*3', "You win win win"),
             ("100 in [0, 100)", False),
             ("99.9 in [0, 100)", True),
+            ("(0)", 0),
+            ("((0))", 0),
+            ("(((0)))", 0),
+            ("((((0))))", 0),
+            ("(((((0)))))", 0),
+            ("((((((0))))))", 0),
+            ("(((((((0)))))))", 0),
             ("((((((((0))))))))", 0),
             # ('ctemp = 38', [38]),
             # ('feverish @= temp_f > 98.6', True),
@@ -128,3 +135,22 @@ class TestBasicArithmetic:
         else:
             assert basic_arithmetic_parser.evaluate(input_string) == expected_value
 
+    def test_set_parser_vars(self, basic_arithmetic_parser):
+        res = []
+        expected_x2 = []
+        expected_y = []
+        for x in range(10):
+            basic_arithmetic_parser['x'] = x
+            res.append(basic_arithmetic_parser.evaluate("y = x²"))
+            expected_x2.append(x * x)
+            expected_y.append(basic_arithmetic_parser['y'])
+
+        print(res)
+        print(expected_x2)
+        print(expected_y)
+
+        assert res == expected_x2 == expected_y
+
+        with pytest.raises(NameError):
+            z_value = basic_arithmetic_parser['z']
+            pytest.fail("returned unexpected 'z' value {!r}".format(z_value))
