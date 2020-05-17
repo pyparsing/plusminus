@@ -144,9 +144,6 @@ def _trimming_exception_traceback():
         e.__traceback__ = tb
         raise e
 
-from contextlib import ExitStack
-_trimming_exception_traceback = ExitStack
-
 def collapse_operands(seq, eps=1e-15):
     cur = list(seq)
     last = cur[:]
