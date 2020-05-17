@@ -26,7 +26,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR TH
 SOFTWARE.
 """
 
-from collections import namedtuple
+from collections import namedtuple, deque
 from contextlib import contextmanager
 from functools import partial, total_ordering
 import math
@@ -54,7 +54,7 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 
 ppc = pp.pyparsing_common
@@ -117,6 +117,22 @@ _ne = lambda a, b, eps: (
     else a != b
 )
 
+def _compute_structure_depth(s, l, t):
+    stack = deque([(0, t.asList())])
+    max_depth = 0
+    while stack:
+        depth, node = stack.popleft()
+        max_depth = max(max_depth, depth)
+        stack.extend((depth+1, item) for item in node if isinstance(item, list))
+    return max_depth
+
+_paren_parser = pp.And([pp.nestedExpr()]).addParseAction(_compute_structure_depth)
+
+def _get_expression_depth(s):
+    try:
+        return _paren_parser.parseString('(' + s + ')')[0] - 1
+    except pp.ParseException:
+        return -1
 
 @contextmanager
 def _trimming_exception_traceback():
@@ -310,7 +326,7 @@ class TernaryNode(ArithNode):
         ret = operands[0].evaluate()
         i = 1
         while i < len(operands):
-            op1, operand1, op2, operand2 = operands[i : i + 4]
+            op1, operand1, op2, operand2 = operands[i: i + 4]
             ret = oper_fn_map[op1, op2](ret, operand1.evaluate(), operand2.evaluate())
             i += 4
         return ret
@@ -511,6 +527,10 @@ class ArithmeticParser:
             + pp.srange("[Α-Ωα-ω]")
         )
 
+        # customize can raise or lower the maximum expression depth
+        # to be supported - default = 8
+        self.maximum_expression_depth = 8
+
         # storage for assigned variables
         self._variable_map = {}
 
@@ -540,7 +560,7 @@ class ArithmeticParser:
         yield from self.get_parser().scanString(*args)
 
     def parse(self, *args, **kwargs):
-        if args[0].count("(") > 10:
+        if _get_expression_depth(args[0]) > self.maximum_expression_depth:
             raise OverflowError("too deeply nested")
         return self.get_parser().parseString(*args, **kwargs)[0]
 
