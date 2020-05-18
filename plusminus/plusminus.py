@@ -260,6 +260,9 @@ class ArithNode:
     def __le__(self, other):
         return self.evaluate() <= other.evaluate()
 
+    def __iter__(self):
+        return iter(self.tokens)
+
 
 class LiteralNode(ArithNode):
     def evaluate(self):
@@ -528,6 +531,7 @@ class ArithmeticParser:
         # customize can raise or lower the maximum expression depth
         # to be supported - default = 8
         self.maximum_expression_depth = 8
+        self.maximum_formula_depth = 12
 
         # storage for assigned variables
         self._variable_map = {}
@@ -902,7 +906,56 @@ class ArithmeticParser:
         )
         formula_assignment_statement.setName("formula statement")
 
+        def verify_formula_not_recursive(tokens):
+            # see if this var_name is recursively referenced
+            formula_defn = tokens.rhs
+            dest_var_name = tokens.lhs.name
+
+            to_visit = deque([formula_defn])
+            while to_visit:
+                cur_expr = to_visit.popleft()
+                if isinstance(cur_expr, self.IdentifierNode):
+                    if cur_expr.name == dest_var_name:
+                        raise Exception("illegal recursion, {!r} is used in expression".format(dest_var_name))
+
+                    cur_expr = self._variable_map.get(cur_expr.name)
+                    if cur_expr is None:
+                        continue
+
+                if isinstance(cur_expr, (str, LiteralNode)):
+                    continue
+
+                try:
+                    for e in cur_expr:
+                        to_visit.append(e)
+                except TypeError:
+                    continue
+
         def store_parsed_value(tokens):
+            def get_depth(formula_node):
+                max_depth = 0
+                to_visit = deque([(0, formula_node)])
+                while to_visit:
+                    cur_depth, cur_expr = to_visit.popleft()
+                    max_depth = max(max_depth, cur_depth)
+
+                    if isinstance(cur_expr, self.IdentifierNode):
+                        cur_expr = self._variable_map.get(cur_expr.name)
+                        if cur_expr is None:
+                            continue
+
+                    if isinstance(cur_expr, (str, LiteralNode)):
+                        continue
+
+                    try:
+                        for e in cur_expr:
+                            to_visit.append((cur_depth+1, e))
+                    except TypeError:
+                        continue
+
+                return max_depth
+
+            # check if any formulas exceed maximum allowed depth
             rval = tokens.rhs
             dest_var_name = tokens.lhs.name
             assigned_vars = identifier_node_class._assigned_vars
@@ -913,6 +966,17 @@ class ArithmeticParser:
             ):
                 raise Exception("too many variables defined")
             assigned_vars[dest_var_name] = rval
+
+            # verify that no expressions exceed max depth
+            for formula_name, formula_defn in assigned_vars.items():
+                if isinstance(formula_defn, (str, LiteralNode)):
+                    continue
+
+                formula_depth = get_depth(formula_defn)
+                if formula_depth > self.maximum_formula_depth:
+                    assigned_vars.pop(dest_var_name, None)
+                    raise OverflowError("function variables nested too deeply")
+
             return rval
 
         def clear_parsed_value(tokens):
@@ -923,6 +987,7 @@ class ArithmeticParser:
 
         value_assignment_statement.addParseAction(RoundToEpsilon)
         lone_rvalue = rvalue().addParseAction(RoundToEpsilon)
+        formula_assignment_statement.addParseAction(verify_formula_not_recursive)
         formula_assignment_statement.addParseAction(store_parsed_value)
         value_clear_statement.addParseAction(clear_parsed_value)
 

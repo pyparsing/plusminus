@@ -24,10 +24,26 @@ plusminus Change Log
           min({1, 2, 4})  -> 1
           sin({1, 2, 4})  -> TypeError
 
-    - Since the allowed expression depth is dependent on the complexity
-      and depth of added operators, a customizable maximum_expression_depth
-      attribute has been added to parsers. The default depth is 8 (reduced
-      from 10 in 0.2.0).
+    - To guard against expressions that are too deeply nested, a
+      customizable maximum_expression_depth attribute has been added
+      to parsers. Parsers customized with additional operators may need
+      to limit the allowed depth. The default maximum depth is 8
+      (reduced from 10 in 0.2.0).
+
+          ((((((((0)))))))) -> 0
+          (((((((((0))))))))) -> OverflowError: too deeply nested
+
+    - A similar performance issue can be raised if a formula chains
+      to another formula to another formula, etc. too deeply.
+
+          a @= b + b
+          b @= c + c
+          c @= d + d
+          ...
+          m @= n + n -> OverflowError: function variables nested too deeply
+
+      A customizable parser attribute maximum_formula_depth will limit the number
+      of formula indirections. The default value is 12.
 
 
 0.2.0 -

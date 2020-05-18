@@ -10,11 +10,29 @@ from plusminus.examples.example_parsers import DiceRollParser, CombinatoricsArit
 from pprint import pprint
 
 import sys
-sys.setrecursionlimit(2000)
+sys.setrecursionlimit(3000)
 
 parser = BasicArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
+
+parser.maximum_formula_depth = 5
+parser.runTests("""\
+    a @= a + 1
+    b @= a + 1
+    a @= b + b
+    b, c, d =
+    a @= b + b
+    b @= c + c
+    c @= d + d
+    d @= e + e
+    e @= f + f
+    f @= g + g
+    f = 1
+    a
+    """,
+    postParse=lambda teststr, result:
+                result[0].evaluate() if '@=' not in teststr and not teststr.endswith('=') else None)
 
 parser.runTests("""\
     sin(rad(30))
