@@ -174,14 +174,14 @@ class TestBasicArithmetic:
             pytest.fail("unexpected 'a' value {!r}".format(a_value))
 
     def test_maximum_formula_depth(self, basic_arithmetic_parser):
-        basic_arithmetic_parser.max_formula_depth = 5
+        basic_arithmetic_parser.maximum_formula_depth = 5
         basic_arithmetic_parser.parse("a @= b + b")
         basic_arithmetic_parser.parse("b @= c + c")
         basic_arithmetic_parser.parse("c @= d + d")
         basic_arithmetic_parser.parse("d @= e + e")
         basic_arithmetic_parser.parse("e @= f + f")
 
-        with pytest.raises(Exception):
+        with pytest.raises(OverflowError):
             basic_arithmetic_parser.parse("f @= g + g")
 
         basic_arithmetic_parser.parse("f = 1")
