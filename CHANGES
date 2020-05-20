@@ -2,20 +2,17 @@ plusminus Change Log
 
 0.3.0 -
 
-    - Added dict-like access to set and get variables defined within
-      a parser:
-
-          for x in range(10):
-              parser['x'] = x
-              parser.evaluate("y = x * x")
-              print(parser['y'])
-
     - Added syntax to clear a defined variable:
 
           a, b = 1, 2
-          c = a + b
-          a =        -> clears variable a
-          c = a + b  -> NameError
+          c = a + b    -> 3
+          a =          -> clears variable a
+          c = a + b    -> NameError
+
+    - Added support for nested sets, and better set display format.
+
+          {{1, 2}, 99, 100}
+          {99, 'z', 'a'} ∪ {'a', 't', 100} -> {99, 100, 'a', 't', 'z'}
 
     - Set literals can be used as function arguments, if supported
       by the function.
@@ -24,14 +21,25 @@ plusminus Change Log
           min({1, 2, 4})  -> 1
           sin({1, 2, 4})  -> TypeError
 
+    - Added dict-like access API to set and get variables defined within
+      a parser:
+
+          for x in range(10):
+              parser['x'] = x
+              parser.evaluate("y = x * x")
+              print(parser['y'])
+
     - To guard against expressions that are too deeply nested, a
       customizable maximum_expression_depth attribute has been added
       to parsers. Parsers customized with additional operators may need
-      to limit the allowed depth. The default maximum depth is 8
+      to limit the allowed depth. The default maximum depth is 6
       (reduced from 10 in 0.2.0).
 
-          ((((((((0)))))))) -> 0
-          (((((((((0))))))))) -> OverflowError: too deeply nested
+          ((((((0)))))) -> 0
+          (((((((0))))))) -> OverflowError: too deeply nested
+
+      There is also a maximum_set_depth attribute for nested sets,
+      also defaults to 6.
 
     - A similar performance issue can be raised if a formula chains
       to another formula to another formula, etc. too deeply.
@@ -51,10 +59,10 @@ plusminus Change Log
     - Added set notation and arithmetic:
           {1, 2, 3} is the set of the integers 1, 2, and 3
           {} is the empty set
-          a ∩ b is the intersection of sets a and b
-          a ∪ b is the union of sets a and b
-          a ∈ b a is an element of b (can also be written 'a in b')
-          a ∉ b a is not an element of b (can also be written 'a not in b')
+          a ∩ b    the intersection of sets a and b
+          a ∪ b    the union of sets a and b
+          a ∈ b    a is an element of b (can also be written 'a in b')
+          a ∉ b    a is not an element of b (can also be written 'a not in b')
 
     - Replaced "between", "within", and "in range from-to" operators
       to single "in" operator, taking an argument of the form:

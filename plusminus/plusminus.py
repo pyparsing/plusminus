@@ -29,6 +29,7 @@ SOFTWARE.
 from collections import namedtuple, deque
 from contextlib import contextmanager
 from functools import partial, total_ordering
+from itertools import groupby
 import math
 import operator
 import random
@@ -79,10 +80,13 @@ FunctionSpec = namedtuple("FunctionSpec", "method arity")
 
 _numeric_type = (int, float, complex)
 
-class PrettyEmptySet(set):
+class PrettySet(frozenset):
     def __repr__(self):
-        return "{}"
-empty_set = PrettyEmptySet()
+        elems = sorted(self, key=lambda x: id(type(x)))
+        sorted_elems = []
+        for _, elems_by_type in groupby(elems, key=type):
+            sorted_elems.extend(sorted(elems_by_type))
+        return "{" + ', '.join(repr(x) for x in sorted_elems) + "}"
 
 # define special versions of lt, le, etc. to comprehend "is close"
 _lt = lambda a, b, eps: (
@@ -126,12 +130,22 @@ def _compute_structure_depth(s, l, t):
     return max_depth
 
 _paren_parser = pp.And([pp.nestedExpr()]).addParseAction(_compute_structure_depth)
+_brace_parser = pp.And([pp.nestedExpr('{', '}')]).addParseAction(_compute_structure_depth)
 
 def _get_expression_depth(s):
-    try:
-        return _paren_parser.parseString('(' + s + ')')[0] - 1
-    except pp.ParseException:
+    depths = [t[0] for t, s, e in _paren_parser.scanString(s)]
+    if depths:
+        return max(depths)
+    else:
         return -1
+
+def _get_set_depth(s):
+    depths = [t[0] for t, s, e in _brace_parser.scanString(s)]
+    if depths:
+        return max(depths)
+    else:
+        return -1
+
 
 @contextmanager
 def _trimming_exception_traceback():
@@ -277,7 +291,7 @@ class LiteralNode(ArithNode):
 
 class SetNode(ArithNode):
     def evaluate(self):
-        return set(t.evaluate() for t in self.tokens) or empty_set
+        return PrettySet(t.evaluate() for t in self.tokens)
 
     def __repr__(self):
         return "{" + repr(self.tokens) + "}" if self.tokens else "{}"
@@ -530,8 +544,9 @@ class ArithmeticParser:
 
         # customize can raise or lower the maximum expression depth
         # to be supported - default = 8
-        self.maximum_expression_depth = 8
+        self.maximum_expression_depth = 6
         self.maximum_formula_depth = 12
+        self.maximum_set_depth = 6
 
         # storage for assigned variables
         self._variable_map = {}
@@ -563,7 +578,10 @@ class ArithmeticParser:
 
     def parse(self, *args, **kwargs):
         if _get_expression_depth(args[0]) > self.maximum_expression_depth:
-            raise OverflowError("too deeply nested")
+            raise OverflowError("expression too deeply nested")
+
+        if _get_set_depth(args[0]) > self.maximum_set_depth:
+            raise OverflowError("set too deeply nested")
 
         parsed = self.get_parser().parseString(*args, **kwargs)
 
@@ -713,7 +731,7 @@ class ArithmeticParser:
                 assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ('∉', 'not_in')]
                 if isinstance(range_expr, (identifier_node_class, SetBinaryOp)):
                     range_expr = range_expr.evaluate()
-                if isinstance(range_expr, (set, SetNode)):
+                if isinstance(range_expr, (PrettySet, SetNode)):
                     with _trimming_exception_traceback():
                         op_val = operand.evaluate()
                         return assert_negate_fn(
@@ -799,14 +817,14 @@ class ArithmeticParser:
         var_name.addParseAction(identifier_node_class)
 
         def set_intersection(a, b):
-            a_set = a if isinstance(a, set) else set(elem.evaluate() for elem in a.elements)
-            b_set = b if isinstance(b, set) else set(elem.evaluate() for elem in b.elements)
-            return a_set.intersection(b_set) or empty_set
+            a_set = a if isinstance(a, PrettySet) else PrettySet(elem.evaluate() for elem in a)
+            b_set = b if isinstance(b, PrettySet) else PrettySet(elem.evaluate() for elem in b)
+            return PrettySet(a_set.intersection(b_set))
 
         def set_union(a, b):
-            a_set = a if isinstance(a, set) else set(elem.evaluate() for elem in a.elements)
-            b_set = b if isinstance(b, set) else set(elem.evaluate() for elem in b.elements)
-            return a_set.union(b_set) or empty_set
+            a_set = a if isinstance(a, PrettySet) else PrettySet(elem.evaluate() for elem in a)
+            b_set = b if isinstance(b, PrettySet) else PrettySet(elem.evaluate() for elem in b)
+            return PrettySet(a_set.union(b_set))
 
         class SetBinaryOp(BinaryNode):
             opns_map = {

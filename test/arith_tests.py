@@ -176,7 +176,7 @@ parser.runTests("""\
     1 ∉ [a, b)
     1 in { a, 11, 22, 53}
     1 not in {b, 0}
-    myset = { a, 11, 22, 53}
+    myset = { a, 11, 22, 53, 'z', 'x' ,'a', {100, 101, 99}}
     myset
     1 in myset
     { 0, 2, 22}
@@ -192,6 +192,8 @@ parser.runTests("""\
     1 ∉ (myset ∪ { 0, 2, 22})
     1 in (myset ∩ {})
     1 in (myset ∪ {})
+    {{1, 2}, 99, 100}
+    {99, 'z', 'a'} ∪ {'a', 't', 100}
     
     # sets as function arguments
     a = {1, 2, 3}

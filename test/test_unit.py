@@ -42,8 +42,32 @@ class TestBasicArithmetic:
             ("((((0))))", 0),
             ("(((((0)))))", 0),
             ("((((((0))))))", 0),
-            ("(((((((0)))))))", 0),
-            ("((((((((0))))))))", 0),
+            ("{{{{{{100}}}}}}",
+             frozenset(
+                 [
+                     frozenset(
+                         [
+                             frozenset(
+                                 [
+                                     frozenset(
+                                         [
+                                             frozenset(
+                                                 [
+                                                     frozenset(
+                                                         [
+                                                             100
+                                                         ]
+                                                     )
+                                                 ]
+                                             )
+                                         ]
+                                     )
+                                 ]
+                             )
+                         ]
+                     )
+                 ]
+             )),
             # ('ctemp = 38', [38]),
             # ('feverish @= temp_f > 98.6', True),
             # ('"You " + (feverish ? "have" : "dont have") + " a fever"', "You dont have a fever"),
@@ -61,8 +85,9 @@ class TestBasicArithmetic:
             ("1000000**1000000", OverflowError),
             ("((0)", ArithmeticParseException),
             ("(((((((((((0)))))))))))", OverflowError),
-            ("((((((((0)))))))))", ArithmeticParseException),
+            ("((((((0)))))))", ArithmeticParseException),
             ("sin({1, 2, 4})", TypeError),
+            ("{{{{{{{100}}}}}}}", OverflowError),
         ],
     )
     def test_evaluate_throws_errors(
