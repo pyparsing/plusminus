@@ -11,8 +11,7 @@ from enum import Enum
 import inspect
 import threading
 import random
-from pprint import pprint
-import io
+from operator import itemgetter
 
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
@@ -106,6 +105,39 @@ class Repl:
             info = sessions.pop(key)
         sessions_history.append((key, info))
 
+    def _vars_as_table(self):
+        def round_to_epsilon(x):
+            import math
+            ret = x.evaluate()
+            if isinstance(ret, (float, complex)):
+                if math.isclose(ret.imag, 0, abs_tol=self.parser.epsilon):
+                    ret = round(ret.real, 15)
+                if math.isclose(ret.real, 0, abs_tol=self.parser.epsilon):
+                    if ret.imag:
+                        ret = complex(0, ret.imag)
+                    else:
+                        ret = 0
+                if (
+                        not isinstance(ret, complex)
+                        and abs(ret) < 1e15
+                        and math.isclose(ret, int(ret), abs_tol=self.parser.epsilon)
+                ):
+                    return int(ret)
+            return ret
+
+        var_dict = self.parser.vars()
+        ret = '<table>\n'
+        row_template = ('<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+                        '<td align="right"><pre>{}</pre></td>'
+                        '<td align="right"><pre>=</pre></td>'
+                        '<td align="left"><pre>{}</pre></td></tr>\n')
+        for key, value in sorted(var_dict.items(), key=itemgetter(0)):
+            ret += row_template.format(key, repr(round_to_epsilon(value))
+                                            if isinstance(value, (float, complex))
+                                            else repr(value))
+        ret += '</table>\n'
+        return ret
+
     def do_command(self, cmd, key):
         MAX_OUTPUT_LEN = 20000
         # print('cmd=', repr(cmd))
@@ -118,10 +150,7 @@ class Repl:
             self._update_session(key, cmd, True)
             return True, self.CommandStatus.META, self.examples(self.parser)
         elif cmd.lower() == "vars":
-            vars_str = io.StringIO()
-            pprint(self.parser.vars(), stream=vars_str, width=30)
-            self._update_session(key, cmd, True)
-            return True, self.CommandStatus.META, vars_str.getvalue()
+            return True, self.CommandStatus.META, self._vars_as_table()
         elif cmd.lower() == "clear":
             self.parser = type(self.parser)()
             self._update_session(key, cmd, True)
@@ -141,7 +170,15 @@ class Repl:
             return True, self.CommandStatus.META_QUIT, 'DONE'
         else:
             try:
-                result = self.parser.evaluate(cmd)
+                try:
+                    result = self.parser.evaluate(cmd)
+                except NameError:
+                    if '@=' in cmd:
+                        result = self.parser.parse(cmd)
+                    elif cmd.strip().endswith('='):
+                        result = None
+                    else:
+                        raise
                 # print(cmd, result)
             except ArithmeticParseException as pe:
                 self._update_session(key, cmd, False)
@@ -150,7 +187,7 @@ class Repl:
                 self._update_session(key, cmd, False)
                 return False, self.CommandStatus.APP_FAILURE, "{}: {}".format(type(e).__name__, e)
             else:
-                retvalue = repr(result)
+                retvalue = repr(result) if result is not None else ''
                 if len(retvalue) > MAX_OUTPUT_LEN:
                     retvalue = retvalue[:MAX_OUTPUT_LEN] + '...'
                 if '\n' not in retvalue:
@@ -232,7 +269,7 @@ class Repl:
         return msg
 
 
-class BottleArithReplRequestHandler:
+class BottlePlusminusReplRequestHandler:
 
     def __init__(self):
         self.buffer = []
@@ -307,6 +344,8 @@ class BottleArithReplRequestHandler:
             action = action.replace('"', r"&quot;").replace("`", r"\&grave;")
             flag = ('false', 'true')[go]
             action = "addtext(`" + action + "`," + flag + ");"
+            if go:
+                action = "cleartext();" + action
             self.write_html(
                 '''<button onclick="{}">&nbsp;&nbsp;{}&nbsp;&nbsp;</button>\n'''.format(action, s)
                 )
@@ -371,6 +410,11 @@ class BottleArithReplRequestHandler:
                 self.write_html('<h2>Sorry, too many sessions just now...</h2>\n')
 
         self.write_javascript(textwrap.dedent('''\
+            function cleartext() {
+                var frm = document.turnForm;
+                var input_field = frm.c;
+                input_field.value = "";
+                }
             function addtext(s, go) {
                 var frm = document.turnForm;
                 var input_field = frm.c;

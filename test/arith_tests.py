@@ -12,9 +12,23 @@ from pprint import pprint
 import sys
 sys.setrecursionlimit(3000)
 
+def post_parse_evaluate(teststr, result):
+    if '@=' not in teststr and not teststr.strip().endswith('='):
+        return result[0].evaluate()
+
 parser = BasicArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
+
+parser.runTests("""\
+    a, b, c =
+    a @= a
+    a @= b
+    b @= c
+    c @= a
+    a
+    """,
+    postParse=post_parse_evaluate)
 
 parser.maximum_formula_depth = 5
 parser.runTests("""\
@@ -31,8 +45,7 @@ parser.runTests("""\
     f = 1
     a
     """,
-    postParse=lambda teststr, result:
-                result[0].evaluate() if '@=' not in teststr and not teststr.endswith('=') else None)
+    postParse=post_parse_evaluate)
 
 parser.runTests("""\
     sin(rad(30))
@@ -206,7 +219,7 @@ parser.runTests("""\
     # mismatched parentheses
     5 + (3*
     """,
-    postParse=lambda teststr, result: result[0].evaluate() if '@=' not in teststr else None)
+    postParse=post_parse_evaluate)
 
 pprint(parser.vars())
 print('circle_area =', parser['circle_area'])
@@ -225,7 +238,7 @@ parser.runTests("""\
     6P6
     6C6
     """,
-    postParse=lambda _, result: result[0].evaluate())
+    postParse=post_parse_evaluate)
 
 
 parser = BusinessArithmeticParser()
@@ -240,7 +253,7 @@ parser.runTests("""\
     PV(FV(20000, 3%, 30), 3%, 30)
     FV(20000, 3%/12, 30*12)
     """,
-    postParse=lambda _, result: result[0].evaluate())
+    postParse=post_parse_evaluate)
 
 from datetime import datetime
 class DateTimeArithmeticParser(ArithmeticParser):
@@ -269,7 +282,7 @@ parser.runTests("""\
     "A day and an hour from now: " + str(now() + 1d + 1h)
     str(now() + 3*(1d + 1h))
     """,
-    postParse=lambda _, result: result[0].evaluate())
+    postParse=post_parse_evaluate)
 
 
 parser = DiceRollParser()
@@ -278,7 +291,7 @@ d20
 3d6
 d20 + 3d4
 (3d6)/3
-""", postParse=lambda _, result: result[0].evaluate())
+""", postParse=post_parse_evaluate)
 
 
 print()

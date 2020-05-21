@@ -88,6 +88,12 @@ class PrettySet(frozenset):
             sorted_elems.extend(sorted(elems_by_type))
         return "{" + ', '.join(repr(x) for x in sorted_elems) + "}"
 
+
+class OperatorString(str):
+    def __repr__(self):
+        return self
+
+
 # define special versions of lt, le, etc. to comprehend "is close"
 _lt = lambda a, b, eps: (
     a < b and not math.isclose(a, b, abs_tol=eps)
@@ -120,6 +126,7 @@ _ne = lambda a, b, eps: (
     else a != b
 )
 
+
 def _compute_structure_depth(s, l, t):
     stack = deque([(0, t.asList())])
     max_depth = 0
@@ -129,8 +136,10 @@ def _compute_structure_depth(s, l, t):
         stack.extend((depth+1, item) for item in node if isinstance(item, list))
     return max_depth
 
+
 _paren_parser = pp.And([pp.nestedExpr()]).addParseAction(_compute_structure_depth)
 _brace_parser = pp.And([pp.nestedExpr('{', '}')]).addParseAction(_compute_structure_depth)
+
 
 def _get_expression_depth(s):
     depths = [t[0] for t, s, e in _paren_parser.scanString(s)]
@@ -138,6 +147,7 @@ def _get_expression_depth(s):
         return max(depths)
     else:
         return -1
+
 
 def _get_set_depth(s):
     depths = [t[0] for t, s, e in _brace_parser.scanString(s)]
@@ -157,6 +167,7 @@ def _trimming_exception_traceback():
             tb = tb.tb_next
         e.__traceback__ = tb
         raise e
+
 
 def collapse_operands(seq, eps=1e-15):
     cur = list(seq)
@@ -237,7 +248,9 @@ def safe_str_mult(a, b):
 def constrained_factorial(x):
     if not (0 <= x < 32768):
         raise ValueError("{!r} not in working 0-32,767 range".format(x))
-    return math.factorial(int(x))
+    if math.isclose(x, int(x), abs_tol=1e-12):
+        x = int(round(x))
+    return math.factorial(x)
 
 
 @total_ordering
@@ -313,7 +326,10 @@ class UnaryNode(ArithNode):
         return ret
 
     def __repr__(self):
-        return "".join(map(repr, self.tokens))
+        repr_tokens = self.tokens[:]
+        for i in range(len(repr_tokens) - 1):
+            repr_tokens[i] = OperatorString(repr_tokens[i])
+        return "".join(map(repr, repr_tokens))
 
 
 class BinaryNode(ArithNode):
@@ -330,7 +346,10 @@ class BinaryNode(ArithNode):
         return ret
 
     def __repr__(self):
-        return "({})".format("".join(map(repr, self.tokens)))
+        repr_tokens = self.tokens[:]
+        for i in range(1, len(repr_tokens), 2):
+            repr_tokens[i] = OperatorString(repr_tokens[i])
+        return "({})".format(" ".join(map(repr, repr_tokens)))
 
 
 class TernaryNode(ArithNode):
@@ -354,7 +373,10 @@ class TernaryNode(ArithNode):
             return self.left_associative_evaluate(self.opns_map)
 
     def __repr__(self):
-        return "({})".format("".join(map(repr, self.tokens)))
+        repr_tokens = self.tokens[:]
+        for i in range(1, len(repr_tokens), 2):
+            repr_tokens[i] = OperatorString(repr_tokens[i])
+        return "({})".format(" ".join(map(repr, repr_tokens)))
 
 
 class ArithmeticParser:
@@ -512,7 +534,7 @@ class ArithmeticParser:
                 return fn_spec.method(*[arg.evaluate() for arg in fn_args])
 
         def __repr__(self):
-            return "{}({})".format(self.tokens[0], ",".join(map(repr, self.tokens[1:])))
+            return "{}({})".format(self.tokens[0], ", ".join(map(repr, self.tokens[1:])))
 
     def __init__(self):
         self._added_operator_specs = []
@@ -607,7 +629,7 @@ class ArithmeticParser:
             raise NameError("no such variable {!r}".format(key))
 
     def __iter__(self):
-        raise NotImplementedError
+        raise NotImplemented
 
     def __setitem__(self, name, value):
         self._variable_map[name] = LiteralNode([value])
@@ -753,6 +775,20 @@ class ArithmeticParser:
                 else:
                     with _trimming_exception_traceback():
                         return assert_negate_fn(operand.evaluate() in range_expr.evaluate())
+
+            def __repr__(self):
+                operand, op, range_expr = self.tokens
+
+                lower_symbol = "(["[range_expr.lower_inclusive]
+                upper_symbol = ")]"[range_expr.upper_inclusive]
+                repr_format = "{} {} {}{}, {}{}"
+                return repr_format.format(repr(operand),
+                                          op,
+                                          lower_symbol,
+                                          repr(range_expr.lower),
+                                          repr(range_expr.upper),
+                                          upper_symbol
+                                          )
 
         class BinaryComp(BinaryNode):
             opns_map = {
@@ -910,7 +946,7 @@ class ArithmeticParser:
                     var_name not in assigned_vars
                     and len(assigned_vars) >= self.MAX_VARS
                 ):
-                    raise Exception("too many variables defined (1)")
+                    raise Exception("too many variables defined")
                 assigned_vars[var_name] = rval
                 assignments.append(rval)
             return LiteralNode([assignments]) if len(assignments) > 1 else rval
@@ -918,7 +954,7 @@ class ArithmeticParser:
         value_assignment_statement.addParseAction(eval_and_store_value)
         value_assignment_statement.setName("assignment statement")
 
-        formula_assignment_operator = "@="
+        formula_assignment_operator = pp.Literal("@=")
         formula_assignment_statement = (
             lvalue("lhs") + formula_assignment_operator + rvalue("rhs")
         )
@@ -937,8 +973,9 @@ class ArithmeticParser:
                         raise Exception("illegal recursion, {!r} is used in expression".format(dest_var_name))
 
                     cur_expr = self._variable_map.get(cur_expr.name)
-                    if cur_expr is None:
-                        continue
+                    if cur_expr is not None:
+                        to_visit.append(cur_expr)
+                    continue
 
                 if isinstance(cur_expr, (str, LiteralNode)):
                     continue
