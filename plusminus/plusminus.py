@@ -88,6 +88,7 @@ class PrettySet(frozenset):
             sorted_elems.extend(sorted(elems_by_type))
         return "{" + ', '.join(repr(x) for x in sorted_elems) + "}"
 
+PrettySet.__name__ = 'set'
 
 class OperatorString(str):
     def __repr__(self):
@@ -329,7 +330,7 @@ class UnaryNode(ArithNode):
         repr_tokens = self.tokens[:]
         for i in range(len(repr_tokens) - 1):
             repr_tokens[i] = OperatorString(repr_tokens[i])
-        return "".join(repr_tokens)
+        return "".join(map(repr, repr_tokens))
 
 
 class BinaryNode(ArithNode):
@@ -695,7 +696,7 @@ class ArithmeticParser:
             + range_punc("upper_inclusive")
         )
         set_operand = pp.Group(LBRACE
-                               + pp.Optional(pp.delimitedList(arith_operand))("elements")
+                               + pp.Optional(pp.delimitedList(arith_operand))
                                + RBRACE).addParseAction(SetNode)
 
         numeric_operand = ppc.number().addParseAction(LiteralNode)
