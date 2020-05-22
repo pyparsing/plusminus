@@ -17,8 +17,11 @@ from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
 from plusminus import BasicArithmeticParser, ArithmeticParseException, __version__ as plusminus_version
+import sys
 import cgitb
 cgitb.enable()
+
+sys.setrecursionlimit(3000)
 
 FILE_NOT_FOUND_ERROR_RESPONSE = (404, "File not found")
 OK_RESPONSE = 200
@@ -108,7 +111,10 @@ class Repl:
     def _vars_as_table(self):
         def round_to_epsilon(x):
             import math
-            ret = x.evaluate()
+            try:
+                ret = x.evaluate()
+            except AttributeError:
+                ret = x
             if isinstance(ret, (float, complex)):
                 if math.isclose(ret.imag, 0, abs_tol=self.parser.epsilon):
                     ret = round(ret.real, 15)
@@ -523,30 +529,29 @@ class BottlePlusminusReplRequestHandler:
         return self._handle_stats_request()
 
 
-@route('/plusminus/_stats')
-def handle_stats_command():
-    handler = BottleArithReplRequestHandler()
-    handler._handle_stats_request()
-    return ''.join(handler.buffer)
+if __name__ == "__main__":
+    # bottle server "main"
 
-@route('/plusminus/_cleanup')
-def handle_cleanup_command():
-    handler = BottleArithReplRequestHandler()
-    handler._handle_cleanup_request()
-    return ''.join(handler.buffer)
+    @route('/plusminus/_stats')
+    def handle_stats_command():
+        handler = BottleArithReplRequestHandler()
+        handler._handle_stats_request()
+        return ''.join(handler.buffer)
 
-@route('/plusminus')
-def handle_app_command():
-    handler = BottleArithReplRequestHandler()
-    handler._handle_app_request()
-    return ''.join(handler.buffer)
+    @route('/plusminus/_cleanup')
+    def handle_cleanup_command():
+        handler = BottleArithReplRequestHandler()
+        handler._handle_cleanup_request()
+        return ''.join(handler.buffer)
 
-@route('/')
-def hello_world():
-    return 'Hello from plusminus repl!'
+    @route('/plusminus')
+    def handle_app_command():
+        handler = BottleArithReplRequestHandler()
+        handler._handle_app_request()
+        return ''.join(handler.buffer)
 
+    @route('/')
+    def hello_world():
+        return 'Hello from plusminus repl!'
 
-# bottle server "main"
-import sys
-sys.setrecursionlimit(2000)
-application = default_app()
+    application = default_app()

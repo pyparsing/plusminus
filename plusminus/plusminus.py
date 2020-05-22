@@ -329,7 +329,7 @@ class UnaryNode(ArithNode):
         repr_tokens = self.tokens[:]
         for i in range(len(repr_tokens) - 1):
             repr_tokens[i] = OperatorString(repr_tokens[i])
-        return "".join(map(repr, repr_tokens))
+        return "".join(repr_tokens)
 
 
 class BinaryNode(ArithNode):
