@@ -308,7 +308,7 @@ class SetNode(ArithNode):
         return PrettySet(t.evaluate() for t in self.tokens)
 
     def __repr__(self):
-        return "{" + repr(self.tokens) + "}" if self.tokens else "{}"
+        return "{" + ', '.join(map(repr, self.tokens)) + "}" if self.tokens else "{}"
 
 
 class UnaryNode(ArithNode):
