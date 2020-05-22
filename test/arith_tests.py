@@ -242,7 +242,17 @@ parser.runTests("""\
 
 pprint(parser.vars())
 print('circle_area =', parser['circle_area'])
+print('circle_area =', parser.evaluate('circle_area'))
+
+del parser['circle_radius']
+try:
+    print('circle_area =', end=' ')
+    print(parser.evaluate('circle_area'))
+except NameError as ne:
+    print(ne)
+
 print(parser.parse("6.02e24 * 100").evaluate())
+
 
 
 parser = CombinatoricsArithmeticParser()

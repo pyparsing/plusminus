@@ -28,6 +28,7 @@ plusminus Change Log
               parser['x'] = x
               parser.evaluate("y = x * x")
               print(parser['y'])
+              del parser['y']
 
     - To guard against expressions that are too deeply nested, a
       customizable maximum_expression_depth attribute has been added

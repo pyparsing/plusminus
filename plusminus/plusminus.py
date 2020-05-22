@@ -630,6 +630,11 @@ class ArithmeticParser:
         else:
             raise NameError("no such variable {!r}".format(key))
 
+    def __delitem__(self, key):
+        self_vars = self._variable_map
+        if key in self_vars:
+            del self_vars[key]
+
     def __iter__(self):
         raise NotImplemented
 
