@@ -17,9 +17,25 @@ def post_parse_evaluate(teststr, result):
         return result[0].evaluate()
 
 parser = BasicArithmeticParser()
-parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
-parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
 
+parser.maximum_formula_depth = 5
+parser.runTests("""\
+k@=j
+j@=i
+i@=h
+h@=g
+g@=f
+f@=e
+e@=d
+d@=c
+c@=b
+b@=a
+a@= 1
+k
+    """,
+    postParse=post_parse_evaluate)
+
+parser = BasicArithmeticParser()
 parser.runTests("""\
     a, b, c =
     a @= a
@@ -30,7 +46,7 @@ parser.runTests("""\
     """,
     postParse=post_parse_evaluate)
 
-parser.maximum_formula_depth = 5
+parser = BasicArithmeticParser()
 parser.runTests("""\
     a @= a + 1
     b @= a + 1
@@ -47,6 +63,9 @@ parser.runTests("""\
     """,
     postParse=post_parse_evaluate)
 
+parser = BasicArithmeticParser()
+parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
+parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
 parser.runTests("""\
     sin(rad(30))
     sin(30°)

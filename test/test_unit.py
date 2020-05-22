@@ -213,3 +213,12 @@ class TestBasicArithmetic:
         a_value = basic_arithmetic_parser.evaluate("a")
         print(a_value)
         assert a_value == 32
+
+        basic_arithmetic_parser.parse("a, b, c, d, e=")
+        basic_arithmetic_parser.parse("a @= b")
+        basic_arithmetic_parser.parse("b @= c")
+        basic_arithmetic_parser.parse("c @= d")
+        basic_arithmetic_parser.parse("d @= e")
+        with pytest.raises(OverflowError):
+            basic_arithmetic_parser.parse("e @= f")
+

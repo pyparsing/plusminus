@@ -186,7 +186,7 @@ def collapse_operands(seq, eps=1e-15):
                 if cur[i + 1] < 0 and (i == len(cur) - 2 or cur[i + 2] % 2 != 0):
                     unused = 0 ** cur[i + 1]
                 else:
-                    cur[i - 2 :] = [1]
+                    cur[i - 2:] = [1]
                 break
         for i in range(len(cur) - 1, 1, -1):
             if cur[i] == 1:
@@ -515,6 +515,7 @@ class ArithmeticParser:
             return self.name
 
     class ArithmeticFunction(ArithNode):
+        fn_map = None
         def evaluate(self):
             with _trimming_exception_traceback():
                 fn_name, *fn_args = self.tokens
@@ -990,22 +991,23 @@ class ArithmeticParser:
         def store_parsed_value(tokens):
             def get_depth(formula_node):
                 max_depth = 0
-                to_visit = deque([(0, formula_node)])
+                to_visit = deque([(1, formula_node)])
                 while to_visit:
                     cur_depth, cur_expr = to_visit.popleft()
                     max_depth = max(max_depth, cur_depth)
 
                     if isinstance(cur_expr, self.IdentifierNode):
                         cur_expr = self._variable_map.get(cur_expr.name)
-                        if cur_expr is None:
-                            continue
+                        if cur_expr is not None:
+                            to_visit.append((cur_depth + 1, cur_expr))
+                        continue
 
                     if isinstance(cur_expr, (str, LiteralNode)):
                         continue
 
                     try:
                         for e in cur_expr:
-                            to_visit.append((cur_depth+1, e))
+                            to_visit.append((cur_depth, e))
                     except TypeError:
                         continue
 
