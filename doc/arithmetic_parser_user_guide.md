@@ -44,6 +44,10 @@
 
     - `{}` is the empty set
     - `in` and `not in` are equivalent to `∈` and `∉`
+    - sets can be nested, and can be used as arguments to functions:
+    
+          {{1,2}, {3,4}}
+          max({1, 100, 1000}) evaluates 1000
 
   - `not, and, or`
   - `mod`
@@ -140,6 +144,12 @@ third expression above is evaluated in this order:
     b = 2
     c = a + b
 
+Variables can be cleared by leaving the right-side of the assignment empty:
+
+    a, b = 1, 2
+    c = a + b    -> 3
+    a =          -> clears variable a
+    c = a + b    -> NameError
 
 ### Formula assignments
 

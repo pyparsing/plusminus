@@ -37,6 +37,8 @@ Adding a new operator
 Adding a new function
 
 Accessing evaluated results and variables from your code
+  parser['xyz'] = 100
+  parser.evaluate("√xyz") returns 10
 
 Defining an operator that is both unary and binary
 

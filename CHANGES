@@ -30,29 +30,32 @@ plusminus Change Log
               print(parser['y'])
               del parser['y']
 
-    - To guard against expressions that are too deeply nested, a
-      customizable maximum_expression_depth attribute has been added
-      to parsers. Parsers customized with additional operators may need
-      to limit the allowed depth. The default maximum depth is 6
-      (reduced from 10 in 0.2.0).
+    - plusminus has been hardened against some possible attacks, using
+      deep expression nesting or formula references:
 
-          ((((((0)))))) -> 0
-          (((((((0))))))) -> OverflowError: too deeply nested
+      - To guard against expressions that are too deeply nested, a
+        customizable maximum_expression_depth attribute has been added
+        to parsers. Parsers customized with additional operators may need
+        to limit the allowed depth. The default maximum depth is 6
+        (reduced from 10 in 0.2.0).
 
-      There is also a maximum_set_depth attribute for nested sets,
-      also defaults to 6.
+            ((((((0)))))) -> 0
+            (((((((0))))))) -> OverflowError: too deeply nested
 
-    - A similar performance issue can be raised if a formula chains
-      to another formula to another formula, etc. too deeply.
+        There is also a maximum_set_depth attribute for nested sets,
+        also defaults to 6.
 
-          a @= b + b
-          b @= c + c
-          c @= d + d
-          ...
-          m @= n + n -> OverflowError: function variables nested too deeply
+      - A similar performance issue can be raised if a formula chains
+        to another formula to another formula, etc. too deeply.
 
-      A customizable parser attribute maximum_formula_depth will limit the number
-      of formula indirections. The default value is 12.
+            a @= b + b
+            b @= c + c
+            c @= d + d
+            ...
+            m @= n + n -> OverflowError: function variables nested too deeply
+
+        A customizable parser attribute maximum_formula_depth will limit the number
+        of formula indirections. The default value is 12.
 
 
 0.2.0 -
