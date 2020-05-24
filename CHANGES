@@ -57,6 +57,12 @@ plusminus Change Log
         A customizable parser attribute maximum_formula_depth will limit the number
         of formula indirections. The default value is 12.
 
+      - An attack may try to define too many variables and crash an application
+        by consuming excessive memory. A value to limit the number of variables and
+        their respective memory usage was previously hard-coded. These are now
+        part of the public API for parsers: max_number_of_vars (default = 1000)
+        and max_var_memory (default = 10MB).
+
 
 0.2.0 -
 

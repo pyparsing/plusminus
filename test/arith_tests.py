@@ -244,7 +244,9 @@ pprint(parser.vars())
 print('circle_area =', parser['circle_area'])
 print('circle_area =', parser.evaluate('circle_area'))
 
+print("del parser['circle_radius']")
 del parser['circle_radius']
+
 try:
     print('circle_area =', end=' ')
     print(parser.evaluate('circle_area'))
@@ -254,9 +256,9 @@ except NameError as ne:
 print(parser.parse("6.02e24 * 100").evaluate())
 
 
-
 parser = CombinatoricsArithmeticParser()
 parser.runTests("""\
+    # CombinatoricsArithmeticParser
     3!
     -3!
     3!!
@@ -272,6 +274,7 @@ parser.runTests("""\
 
 parser = BusinessArithmeticParser()
 parser.runTests("""\
+    # BusinessArithmeticParser
     25%
     20 * 50%
     50% of 20
@@ -283,6 +286,7 @@ parser.runTests("""\
     FV(20000, 3%/12, 30*12)
     """,
     postParse=post_parse_evaluate)
+
 
 from datetime import datetime
 class DateTimeArithmeticParser(ArithmeticParser):
@@ -302,8 +306,10 @@ class DateTimeArithmeticParser(ArithmeticParser):
                                                                         microsecond=0).timestamp())
         self.add_function('str', 1, lambda dt: str(datetime.fromtimestamp(dt)))
 
+
 parser = DateTimeArithmeticParser()
 parser.runTests("""\
+    # DateTimeArithmeticParser
     now()
     str(now())
     str(today())
@@ -315,55 +321,10 @@ parser.runTests("""\
 
 
 parser = DiceRollParser()
-parser.runTests("""
-d20
-3d6
-d20 + 3d4
-(3d6)/3
-""", postParse=post_parse_evaluate)
-
-
-print()
-
-
-# override max number of variables
-class restore:
-    """
-    Context manager for restoring an object's attributes back the way they were if they were
-    changed or deleted, or to remove any attributes that were added.
-    """
-    def __init__(self, obj, *attr_names):
-        self._obj = obj
-        self._attrs = attr_names
-        if not self._attrs:
-            self._attrs = [name for name in vars(obj) if name not in ('__dict__', '__slots__')]
-        self._no_attr_value = object()
-        self._save_values = {}
-
-    def __enter__(self):
-        for attr in self._attrs:
-            self._save_values[attr] = getattr(self._obj, attr, self._no_attr_value)
-        return self
-
-    def __exit__(self, *args):
-        for attr in self._attrs:
-            save_value = self._save_values[attr]
-            if save_value is not self._no_attr_value:
-                if getattr(self._obj, attr, self._no_attr_value) != save_value:
-                    print("reset", attr, "to", save_value)
-                    setattr(self._obj, attr, save_value)
-            else:
-                if hasattr(self._obj, attr):
-                    delattr(self._obj, attr)
-
-
-print('test defining too many vars (set max to 20)')
-with restore(ArithmeticParser):
-    ArithmeticParser.MAX_VARS = 20
-    parser = ArithmeticParser()
-    try:
-        for i in range(1000):
-            parser.evaluate("a{} = 0".format(i))
-    except Exception as e:
-        print(len(parser.vars()), ArithmeticParser.MAX_VARS)
-        print("{}: {}".format(type(e).__name__, e))
+parser.runTests("""\
+    # DiceRollParser
+    d20
+    3d6
+    d20 + 3d4
+    (3d6)/3
+    """, postParse=post_parse_evaluate)

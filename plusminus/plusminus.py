@@ -387,8 +387,6 @@ class ArithmeticParser:
 
     LEFT = pp.opAssoc.LEFT
     RIGHT = pp.opAssoc.RIGHT
-    MAX_VARS = 1000
-    MAX_VAR_MEMORY = 10 ** 6
 
     def usage(self):
         import textwrap
@@ -539,6 +537,9 @@ class ArithmeticParser:
             return "{}({})".format(self.tokens[0], ", ".join(map(repr, self.tokens[1:])))
 
     def __init__(self):
+        self.max_number_of_vars = 1000
+        self.max_var_memory = 10 ** 6
+
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
@@ -951,7 +952,7 @@ class ArithmeticParser:
                 var_name = lhs_name.name
                 if (
                     var_name not in assigned_vars
-                    and len(assigned_vars) >= self.MAX_VARS
+                    and len(assigned_vars) >= self.max_number_of_vars
                 ):
                     raise Exception("too many variables defined")
                 assigned_vars[var_name] = rval
@@ -1024,8 +1025,8 @@ class ArithmeticParser:
             assigned_vars = identifier_node_class._assigned_vars
             if (
                 dest_var_name not in assigned_vars
-                    and len(assigned_vars) >= self.MAX_VARS
-                or sum(sys.getsizeof(vv) for vv in assigned_vars.values()) > self.MAX_VAR_MEMORY
+                    and len(assigned_vars) >= self.max_number_of_vars
+                or sum(sys.getsizeof(vv) for vv in assigned_vars.values()) > self.max_var_memory
             ):
                 raise Exception("too many variables defined")
             assigned_vars[dest_var_name] = rval

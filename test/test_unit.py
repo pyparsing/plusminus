@@ -222,3 +222,17 @@ class TestBasicArithmetic:
         with pytest.raises(OverflowError):
             basic_arithmetic_parser.parse("e @= f")
 
+    def test_max_number_of_vars(self, basic_arithmetic_parser):
+        VAR_LIMIT = 20
+        basic_arithmetic_parser.max_number_of_vars = VAR_LIMIT
+
+        # compute number of vars that are safe to define by subtracting
+        # the number of predefined vars from the allowed limit
+        vars_to_define = VAR_LIMIT - len(basic_arithmetic_parser.vars())
+        for i in range(vars_to_define):
+            basic_arithmetic_parser.evaluate("a{} = 0".format(i))
+
+        # now define one more, which should put us over the limit and raise
+        # the exception
+        with pytest.raises(Exception):
+            basic_arithmetic_parser.evaluate("a{} = 0".format(VAR_LIMIT))
