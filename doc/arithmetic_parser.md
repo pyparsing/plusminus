@@ -165,6 +165,13 @@ functions, and common mathematical variables
 
     Class implementation:
 
+        def log(x, y=10):
+            if math.isclose(y, 2, abs_tol=1e-15):
+                return math.log2(x)
+            if math.isclose(y, 10, abs_tol=1e-15):
+                return math.log10(x)
+            return math.log(x, y)
+
         class BasicArithmeticParser(ArithmeticParser):
             def customize(self):
                 import math
@@ -186,7 +193,8 @@ functions, and common mathematical variables
                 self.add_function("tanh", 1, math.tanh)
                 self.add_function("rad", 1, math.radians)
                 self.add_function("deg", 1, math.degrees)
-                self.add_function("ln", 1, math.log)
+                self.add_function("ln", 1, lambda x: math.log(x))
+                self.add_function("log", (1, 2), math.log) # Log function can accept one or two values
                 self.add_function("log2", 1, math.log2)
                 self.add_function("log10", 1, math.log10)
                 self.add_function("gcd", 2, math.gcd)
