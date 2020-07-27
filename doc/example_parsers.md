@@ -25,7 +25,7 @@ class BusinessArithmeticParser(ArithmeticParser):
 
         super().customize()
         self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-        self.add_operator('%', 1,ArithmeticParser.LEFT, lambda a: a / 100)
+        self.add_operator('%', 1, ArithmeticParser.LEFT, lambda a: a / 100)
         self.add_function('PV', 3, pv)
         self.add_function('FV', 3, fv)
         self.add_function('PP', 3, pp)
