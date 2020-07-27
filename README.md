@@ -41,8 +41,8 @@ Functions can be called:
       abs    max  acos  deg    lcm
       round  str  atan  ln     gamma
       trunc  sin  sinh  log    hypot
-      ceil   cos  cosh  log2   nhypot
-      floor  tan  tanh  log10  rnd
+      ceil   cos  cosh  log2   rnd
+      floor  tan  tanh  log10
 
 
 The Basic ArithmeticParser also supports assignment of variables:
