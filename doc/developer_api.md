@@ -10,7 +10,7 @@
 - `add_variable(variable, value)`
 - `add_function(function_name, num_args, function_method)`
   - if a function can accept any number of arguments, pass `...` for the
-    `num_args` argument (see the [`nhypot`](https://github.com/pyparsing/plusminus/blob/master/plusminus/plusminus.py#L1117) function)
+    `num_args` argument (see the `hypot` function)
   - if a function can accept different numbers of arguments, pass a tuple of all
     possible numbers of arguments a function can have for the `num_args` argument
     (see the `log` function)
