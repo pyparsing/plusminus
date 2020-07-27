@@ -1115,6 +1115,7 @@ class BasicArithmeticParser(ArithmeticParser):
         self.initialize_variable("tau", math.tau)
         self.initialize_variable("e", math.e)
         self.initialize_variable("φ", phi)
+        self.initialize_variable("ϕ", phi)
         self.initialize_variable("phi", phi)
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)
