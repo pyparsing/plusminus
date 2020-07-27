@@ -18,8 +18,7 @@ The parser can also return an Abstract Syntax Tree of `ArithNode` objects:
 parsed_elements = parser.parse("2+3/10")
 ```
 
-Arithmetic expressions are evaluated following standard rules for operator precedence, allowing for use of parentheses `()`'s 
-to override:
+Arithmetic expressions are evaluated following standard rules for operator precedence, allowing for use of parentheses to override:
 
     ()
     ∩ (set intersection)
@@ -51,7 +50,7 @@ The Basic ArithmeticParser also supports assignment of variables:
     area = π × r²
 
 
-This last expression could be assigned using '@=' formula assignment:
+This last expression could be assigned using  `@=` formula assignment:
 
     area @= π × r²
 
