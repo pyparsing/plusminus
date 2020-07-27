@@ -1094,9 +1094,6 @@ class ArithmeticParser:
         return ret
 
 
-phi = (1.0 + 5**0.5) / 2.0   # The golden number
-
-
 def log(x, y=10):
     if math.isclose(y, 2, abs_tol=1e-15):
         return math.log2(x)
@@ -1110,6 +1107,8 @@ class BasicArithmeticParser(ArithmeticParser):
         import math
 
         super().customize()
+        phi = (1.0 + 5**0.5) / 2.0   # The golden number
+
         self.initialize_variable("pi", math.pi)
         self.initialize_variable("π", math.pi)
         self.initialize_variable("τ", math.tau)
