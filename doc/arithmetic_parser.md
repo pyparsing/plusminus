@@ -1,4 +1,4 @@
-## The core [`ArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/plusminus/plusminus.py#L383)
+## The core ArithmeticParser
 - operators
 - functions
 - variables
@@ -94,10 +94,10 @@
         dist = hypot(x₂-x₁, y₂-y₁)
 
 
-## The core [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/plusminus/plusminus.py#L1105)
+## The core BasicArithmeticParser
 
-The [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/plusminus/plusminus.py#L1105) class inherits all the features and behavior of the 
-[`ArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/plusminus/plusminus.py#L383) class. In addition, it also defines more operators and
+The BasicArithmeticParser class inherits all the features and behavior of the 
+[`ArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-arithmeticparser) class. In addition, it also defines more operators and
 functions, and common mathematical variables
 
 - operators
