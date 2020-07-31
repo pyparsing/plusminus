@@ -1,5 +1,12 @@
 plusminus Change Log
 
+0.4.0 -
+
+    - Update default sys.setrecursionlimit to 3000 if it has not
+      already been modified, to allow for deep call stacks generated
+      from infixNotation parsers.
+
+
 0.3.0 -
 
     - Added syntax to clear a defined variable:

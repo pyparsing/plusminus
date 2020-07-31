@@ -54,8 +54,11 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
+# increase recursion limit if not already modified
+if sys.getrecursionlimit() == 1000:
+    sys.setrecursionlimit(3000)
 
 ppc = pp.pyparsing_common
 pp.ParserElement.enablePackrat()
