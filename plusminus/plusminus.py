@@ -1110,11 +1110,16 @@ class BasicArithmeticParser(ArithmeticParser):
         import math
 
         super().customize()
+        phi = (1.0 + 5**0.5) / 2.0   # The golden number
+
         self.initialize_variable("pi", math.pi)
         self.initialize_variable("π", math.pi)
-        self.initialize_variable("τ", math.pi * 2)
+        self.initialize_variable("τ", math.tau)
+        self.initialize_variable("tau", math.tau)
         self.initialize_variable("e", math.e)
-        self.initialize_variable("φ", (1 + 5 ** 0.5) / 2)
+        self.initialize_variable("φ", phi)
+        self.initialize_variable("ϕ", phi)
+        self.initialize_variable("phi", phi)
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)
         self.add_function("tan", 1, math.tan)
@@ -1137,8 +1142,7 @@ class BasicArithmeticParser(ArithmeticParser):
             (lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0),
         )
         self.add_function("gamma", 2, math.gamma)
-        self.add_function("hypot", 2, math.hypot)
-        self.add_function("nhypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
+        self.add_function("hypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
         self.add_function("rnd", 0, random.random)
         self.add_function("randint", 2, random.randint)
         self.add_function("sgn", 1, lambda x: 0 if _eq(x, 0, self.epsilon) else 1 if x > 0 else -1),

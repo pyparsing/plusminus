@@ -13,9 +13,9 @@
       !   ×    <=  ≥   not  |absolute-value|
       °   ÷    >=  ∈   and
 
-- 5-function arithmetic (`+, - , *, /, **`)
+- 5-function arithmetic (`+`, `-`, `*`, `/`, `**`)
 
-- Unicode math operators (`×, ÷, ≠, ≤, ≥, ∧ (`and`), ∨ (`or`)`, `∩`, `∪`, `∈`, `∉`)
+- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`, `∈`, `∉`)
 
 - Additional operators
 
@@ -84,20 +84,23 @@
 
 ### Functions
 
-      sgn    min  asin  rad    lcm
-      abs    max  acos  deg    gamma
-      round  str  atan  ln     hypot
-      trunc  sin  sinh  log2   nhypot
-      ceil   cos  cosh  log10  rnd
-      floor  tan  tanh  gcd    
+      sgn    min  asin  rad    gcd
+      abs    max  acos  deg    lcm
+      round  str  atan  ln     gamma
+      trunc  sin  sinh  log    hypot
+      ceil   cos  cosh  log2   rnd
+      floor  tan  tanh  log10
 
 ### Variables
 
-     'e': 2.718281828459045
-     'pi': 3.141592653589793
-     'π': 3.141592653589793
-     'τ': 6.283185307179586
-     'φ': 1.618033988749895
+     e = 2.718281828459045
+     π = 3.141592653589793
+     pi = 3.141592653589793
+     τ = 6.283185307179586
+     tau = 6.283185307179586
+     φ = 1.618033988749895
+     ϕ = 1.618033988749895
+     phi = 1.618033988749895
 
 ### Assignment statements
 
