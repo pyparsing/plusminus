@@ -53,6 +53,7 @@ ArithmeticParseException = ParseBaseException
 
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
+             VariableRegistrationError FormulaRegistrationError
              """.split()
 __version__ = "0.4.0"
 
@@ -82,6 +83,20 @@ FALSE.addParseAction(lambda: False)
 FunctionSpec = namedtuple("FunctionSpec", "method arity")
 
 _numeric_type = (int, float, complex)
+
+class VariableRegistrationError(ArithmeticParseException):
+    """Error when registrating a variable when forbidden."""
+    def __init__(self, var, msg=None, *args):
+        self.variable = var
+        self.message = msg
+        super().__init__(self.message)
+
+class FormulaRegistrationError(ArithmeticParseException):
+    """Error when registrating a formula when forbidden."""
+    def __init__(self, var, msg=None, *args):
+        self.variable = var
+        self.message = msg
+        super().__init__(self.message)
 
 class PrettySet(frozenset):
     def __repr__(self):
@@ -386,6 +401,11 @@ class TernaryNode(ArithNode):
 class ArithmeticParser:
     """
     Base class for defining arithmetic parsers.
+
+    Several options available:
+    - allow_variables (bool): if variables should be allowed (default to True)
+    - allow_formulas (bool): if formulas should be allowed (default to the value of allow_variables parameter)
+    - caret_as_exp (bool): if False, use "**" for exponentiation. If True, use "^" for exponentiation (default to False)
     """
 
     LEFT = pp.opAssoc.LEFT
@@ -426,16 +446,13 @@ class ArithmeticParser:
         Enter an arithmetic expression or assignment statement, using
         the following operators:
         {operator_list}
-
         Multiple assignments can be made using lists of variable names and
         corresponding lists of expressions (lists must be of matching lengths).
             x₁, y₁ = 1, 2
             a, b, c = 1, 2, a+b
-
         Deferred evaluation assignments can be defined using "@=":
             circle_area @= pi * r**2
         will re-evaluate 'circle_area' using the current value of 'r'.
-
         Expression can include the following functions:
         {function_list}
         """
@@ -551,14 +568,20 @@ class ArithmeticParser:
         def __repr__(self):
             return "{}({})".format(self.tokens[0], ", ".join(map(repr, self.tokens[1:])))
 
-    def __init__(self):
+    def __init__(self, **options):
+        if any(not isinstance(x, bool) for x in options.values()):
+            raise TypeError("options must be bool.")
+        self.allow_variables = options.get("allow_variables", True)
+        self.allow_formulas = options.get("allow_formulas", self.allow_variables)
+        self.exp_sign = "^" if options.get("caret_as_exp", False) else "**"
+
         self.max_number_of_vars = 1000
         self.max_var_memory = 10 ** 6
 
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
+            self.exp_sign + " * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "abs": FunctionSpec(abs, 1),
@@ -903,7 +926,7 @@ class ArithmeticParser:
         # noinspection PyUnresolvedReferences
         NOT_IN = (NOT() + IN()).addParseAction('_'.join)
         base_operator_specs = [
-            ("**", 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
+            (self.exp_sign, 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
             ("-", 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             (pp.oneOf("* / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("+ - −"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
@@ -970,6 +993,8 @@ class ArithmeticParser:
                     and len(assigned_vars) >= self.max_number_of_vars
                 ):
                     raise Exception("too many variables defined")
+                if not self.allow_variables:
+                    raise VariableRegistrationError(var_name, "variable assignment not allowed.")
                 assigned_vars[var_name] = rval
                 assignments.append(rval)
             return LiteralNode([assignments]) if len(assignments) > 1 else rval
@@ -1038,6 +1063,8 @@ class ArithmeticParser:
             rval = tokens.rhs
             dest_var_name = tokens.lhs.name
             assigned_vars = identifier_node_class._assigned_vars
+            if not self.allow_formulas:
+                raise FormulaRegistrationError(dest_var_name, "formula assignment not allowed.")
             if (
                 dest_var_name not in assigned_vars
                     and len(assigned_vars) >= self.max_number_of_vars
