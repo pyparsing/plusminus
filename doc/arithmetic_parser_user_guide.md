@@ -6,13 +6,6 @@
 
 ### Operators
 
-      √   **   +   ==  ∉    ∧
-      ³   *    -   !=  ∩    or
-      ²   /    <   ≠   ∪    ∨
-      ⁻¹  mod  >   ≤   in   ?:
-      !   ×    <=  ≥   not  |absolute-value|
-      °   ÷    >=  ∈   and
-
 - 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
 - Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`, `∈`, `∉`)
