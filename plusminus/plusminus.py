@@ -652,7 +652,7 @@ class ArithmeticParser:
             del self_vars[key]
 
     def __iter__(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __setitem__(self, name, value):
         self._variable_map[name] = LiteralNode([value])
@@ -904,7 +904,7 @@ class ArithmeticParser:
         NOT_IN = (NOT() + IN()).addParseAction('_'.join)
         base_operator_specs = [
             ("**", 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
-            ("-", 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
+            (pp.oneOf("- −"), 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
             (pp.oneOf("* / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("+ - −"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
@@ -1106,6 +1106,18 @@ def log(x, y=10):
 
 
 class BasicArithmeticParser(ArithmeticParser):
+    """
+    Ready to use, basic parser. Example:
+    ```python
+    >>> parser = BasicArithmeticParser()
+    >>> parser.evaluate("gamma(2)") # Predefined functions
+    1
+    >>> parser.evaluate("pi*9") # Predefined variables
+    28.274333882308138
+    >>> parser.evaluate("9**3")
+    729
+    ```
+    """
     def customize(self):
         import math
 
@@ -1132,16 +1144,15 @@ class BasicArithmeticParser(ArithmeticParser):
         self.add_function("rad", 1, math.radians)
         self.add_function("deg", 1, math.degrees)
         self.add_function("ln", 1, lambda x: math.log(x))
-        self.add_function("log", (1, 2), math.log) # Log function can accept one or two values
+        self.add_function("log", (1, 2), math.log) # log function can accept one or two values
         self.add_function("log2", 1, math.log2)
         self.add_function("log10", 1, math.log10)
         self.add_function("gcd", 2, math.gcd)
         self.add_function(
-            "lcm",
-            2,
-            (lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0),
+            "lcm", 2,
+            lambda a, b: abs(a*b) // math.gcd(a, b) if a or b else 0
         )
-        self.add_function("gamma", 2, math.gamma)
+        self.add_function("gamma", 1, math.gamma)
         self.add_function("hypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
         self.add_function("rnd", 0, random.random)
         self.add_function("randint", 2, random.randint)
