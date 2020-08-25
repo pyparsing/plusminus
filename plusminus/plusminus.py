@@ -554,7 +554,7 @@ class ArithmeticParser:
 
     def __init__(self):
         self.max_number_of_vars = 1000
-        self.max_var_memory = 10**6
+        self.max_var_memory = 10 ** 6
 
         self._added_operator_specs = []
         self._added_function_specs = {}
