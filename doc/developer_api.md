@@ -9,7 +9,7 @@
 - `add_operator(operator_symbol, num_args, left_right_assoc, operator_function)`
 - `add_variable(variable, value)`
 - `add_function(function_name, num_args, function_method)`
-  - if a function can accept any number of arguments, pass `...` for the
+  - if a function can accept any number of arguments, pass [`...`](https://docs.python.org/3/library/constants.html#Ellipsis) for the
     `num_args` argument (see the [`hypot`](https://docs.python.org/3/library/math.html#math.hypot) function)
   - if a function can accept different numbers of arguments, pass a tuple of all
     possible numbers of arguments a function can have for the `num_args` argument
@@ -39,9 +39,12 @@ Adding a new operator
 
 Adding a new function
 
-Accessing evaluated results and variables from your code
-  parser['xyz'] = 100
-  parser.evaluate("√xyz") returns 10
+Accessing evaluated results and variables from your code:
+
+   ```python
+   parser['xyz'] = 100
+   parser.evaluate("√xyz") # Returns 10.0
+   ```
 
 Defining an operator that is both unary and binary
 
