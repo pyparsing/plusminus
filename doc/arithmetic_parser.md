@@ -6,7 +6,7 @@
 
 
 ### Features:
-- 5-function arithmetic (`+`, `-` , `*`, `/`, `**`)
+- 6-function arithmetic (`+`, `-` , `*`, `/`, `//`, `**`)
 
 - Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧`, `∨`, `∩`, `∪`, `∈`, `∉`)
 
@@ -200,19 +200,19 @@ functions, and common mathematical variables
             self.add_function("rad", 1, math.radians)
             self.add_function("deg", 1, math.degrees)
             self.add_function("ln", 1, lambda x: math.log(x))
-            self.add_function("log", (1, 2), math.log) # Log function can accept one or two values
+            self.add_function("log", (1, 2), math.log) # log function can accept one or two values
             self.add_function("log2", 1, math.log2)
             self.add_function("log10", 1, math.log10)
             self.add_function("gcd", 2, math.gcd)
             self.add_function(
-                "lcm",
-                2,
-                (lambda a, b: int(abs(a) / math.gcd(a, b) * abs(b)) if a or b else 0),
+                "lcm", 2,
+                lambda a, b: abs(a*b) // math.gcd(a, b) if a or b else 0
             )
-            self.add_function("gamma", 2, math.gamma)
+            self.add_function("gamma", 1, math.gamma)
             self.add_function("hypot", ..., lambda *seq: sum(safe_pow(i, 2) for i in seq)**0.5)
             self.add_function("rnd", 0, random.random)
             self.add_function("randint", 2, random.randint)
+            self.add_function("sgn", 1, lambda x: 0 if _eq(x, 0, self.epsilon) else 1 if x > 0 else -1),
             self.add_operator("°", 1, ArithmeticParser.LEFT, math.radians)
             # avoid clash with '!=' operator
             factorial_operator = (~pp.Literal("!=") + "!").setName("!")
