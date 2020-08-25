@@ -11,7 +11,7 @@
       ²   /    <   ≠   ∪    ∨
       ⁻¹  mod  >   ≤   in   ?:
       !   ×    <=  ≥   not  |absolute-value|
-      °   ÷    >=  ∈   and  //
+      °   ÷    >=  ∈   and
 
 - 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
