@@ -11,9 +11,9 @@
       ²   /    <   ≠   ∪    ∨
       ⁻¹  mod  >   ≤   in   ?:
       !   ×    <=  ≥   not  |absolute-value|
-      °   ÷    >=  ∈   and
+      °   ÷    >=  ∈   and  //
 
-- 5-function arithmetic (`+`, `-`, `*`, `/`, `**`)
+- 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
 - Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`, `∈`, `∉`)
 
@@ -72,7 +72,7 @@
     !    
     leading '-'
     **
-    * / × ÷ mod
+    * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
     in, not in, ∈ ∉
