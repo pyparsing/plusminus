@@ -48,15 +48,14 @@ Defining an operator that is both unary and binary
 
 ### SECURITY WARNINGS
 
-  - Do not add functions that use or give access to `eval`, `exec`, `compile`, `import`, `subprocess`, 
-    `system`, or `Popen`!
+  - Do not add functions that use or give access to [`eval`](https://docs.python.org/3/library/functions.html#eval), [`exec`](https://docs.python.org/3/library/functions.html#exec), [`compile`](https://docs.python.org/3/library/functions.html#compile), [`import`](https://docs.python.org/3/reference/simple_stmts.html#import), [`subprocess`](https://docs.python.org/3/library/subprocess.html#module-subprocess) or [`os`](https://docs.python.org/3/library/os.html#module-os)
   - If adding functions that start separate threads, limit the total number of threads that
     your parser will create at one time.
   - Be extremely careful if reading/writing to the file system
   - Take care when exposing access to an underlying database or server files
   - Some math functions may need to be constrained to avoid extended arithmetic processing (see 
-    `constrained_factorial()` in the `BasicArithmeticParser` for an example)
+    `constrained_factorial` in the [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser) as an example)
   - When populating web page elements with gathered input strings, be sure to escape potential quotation and control 
-    characters (see `bottle_repl.py` for an example)
+    characters (see [`bottle_repl.py`](https://github.com/pyparsing/plusminus/blob/master/plusminus/examples/bottle_repl.py) as an example)
   - Be aware that your functions may get called recursively, or in an
     endless loop
