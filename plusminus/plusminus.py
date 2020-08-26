@@ -479,6 +479,7 @@ class ArithmeticParser:
             "−": operator.sub,
             "*": safe_str_mult,
             "/": operator.truediv,
+            "//": operator.floordiv,
             "mod": operator.mod,
             "×": safe_str_mult,
             "÷": operator.truediv,
@@ -537,7 +538,7 @@ class ArithmeticParser:
                         )
                     )
 
-                if fn_spec.arity not in (len(fn_args), ...):
+                elif fn_spec.arity not in (len(fn_args), ...):
                     raise TypeError(
                         "{} takes {} {}, {} given".format(
                             fn_name,
@@ -558,11 +559,11 @@ class ArithmeticParser:
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
+            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "abs": FunctionSpec(abs, 1),
-            "round": FunctionSpec(round, 2),
+            "round": FunctionSpec(round, (1, 2)),
             "trunc": FunctionSpec(math.trunc, 1),
             "ceil": FunctionSpec(math.ceil, 1),
             "floor": FunctionSpec(math.floor, 1),
@@ -617,6 +618,7 @@ class ArithmeticParser:
         yield from self.get_parser().scanString(*args)
 
     def parse(self, *args, **kwargs):
+        """Parses an expression."""
         if _get_expression_depth(args[0]) > self.maximum_expression_depth:
             raise OverflowError("expression too deeply nested")
 
@@ -629,6 +631,7 @@ class ArithmeticParser:
             return parsed[0]
 
     def evaluate(self, arith_expression):
+        """Evaluates an expression and returns its result."""
         with _trimming_exception_traceback():
             parsed = self.parse(arith_expression, parseAll=True)
             return parsed.evaluate()
@@ -905,7 +908,7 @@ class ArithmeticParser:
         base_operator_specs = [
             ("**", 2, pp.opAssoc.LEFT, self.ExponentBinaryOp),
             (pp.oneOf("- −"), 1, pp.opAssoc.RIGHT, self.ArithmeticUnaryOp),
-            (pp.oneOf("* / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
+            (pp.oneOf("* // / mod × ÷"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("+ - −"), 2, pp.opAssoc.LEFT, self.ArithmeticBinaryOp),
             (pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison),
             ((IN | NOT_IN | pp.oneOf("∈ ∉")) - (range_expression | set_expression | var_name), 1, pp.opAssoc.LEFT,

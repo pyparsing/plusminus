@@ -3,7 +3,7 @@
 The **plusminus** package provides a ready-to-run arithmetic parser and evaluator, based on [`pyparsing`](https://pyparsing-docs.readthedocs.io/en/latest/index.html)'s 
 [`infixNotation`](https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.infixNotation) helper method.
 
-Strings containing 5-function arithmetic expressions can be parsed and evaluated using the [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
+Strings containing 6-function arithmetic expressions can be parsed and evaluated using the [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
 
 ```python
 from plusminus import BasicArithmeticParser
@@ -25,7 +25,7 @@ Arithmetic expressions are evaluated following standard rules for operator prece
     ∪ (set union)
     -
     **
-    * / × ÷ mod
+    * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
     in ∈ ∉
