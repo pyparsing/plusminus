@@ -6,6 +6,41 @@ plusminus Change Log
       already been modified, to allow for deep call stacks generated
       from infixNotation parsers.
 
+    - Custom functions can now take different numbers of arguments,
+      using a tuple of integers for the arity. For example, here is the
+      log function, that can take only one or two arguments:
+
+          self.add_function("log", (1, 2), math.log)
+
+    - Added the log function above in the BasicArithmeticParser. If called
+      with one argument, base e is used. If called with two, the second
+      argument is used as the base.
+
+    - Removed the nhypot function. The hypot function now takes any number
+      of arguments.
+
+    - Added variable "tau" (same as "τ"), which is equal to 2×π.
+
+    - Added variables "ϕ" and "phi" (same as "φ", the golden number).
+
+    - Added documentation and examples in the BasicArithmeticParser class.
+
+    - ArithmeticParser().__iter__() now raises NotImplementedError instead
+      of NotImplemented.
+
+    - gamma function now takes one parameter, instead of two.
+
+    - "−" can now be used as a unary minus operator, like "-".
+
+    - "//" operator for floor division added.
+
+    - round function now accepts one or two arguments, instead of two only.
+
+    - Added small documentation for ArithmeticParser().parse and
+      ArithmeticParser().evaluate functions.
+
+    Thanks to TheOneMusic for his awesome contributions!
+
 
 0.3.0 -
 
