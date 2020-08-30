@@ -12,34 +12,46 @@ plusminus Change Log
 
           self.add_function("log", (1, 2), math.log)
 
-    - Added the log function above in the BasicArithmeticParser. If called
-      with one argument, base e is used. If called with two, the second
-      argument is used as the base.
+    - Updated operators and functions in ArithmeticParser:
 
-    - Removed the nhypot function. The hypot function now takes any number
-      of arguments.
+        - "−" can now be used as a unary minus operator, like "-".
 
-    - Added variable "tau" (same as "τ"), which is equal to 2×π.
+        - "//" operator for floor division added.
 
-    - Added variables "ϕ" and "phi" (same as "φ", the golden number).
+        - round function now accepts one or two arguments, instead of two only.
 
-    - Added documentation and examples in the BasicArithmeticParser class.
+    - Updated operators, functions and variables in BasicArithmeticParser:
 
-    - ArithmeticParser().__iter__() now raises NotImplementedError instead
-      of NotImplemented.
+        - Added the log function above in the BasicArithmeticParser. If called
+          with one argument, base e is used. If called with two, the second
+          argument is used as the base.
 
-    - gamma function now takes one parameter, instead of two.
+        - Removed the nhypot function. The hypot function now takes any number
+          of arguments.
 
-    - "−" can now be used as a unary minus operator, like "-".
+        - gamma function now takes one parameter, instead of two.
 
-    - "//" operator for floor division added.
+        - Added variable "tau" (same as "τ"), which is equal to 2×π.
 
-    - round function now accepts one or two arguments, instead of two only.
+        - Added variables "ϕ" and "phi" (same as "φ", the golden number).
 
-    - Added small documentation for ArithmeticParser().parse and
-      ArithmeticParser().evaluate functions.
+    - Updated documentation and examples in the BasicArithmeticParser class.
 
-    Thanks to TheOneMusic for his awesome contributions!
+    Thanks to TheOneMusic for his awesome contributions to this release!
+
+    - PLANNED FOR 0.5.0
+
+        - Refactoring the parser classes to provide a
+          parser for standard Python expressions using standard Python
+          operators and builtins, and functions from the math module
+          (may limit types to int and float). Will make this parser more
+          of a safe drop-in replacement for "eval" without extra bells and
+          whistles.
+
+        - Better definition of custom operators, to permit support for
+          proper definition of precedence of operations.
+
+        - Update web demo to support selection of different parsers.
 
 
 0.3.0 -
