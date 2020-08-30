@@ -54,7 +54,10 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException
              """.split()
-__version__ = "0.4.0"
+
+VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serisl")
+__version_info__ = VersionInfo(0, 5, 0, "final", 0)
+__version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
 if sys.getrecursionlimit() == 1000:

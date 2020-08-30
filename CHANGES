@@ -1,5 +1,11 @@
 plusminus Change Log
 
+0.5.0 -
+
+    - Added __version_info__ structure, following pattern of sys.version_info
+      field names.
+
+
 0.4.0 -
 
     - Update default sys.setrecursionlimit to 3000 if it has not
