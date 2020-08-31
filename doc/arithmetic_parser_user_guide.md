@@ -8,7 +8,7 @@
 
 - 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
-- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩` (`&`), `∪` (`|`), `∈` (`in`), `∉` (`not in`))
+- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧`, `∨`, `∩`, `&`, `∪`, `|`, `∈`, `∉`)
 
 - Additional operators
 
