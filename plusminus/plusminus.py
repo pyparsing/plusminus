@@ -463,7 +463,7 @@ class ArithmeticParser:
 
     class ArithmeticUnaryOp(UnaryNode):
         opns_map = {
-            "+": lambda x: x,
+            "+": operator.pos,
             "-": operator.neg,
             "−": operator.neg,
         }
