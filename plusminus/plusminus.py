@@ -255,7 +255,7 @@ def safe_str_mult(a, b):
 
 
 def constrained_factorial(x):
-    """Same as `math.factorial`, but raises `ValueError` if x is under 0 or over 32,767."""
+    """Same as `math.factorial`, but raises `ValueError` if x is under 0 or over 32,768."""
     if not (0 <= x < 32768):
         raise ValueError("{!r} not in working 0-32,767 range".format(x))
     if math.isclose(x, int(x), abs_tol=1e-12):
