@@ -193,11 +193,11 @@ parser.runTests("""\
     btwn
 
     # function call with variable number of args
+    hypot(3)
     hypot(3, 4)
-    nhypot(3, 4)
-    nhypot(3, 4) == hypot(3, 4)
-    nhypot(3, 4, 5, 6) == hypot(3, hypot(4, hypot(5, 6)))
-    nhypot()
+    hypot(3, 4) == hypot(3, 4)
+    hypot(3, 4, 5, 6) == hypot(3, hypot(4, hypot(5, 6)))
+    hypot()
     
     # set operations
     a, b = 1, 10
@@ -213,25 +213,43 @@ parser.runTests("""\
     1 in myset
     { 0, 2, 22}
     { a, 11, 22, 53} ∩ { 0, 2, 22}
+    { a, 11, 22, 53} & { 0, 2, 22}
     { a, 11, 22, 53} ∪ { 0, 2, 22}
+    { a, 11, 22, 53} | { 0, 2, 22}
     { a, 11, 22, 53} ∩ {}
+    { a, 11, 22, 53} & {}
     { a, 11, 22, 53} ∪ {}
+    { a, 11, 22, 53} | {}
     myset ∩ { 0, 2, 22}
     myset ∪ { 0, 2, 22}
+    myset & { 0, 2, 22}
+    myset | { 0, 2, 22}
     1 in (myset ∩ { 0, 2, 22})
     1 in (myset ∪ { 0, 2, 22})
     1 ∈ (myset ∩ { 0, 2, 22})
     1 ∉ (myset ∪ { 0, 2, 22})
+    1 in (myset & { 0, 2, 22})
+    1 in (myset | { 0, 2, 22})
+    1 ∈ (myset & { 0, 2, 22})
+    1 ∉ (myset | { 0, 2, 22})
+    1 ∈ (myset & { 0, |-2|, |22|})
+    1 ∉ (myset | { |0|, 2, |-22|})
     1 in (myset ∩ {})
     1 in (myset ∪ {})
+    1 in (myset & {})
+    1 in (myset | {})
     {{1, 2}, 99, 100}
     {99, 'z', 'a'} ∪ {'a', 't', 100}
+    {99, 'z', 'a'} | {'a', 't', 100}
     
     # sets as function arguments
     a = {1, 2, 3}
     max(a)
     max({1, 2, 4})
     max({1, 2} ∪ a)
+    max({1, 2} | a)
+    max({1, 2} ∩ a)
+    max({1, 2} & a)
     min({1, 2, 4})
     sin({1, 2, 4})
     
