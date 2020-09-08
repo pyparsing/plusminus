@@ -6,6 +6,20 @@ plusminus Change Log
       field names.
 
 
+0.4.1 -
+
+    - Added documentation to functions in the ArithmeticParser class
+      for better understanding and readability.
+
+    - Unary "+" operator can now be used. For example:
+        
+        parser = ArithmeticParser()
+        parser.evaluate("+5")
+    
+    - "&" and "|" added as set operations, respectively intersection and
+      union (same as "∩" and "∪" characters).
+
+
 0.4.0 -
 
     - Update default sys.setrecursionlimit to 3000 if it has not
