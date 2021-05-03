@@ -2,15 +2,15 @@ plusminus Change Log
 
 0.5.0 -
 
-    - Python 3.5 is not longer supported, plusminus now only works with
+    - Python 3.5 is no longer supported, plusminus now only works with
       Python 3.6 and later.
 
     - Refactored classes and parser interface to support better
       definition of precedence of operations for custom operators.
 
     - Dropped support for "in" range notation, with ranges specified
-      using (), (], [) or [] notation. ("in" with sets is still
-      supported.)
+      using (), (], [) or [] notation ("in" with sets is still
+      supported).
 
     - Added `user_defined_formulas_supported` attribute for parsers,
       to enable/disable support for `@=` formula assignment operator
