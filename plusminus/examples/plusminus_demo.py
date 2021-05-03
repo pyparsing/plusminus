@@ -5,7 +5,7 @@
 #
 # Copyright 2020, Paul McGuire
 #
-from plusminus import ArithmeticParser, BasicArithmeticParser, ArithmeticParseException
+from plusminus import BasicArithmeticParser, ArithmeticParseException
 from plusminus.examples.example_parsers import *
 from pprint import pprint
 

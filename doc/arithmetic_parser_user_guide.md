@@ -8,35 +8,18 @@
 
 - 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
-- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`, `∈`, `∉`)
+- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`)
 
 - Additional operators
-
-  - `in range-expression`
-    - where `range-expression` using enclosing `(`, `)`, `[`, and `]`
-      symbols:
-      
-          b in (a, c) evaluates a < b < c
-          b in [a, c) evaluates a <= b < c
-          b in (a, c] evaluates a < b <= c
-          b in [a, c] evaluates a <= b <= c
-
-    - can be negated using `not in`
 
   - `?:` ternary if-then-else (`condition ? true-value : false-value`)
     - conditions that evaluate to 0 or False will be treated as False
     - conditions that evaluate to non-zero or True will be treated as True
 
-  - set operators `∩`, `∪`, `∈`, `∉`
+  - set operators `∩`, `∪`
     - sets are defined using `{`, `}` symbols    
     - `∩` is intersection, `∪` is union
-    - `∈` is `is element of`, `∉` is `is not element of`
-
-          1 ∈ {1, 2, 3} ∪ {10, 11, 12} evaluates True
-          1 ∉ {1, 2, 3} ∩ {10, 11, 12} evaluates True
-
     - `{}` is the empty set
-    - `in` and `not in` are equivalent to `∈` and `∉`
     - sets can be nested, and can be used as arguments to functions:
     
           {{1,2}, {3,4}}
@@ -49,6 +32,8 @@
   - `!` - factorial
   - `√` - square root (can be used as a unary or binary operator)
   - `⁻¹` - superscript (-1) - `x**(-1) or 1/x`
+  - `⁰` - superscript 0 - `x**0`
+  - `¹` - superscript 1 - `x**1`
   - `²` - superscript 2 - `x**2`
   - `³` - superscript 3 - `x**3`
 
@@ -60,7 +45,7 @@
     ∪
     °
     !
-    ³ ² ⁻¹
+    ⁻¹ ⁰ ¹ ² ³
     √
     !    
     leading '-'
@@ -68,7 +53,6 @@
     * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
-    in, not in, ∈ ∉
     not
     and ∧
     or ∨

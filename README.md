@@ -28,7 +28,6 @@ Arithmetic expressions are evaluated following standard rules for operator prece
     * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
-    in ∈ ∉
     not
     and ∧
     or ∨

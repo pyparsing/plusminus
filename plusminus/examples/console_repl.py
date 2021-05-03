@@ -8,24 +8,12 @@
 #
 from pprint import pprint
 import textwrap
-from plusminus import BasicArithmeticParser
+from plusminus import BasicArithmeticParser, ArithmeticParseException
 
-def make_name_list_string(names, indent=''):
-    import math
-    import itertools
-    chunk_size = math.ceil(len(names)**0.5)
-    chunks = [list(c) for c in itertools.zip_longest(*[iter(names)] * chunk_size, fillvalue='')]
-    col_widths = [max(map(len, chunk)) for chunk in chunks]
-    ret = []
-    for transpose in zip(*chunks):
-        line = indent
-        for item, wid in zip(transpose, col_widths):
-            line += "{:{}s}".format(item, wid+2)
-        ret.append(line.rstrip())
-    return '\n'.join(ret)
 
 def usage(parser):
-    msg = textwrap.dedent("""\
+    msg = textwrap.dedent(
+        """\
     Interactive utility to use the plusminus BaseArithmeticParser.
 
     {parser_usage}    
@@ -35,20 +23,30 @@ def usage(parser):
     - clear - clear saved variables
     - quit - quit the REPL
     - help - display this help text
-    """)
+    """
+    )
     print(msg.format(parser_usage=parser.usage()))
+
 
 def run_repl(parser_class):
     MAX_INPUT_LEN = 100
     done = False
     parser = parser_class()
+    parser.user_defined_functions_supported = False
+    last_cmd = ""
     while not done:
-        cmd = ''
+        cmd = ""
         try:
             cmd = input(">>> ").strip()[:MAX_INPUT_LEN]
         except Exception as input_exc:
             print("invalid input ({})".format(input_exc))
             pass
+
+        if cmd == "redo":
+            if last_cmd:
+                cmd = last_cmd
+            else:
+                continue
         if not cmd:
             continue
         elif cmd.lower() == "help":
@@ -61,18 +59,28 @@ def run_repl(parser_class):
             done = True
         else:
             try:
-                result = parser.evaluate(cmd)
+                try:
+                    result = parser.evaluate(cmd)
+                except NameError:
+                    if not cmd.strip().endswith("="):
+                        raise
+            except ArithmeticParseException as pe:
+                print(pe.explain())
             except Exception as e:
                 print("{}: {}".format(type(e).__name__, e))
             else:
-                print(repr(result))
+                if result is not None:
+                    print(repr(result))
+        last_cmd = cmd
+
 
 def main():
     parser_class = BasicArithmeticParser
     run_repl(parser_class)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     sys.setrecursionlimit(2000)
     main()

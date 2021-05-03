@@ -21,22 +21,6 @@
         {1, 2, 3} ∩ {3, 4, 5}  # {3}
         {1, 2, 3} ∩ {4, 5, 6}  # {}
 
-    use `∈` for "is element of" and `∉` for "is not element of"; `in` and `not in` 
-    can also be used
-
-  - `in range-specification`
-
-    `in` operator takes a value and a range, specified with lower and upper values,
-    enclosed in `()` characters (indicating exclusion of the boundary values) or `[]` 
-    characters (indicating inclusion of the boundary values):
-    
-          x in (a, b)  -  a < x < b
-          x in (a, b]  -  a < x <= b
-          x in [a, b)  -  a <= x < b
-          x in [a, b]  -  a <= x <= b
-    
-    This operator can be used on integers, reals, and strings.
-        
   - `?:` ternary if-then-else
   - `not, and, or`
   - `mod` - modulo arithmetic - `8 mod 3 = 2`

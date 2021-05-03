@@ -16,9 +16,14 @@ from operator import itemgetter
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
-from plusminus import BasicArithmeticParser, ArithmeticParseException, __version__ as plusminus_version
+from plusminus import (
+    BasicArithmeticParser,
+    ArithmeticParseException,
+    __version__ as plusminus_version,
+)
 import sys
 import cgitb
+
 cgitb.enable()
 
 sys.setrecursionlimit(3000)
@@ -37,7 +42,7 @@ sessions = {}
 MAX_SESSIONS = 200
 SESSION_KEY_LENGTH = 12
 sessions_history = deque(maxlen=50)
-CmdLog = namedtuple('CmdLog', 'timestamp player command')
+CmdLog = namedtuple("CmdLog", "timestamp player command")
 cmd_history = deque(maxlen=50)
 
 # value indexes into mutable PlayerStats.data
@@ -45,7 +50,7 @@ last_update = 0
 last_cmd = 1
 num_tests = 2
 num_exceptions = 3
-PlayerStats = namedtuple('PlayerStats', 'player game start_time data')
+PlayerStats = namedtuple("PlayerStats", "player game start_time data")
 
 
 def str_to_datetime(s):
@@ -53,8 +58,8 @@ def str_to_datetime(s):
 
 
 def timedelta_to_str(td):
-    secPerDay = 3600*24
-    s = td.days*secPerDay + td.seconds
+    secPerDay = 3600 * 24
+    s = td.days * secPerDay + td.seconds
     m, s = divmod(s, 60)
     if m >= 60:
         h, m = divmod(m, 60)
@@ -68,7 +73,7 @@ def time_to_str(dt):
 
 
 def make_random_key(n=SESSION_KEY_LENGTH):
-    return ''.join(random.choice("bcdfghjklmnpqrstvwxz0123456789") for _ in range(n))
+    return "".join(random.choice("bcdfghjklmnpqrstvwxz0123456789") for _ in range(n))
 
 
 class Repl:
@@ -78,6 +83,7 @@ class Repl:
         META = 2
         META_QUIT = 3
         EMPTY_COMMAND = 99
+
     APP_COMMANDS = {CommandStatus.APP_SUCCESS, CommandStatus.APP_FAILURE}
     META_COMMANDS = {CommandStatus.META, CommandStatus.META_QUIT}
     meta_commands = "help examples vars clear code quit".split()
@@ -89,7 +95,7 @@ class Repl:
         key = make_random_key()
         now = datetime.now()
         with sessions_lock:
-            sessions[key] = PlayerStats(key, self, now, [now, '', 0, 0])
+            sessions[key] = PlayerStats(key, self, now, [now, "", 0, 0])
         return key
 
     def _update_session(self, key, cmdstr, success):
@@ -111,6 +117,7 @@ class Repl:
     def _vars_as_table(self):
         def round_to_epsilon(x):
             import math
+
             try:
                 ret = x.evaluate()
             except AttributeError:
@@ -124,31 +131,36 @@ class Repl:
                     else:
                         ret = 0
                 if (
-                        not isinstance(ret, complex)
-                        and abs(ret) < 1e15
-                        and math.isclose(ret, int(ret), abs_tol=self.parser.epsilon)
+                    not isinstance(ret, complex)
+                    and abs(ret) < 1e15
+                    and math.isclose(ret, int(ret), abs_tol=self.parser.epsilon)
                 ):
                     return int(ret)
             return ret
 
         var_dict = self.parser.vars()
-        ret = '<table>\n'
-        row_template = ('<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td>'
-                        '<td align="right"><pre>{}</pre></td>'
-                        '<td align="right"><pre>=</pre></td>'
-                        '<td align="left"><pre>{}</pre></td></tr>\n')
+        ret = "<table>\n"
+        row_template = (
+            "<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td>"
+            '<td align="right"><pre>{}</pre></td>'
+            '<td align="right"><pre>=</pre></td>'
+            '<td align="left"><pre>{}</pre></td></tr>\n'
+        )
         for key, value in sorted(var_dict.items(), key=itemgetter(0)):
-            ret += row_template.format(key, repr(round_to_epsilon(value))
-                                            if isinstance(value, (float, complex))
-                                            else repr(value))
-        ret += '</table>\n'
+            ret += row_template.format(
+                key,
+                repr(round_to_epsilon(value))
+                if isinstance(value, (float, complex))
+                else repr(value),
+            )
+        ret += "</table>\n"
         return ret
 
     def do_command(self, cmd, key):
         MAX_OUTPUT_LEN = 20000
         # print('cmd=', repr(cmd))
         if not cmd:
-            return True, self.CommandStatus.EMPTY_COMMAND, ''
+            return True, self.CommandStatus.EMPTY_COMMAND, ""
         elif cmd.lower() == "help":
             self._update_session(key, cmd, True)
             return True, self.CommandStatus.META, self.usage(self.parser)
@@ -160,28 +172,35 @@ class Repl:
         elif cmd.lower() == "clear":
             self.parser = type(self.parser)()
             self._update_session(key, cmd, True)
-            return True, self.CommandStatus.META, ''
-        elif cmd.lower() == 'code':
+            return True, self.CommandStatus.META, ""
+        elif cmd.lower() == "code":
             parser_class = type(self.parser)
             code = inspect.getsourcelines(parser_class)[0]
-            code.append('\nparser = {}()\n'.format(parser_class.__name__))
-            cmds = [hist.command for hist in cmd_history if hist.player == key
-                    and hist.command.lower() not in self.meta_commands]
-            code.append('print(parser.evaluate({!r}))\n'.format(cmds[-1] if cmds else 'area = π*r²'))
+            code.append("\nparser = {}()\n".format(parser_class.__name__))
+            cmds = [
+                hist.command
+                for hist in cmd_history
+                if hist.player == key and hist.command.lower() not in self.meta_commands
+            ]
+            code.append(
+                "print(parser.evaluate({!r}))\n".format(
+                    cmds[-1] if cmds else "area = π*r²"
+                )
+            )
             self._update_session(key, cmd, True)
-            return True, self.CommandStatus.META, ''.join(code)
-        elif cmd.lower() == 'quit':
+            return True, self.CommandStatus.META, "".join(code)
+        elif cmd.lower() == "quit":
             self._update_session(key, cmd, True)
             self._end_session(key)
-            return True, self.CommandStatus.META_QUIT, 'DONE'
+            return True, self.CommandStatus.META_QUIT, "DONE"
         else:
             try:
                 try:
                     result = self.parser.evaluate(cmd)
                 except NameError:
-                    if '@=' in cmd:
+                    if "@=" in cmd:
                         result = self.parser.parse(cmd)
-                    elif cmd.strip().endswith('='):
+                    elif cmd.strip().endswith("="):
                         result = None
                     else:
                         raise
@@ -191,13 +210,17 @@ class Repl:
                 return False, self.CommandStatus.APP_FAILURE, pe.explain()
             except Exception as e:
                 self._update_session(key, cmd, False)
-                return False, self.CommandStatus.APP_FAILURE, "{}: {}".format(type(e).__name__, e)
+                return (
+                    False,
+                    self.CommandStatus.APP_FAILURE,
+                    "{}: {}".format(type(e).__name__, e),
+                )
             else:
-                retvalue = repr(result) if result is not None else ''
+                retvalue = repr(result) if result is not None else ""
                 if len(retvalue) > MAX_OUTPUT_LEN:
-                    retvalue = retvalue[:MAX_OUTPUT_LEN] + '...'
-                if '\n' not in retvalue:
-                    retvalue = '\n'.join(textwrap.wrap(retvalue, width=120))
+                    retvalue = retvalue[:MAX_OUTPUT_LEN] + "..."
+                if "\n" not in retvalue:
+                    retvalue = "\n".join(textwrap.wrap(retvalue, width=120))
                 self._update_session(key, cmd, True)
                 return True, self.CommandStatus.APP_SUCCESS, retvalue
 
@@ -206,11 +229,12 @@ class Repl:
             session_info = sessions.get(key)
         if session_info is not None:
             return session_info.data[last_cmd]
-        return ''
+        return ""
 
     @classmethod
     def usage(cls, parser):
-        msg = textwrap.dedent("""\
+        msg = textwrap.dedent(
+            """\
         Interactive utility to use the plusminus {classname}.
 
         {usage}
@@ -221,12 +245,14 @@ class Repl:
         - help - display this help text
         - quit - close your session (automatically starts a new one)
         - code - view sample code for creating and running this evaluator/parser
-        """)
+        """
+        )
         return msg.format(classname=cls.__name__, usage=parser.usage())
 
     @classmethod
     def examples(cls, parser):
-        msg = textwrap.dedent("""\
+        msg = textwrap.dedent(
+            """\
         Here are some example expressions that you can try, using the keyboard or included buttons:
 
             5!
@@ -260,23 +286,17 @@ class Repl:
             d3 @= randint(1, 6) + randint(1, 6) + randint(1, 6)
             1 or 0
             1 and not 0
-            100 in (0, 100)     (0 < 100 < 100    = False)
-            100 in [0, 100]     (0 <= 100 <= 100  = True)
-            100 in [0, 100)     (0 <= 100 < 100   = False)
-            99.9 in (0, 100)
-            1 ∈ {1, 2, 8} ∩ {3, 5, 9}
-            1 ∉ {1, 2, 8} ∪ {3, 5, 9}
             dist @= ((x2-x1)**2 + (y2-y1)**2)**0.5
             dist @= √((x₂-x₁)² + (y₂-y₁)²)
             x₁, y₁ = 1, 2
             x₂, y₂ = 5, 6
             dist
-        """)
+        """
+        )
         return msg
 
 
 class BottlePlusminusReplRequestHandler:
-
     def __init__(self):
         self.buffer = []
 
@@ -286,8 +306,8 @@ class BottlePlusminusReplRequestHandler:
     def write_javascript(self, s):
         # print "JAVASCRIPT:", s
         self.buffer.append('\n<script language="JavaScript" type="text/javascript">\n')
-        self.buffer.append(str(s) + '\n')
-        self.buffer.append('</script>\n')
+        self.buffer.append(str(s) + "\n")
+        self.buffer.append("</script>\n")
 
     def write_html(self, s):
         self.buffer.append(s)
@@ -304,17 +324,21 @@ class BottlePlusminusReplRequestHandler:
         buffer = []
         buffer.append("<table>")
         for row in rowlist:
-            buffer.append("<tr><td>"+ "</td><td>".join(str(s) for s in row) + "</td></tr>")
+            buffer.append(
+                "<tr><td>" + "</td><td>".join(str(s) for s in row) + "</td></tr>"
+            )
         buffer.append("</table>")
-        self.write_html('\n'.join(buffer))
+        self.write_html("\n".join(buffer))
 
     def _handle_app_request(self):
-        title_string = "Plusminus +/- Parser/Evaluator Tester - {}".format(plusminus_version)
+        title_string = "Plusminus +/- Parser/Evaluator Tester - {}".format(
+            plusminus_version
+        )
         # get any form input, pass to parser
         query = self.get_query()
         # print('query=', query)
-        sessionkey = query.get('k')
-        cmd = query.get('c', '').encode("latin1").decode('utf-8').strip()
+        sessionkey = query.get("k")
+        cmd = query.get("c", "").encode("latin1").decode("utf-8").strip()
         if cmd and sessionkey is not None:
             cmd_history.append(CmdLog(datetime.now(), sessionkey, cmd))
 
@@ -333,67 +357,75 @@ class BottlePlusminusReplRequestHandler:
             else:
                 too_many_sessions = True
 
-        self.write_html('<html><head>\n')
+        self.write_html("<html><head>\n")
         self.write_html('<meta name="HandheldFriendly" content="true" />')
-        self.write_html('<meta name="viewport" content="width=device-width, initial-scale=1.0,'
-                        ' maximum-scale=1.0, user-scalable=1" />')
+        self.write_html(
+            '<meta name="viewport" content="width=device-width, initial-scale=1.0,'
+            ' maximum-scale=1.0, user-scalable=1" />'
+        )
         self.write_html('<meta charset="UTF-8">')
-        self.write_html('<title>{}</title>'.format(title_string))
-        self.write_html('</head>')
+        self.write_html("<title>{}</title>".format(title_string))
+        self.write_html("</head>")
         self.write_html('<body OnLoad="document.turnForm.c.focus();">\n')
-        self.write_html('<h3>{}</h3>\n<p>\n'.format(title_string))
+        self.write_html("<h3>{}</h3>\n<p>\n".format(title_string))
 
         # add buttons for operators and non-ASCII identifier chars
-        def button(s, action='', go=False):
+        def button(s, action="", go=False):
             if not action:
                 action = s
             action = action.replace('"', r"&quot;").replace("`", r"\&grave;")
-            flag = ('false', 'true')[go]
+            flag = ("false", "true")[go]
             action = "addtext(`" + action + "`," + flag + ");"
             if go:
                 action = "cleartext();" + action
             self.write_html(
-                '''<button onclick="{}">&nbsp;&nbsp;{}&nbsp;&nbsp;</button>\n'''.format(action, s)
+                """<button onclick="{}">&nbsp;&nbsp;{}&nbsp;&nbsp;</button>\n""".format(
+                    action, s
                 )
+            )
 
-        def button_row(s, label=''):
-            self.write_html('\n<br>{}\n'.format(label + ': ' if label else ''))
+        def button_row(s, label=""):
+            self.write_html("\n<br>{}\n".format(label + ": " if label else ""))
             for c in s:
                 button(c)
 
-        button_row('°√×÷≠≤≥∧∨', "Operators")
-        button_row('+-*/=<>!²³')
-        button('⁻¹')
-        button_row('()[]{}∩∪∈∉', "Range/Set operators")
-        button(' in ')
-        button(' not in ')
-        button_row('abcdefghijklm')
-        button_row('nopqrstuvwxyz_')
-        button_row('àáâãäåæçèéêëìíîï')
-        button_row('ßðñòóôõöøùúûüýþÿ')
-        button_row('αβγδεζηθικλμ')
-        button_row('νξοπρστυφχψω')
-        button_row('₀₁₂₃₄₅₆₇₈₉', "Subscripts")
+        button_row("°√×÷≠≤≥∧∨", "Operators")
+        button_row("+-*/=<>!²³")
+        button("⁻¹")
+        button_row("()[]{}∩∪∈∉", "Range/Set operators")
+        button(" in ")
+        button(" not in ")
+        button_row("abcdefghijklm")
+        button_row("nopqrstuvwxyz_")
+        button_row("àáâãäåæçèéêëìíîï")
+        button_row("ßðñòóôõöøùúûüýþÿ")
+        button_row("αβγδεζηθικλμ")
+        button_row("νξοπρστυφχψω")
+        button_row("₀₁₂₃₄₅₆₇₈₉", "Subscripts")
         button_row("0123456789.πφ")
-        self.write_html('\n<br>\n')
+        self.write_html("\n<br>\n")
 
         previous_cmd = cmd
-        button('Prev', previous_cmd)
-        self.write_html('&nbsp;&nbsp;')
-        button('Redo', previous_cmd, go=True)
-        self.write_html('&nbsp;&nbsp;')
-        button('Help', 'help', go=True)
-        button('Examples', 'examples', go=True)
-        button('Vars', 'vars', go=True)
-        button('Code', 'code', go=True)
+        button("Prev", previous_cmd)
+        self.write_html("&nbsp;&nbsp;")
+        button("Redo", previous_cmd, go=True)
+        self.write_html("&nbsp;&nbsp;")
+        button("Help", "help", go=True)
+        button("Examples", "examples", go=True)
+        button("Vars", "vars", go=True)
+        button("Code", "code", go=True)
 
         # output input field
-        self.write_html('\n<br>\n<p>')
-        self.write_html('\n<form name="turnForm"> Expression: <input type="text" name="c" size="60">')
+        self.write_html("\n<br>\n<p>")
+        self.write_html(
+            '\n<form name="turnForm"> Expression: <input type="text" name="c" size="60">'
+        )
         self.write_html('\n<button name="go" type="submit">Submit</button>')
         # output hidden key
-        self.write_html('\n<input type="hidden" name="k" value="KEY">'.replace("KEY", sessionkey))
-        self.write_html('\n</form>')
+        self.write_html(
+            '\n<input type="hidden" name="k" value="KEY">'.replace("KEY", sessionkey)
+        )
+        self.write_html("\n</form>")
 
         # output latest game output
         if game:
@@ -413,9 +445,11 @@ class BottlePlusminusReplRequestHandler:
                         self.write_html_table(output)
         else:
             if too_many_sessions:
-                self.write_html('<h2>Sorry, too many sessions just now...</h2>\n')
+                self.write_html("<h2>Sorry, too many sessions just now...</h2>\n")
 
-        self.write_javascript(textwrap.dedent('''\
+        self.write_javascript(
+            textwrap.dedent(
+                """\
             function cleartext() {
                 var frm = document.turnForm;
                 var input_field = frm.c;
@@ -430,84 +464,127 @@ class BottlePlusminusReplRequestHandler:
                 if (go) {
                     frm.go.click();
                     }
-                }'''))
-        self.write_html('\n</body></html>')
+                }"""
+            )
+        )
+        self.write_html("\n</body></html>")
 
     def _handle_stats_request(self):
         now = datetime.now()
-        self.write_html('<html><body>\n')
-        self.write_html('<h2>Stats as of {}</h2>\n<p>\n'.format(time_to_str(now)))
-        self.write_html('Server start time: {}<p>'.format(time_to_str(server_start)))
-        self.write_html('Uptime: {}<p>'.format(str(datetime.utcnow() - server_start)))
-        headings = "Session/Start time/Latest time/Connected/Idle/Tests/Exceptions".split('/')
-        self.write_html('<h2>Active Testers</h2>\n')
-        self.write_html('<table border=1 cellpadding="4"><tr><th>' +
-                        '</th><th>'.join(headings) +
-                       '</th></tr>\n')
+        self.write_html("<html><body>\n")
+        self.write_html("<h2>Stats as of {}</h2>\n<p>\n".format(time_to_str(now)))
+        self.write_html("Server start time: {}<p>".format(time_to_str(server_start)))
+        self.write_html("Uptime: {}<p>".format(str(datetime.utcnow() - server_start)))
+        headings = (
+            "Session/Start time/Latest time/Connected/Idle/Tests/Exceptions".split("/")
+        )
+        self.write_html("<h2>Active Testers</h2>\n")
+        self.write_html(
+            '<table border=1 cellpadding="4"><tr><th>'
+            + "</th><th>".join(headings)
+            + "</th></tr>\n"
+        )
         if sessions:
             with sessions_lock:
                 sessionsData = list(sessions.items())
-            sessionsData.sort(key=lambda x:str(x[1].data[last_update]), reverse=True)
+            sessionsData.sort(key=lambda x: str(x[1].data[last_update]), reverse=True)
             for k, info in sessionsData:
                 connect_time = now - info.start_time
                 connect_time_str = timedelta_to_str(connect_time)
                 idle_time_str = timedelta_to_str(now - info.data[last_update])
-                self.write_html('<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top" align="center">%s</td>\n' %
-                                    (k, info.start_time, info.data[last_update],
-                                     connect_time_str, idle_time_str, info.data[num_tests], info.data[num_exceptions]))
+                self.write_html(
+                    '<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top" align="center">%s</td>\n'
+                    % (
+                        k,
+                        info.start_time,
+                        info.data[last_update],
+                        connect_time_str,
+                        idle_time_str,
+                        info.data[num_tests],
+                        info.data[num_exceptions],
+                    )
+                )
                 # self.writeHTML('<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td><td valign="top" width=200>%s</td><td valign="top" width=240>%s</td></tr>\n' %
-                                    # (k, info.startTime, info.lastUpdate, playerInv, playerExp))
+                # (k, info.startTime, info.lastUpdate, playerInv, playerExp))
         else:
-            self.write_html('<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n' % len(headings))
+            self.write_html(
+                '<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n'
+                % len(headings)
+            )
 
-        self.write_html('</table>\n')
-        headings = "Session/Start time/End time/Connected/Tests/Exceptions/Commands".split('/')
-        self.write_html('<p>\n')
-        self.write_html('<h2>Finished Testers</h2>\n')
-        self.write_html('<table border=1 cellpadding="4"><tr><th>' +
-                        '</th><th>'.join(headings) +
-                        '</th></tr>\n')
+        self.write_html("</table>\n")
+        headings = (
+            "Session/Start time/End time/Connected/Tests/Exceptions/Commands".split("/")
+        )
+        self.write_html("<p>\n")
+        self.write_html("<h2>Finished Testers</h2>\n")
+        self.write_html(
+            '<table border=1 cellpadding="4"><tr><th>'
+            + "</th><th>".join(headings)
+            + "</th></tr>\n"
+        )
         sessions_data = list(sessions_history)
         if sessions_data:
-            sessions_data.sort(key=lambda x:str(x[1].data[last_update]), reverse=True)
+            sessions_data.sort(key=lambda x: str(x[1].data[last_update]), reverse=True)
             for k, info in sessions_data:
-                connect_time = (info.data[last_update] - info.start_time)
+                connect_time = info.data[last_update] - info.start_time
                 connect_time_str = timedelta_to_str(connect_time)
-                self.write_html('<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top" align="center">%s</td><td>%s</td>\n' %
-                                    (k, info.start_time, info.data[last_update],
-                                     connect_time_str, info.data[num_tests], info.data[num_exceptions], ''))
+                self.write_html(
+                    '<tr><td valign="top">%s</td><td valign="top">%.19s</td><td valign="top">%.19s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top" align="center">%s</td><td>%s</td>\n'
+                    % (
+                        k,
+                        info.start_time,
+                        info.data[last_update],
+                        connect_time_str,
+                        info.data[num_tests],
+                        info.data[num_exceptions],
+                        "",
+                    )
+                )
         else:
-            self.write_html('<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n' % len(headings))
-        self.write_html('</table>\n')
+            self.write_html(
+                '<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n'
+                % len(headings)
+            )
+        self.write_html("</table>\n")
 
-        headings = "Time/Session/Command".split('/')
-        self.write_html('<p>\n')
-        self.write_html('<h2>Most Recent Commands</h2>\n')
-        self.write_html('<table border=1 cellpadding="4"><tr><th>' +
-                        '</th><th>'.join(headings) +
-                       '</th></tr>\n')
+        headings = "Time/Session/Command".split("/")
+        self.write_html("<p>\n")
+        self.write_html("<h2>Most Recent Commands</h2>\n")
+        self.write_html(
+            '<table border=1 cellpadding="4"><tr><th>'
+            + "</th><th>".join(headings)
+            + "</th></tr>\n"
+        )
         cmds = list(cmd_history)
         max_command_display = 100
         if cmds:
             cmds.sort(key=lambda x: x[0], reverse=True)
             for cmd in cmds:
                 if len(cmd.command) > max_command_display:
-                    cmd = cmd._replace(command=cmd.command[:max_command_display] + '...')
-                self.write_html('<tr><td valign="top">%.19s</td>'
-                               '<td valign="top" align="center">%s</td>'
-                               '<td valign="top">%s</td></tr>\n' % cmd)
+                    cmd = cmd._replace(
+                        command=cmd.command[:max_command_display] + "..."
+                    )
+                self.write_html(
+                    '<tr><td valign="top">%.19s</td>'
+                    '<td valign="top" align="center">%s</td>'
+                    '<td valign="top">%s</td></tr>\n' % cmd
+                )
 
         else:
-            self.write_html('<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n' % len(headings))
-        self.write_html('</table>\n')
-        self.write_html('\n</body></html>')
+            self.write_html(
+                '<tr><td valign="top" colspan=%d><center>none</center></td></tr>\n'
+                % len(headings)
+            )
+        self.write_html("</table>\n")
+        self.write_html("\n</body></html>")
 
     def _handle_cleanup_request(self):
         with sessions_lock:
@@ -518,8 +595,11 @@ class BottlePlusminusReplRequestHandler:
         for k, info in sessions_data:
             idle_time = now - info.data[last_update]
             connect_time = info.data[last_update] - info.start_time
-            if (connect_time < 2 * ONE_SECOND and idle_time > 5 * ONE_MINUTE
-                    or idle_time > 4 * ONE_HOUR):
+            if (
+                connect_time < 2 * ONE_SECOND
+                and idle_time > 5 * ONE_MINUTE
+                or idle_time > 4 * ONE_HOUR
+            ):
                 deletes.append(k)
 
         with sessions_lock:
@@ -532,26 +612,26 @@ class BottlePlusminusReplRequestHandler:
 if __name__ == "__main__":
     # bottle server "main"
 
-    @route('/plusminus/_stats')
+    @route("/plusminus/_stats")
     def handle_stats_command():
         handler = BottleArithReplRequestHandler()
         handler._handle_stats_request()
-        return ''.join(handler.buffer)
+        return "".join(handler.buffer)
 
-    @route('/plusminus/_cleanup')
+    @route("/plusminus/_cleanup")
     def handle_cleanup_command():
         handler = BottleArithReplRequestHandler()
         handler._handle_cleanup_request()
-        return ''.join(handler.buffer)
+        return "".join(handler.buffer)
 
-    @route('/plusminus')
+    @route("/plusminus")
     def handle_app_command():
         handler = BottleArithReplRequestHandler()
         handler._handle_app_request()
-        return ''.join(handler.buffer)
+        return "".join(handler.buffer)
 
-    @route('/')
+    @route("/")
     def hello_world():
-        return 'Hello from plusminus repl!'
+        return "Hello from plusminus repl!"
 
     application = default_app()

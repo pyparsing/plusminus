@@ -6,6 +6,7 @@
 
 ### Parser definition methods
 
+- `customize()`
 - `add_operator(operator_symbol, num_args, left_right_assoc, operator_function)`
 - `add_variable(variable, value)`
 - `add_function(function_name, num_args, function_method)`
@@ -23,10 +24,10 @@
 
 ### Parser attributes
 
-- `customize()` method
 - `LEFT` and `RIGHT`
 - `MAX_VARS`
 - `ident_letters`
+- `user_defined_functions_supported`
 
 
 ### Usage Notes

@@ -10,7 +10,7 @@ setup(
     version=pm_version,
     packages=find_packages(),
 
-    install_requires=["pyparsing>=2.4.6"],
+    install_requires=["pyparsing>=2.4.7"],
 
     # metadata to display on PyPI
     author="Paul McGuire",
@@ -37,10 +37,10 @@ setup(
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
@@ -48,5 +48,5 @@ setup(
         "Topic :: Text Processing :: General",
         "Topic :: Utilities",
     ],
-    python_requires='>=3.5.2',
+    python_requires='>=3.6',
 )
