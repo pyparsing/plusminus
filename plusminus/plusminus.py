@@ -51,11 +51,11 @@ if not hasattr(ParseException, "explain_exception"):
 
 ArithmeticParseException = ParseBaseException
 
-__all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
+__all__ = """__version__ __version_info__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
              """.split()
 
-VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serisl")
+VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
 __version_info__ = VersionInfo(0, 5, 0, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
