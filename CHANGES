@@ -5,6 +5,9 @@ plusminus Change Log
     - Python 3.5 is no longer supported, plusminus now only works with
       Python 3.6 and later.
 
+    - Added __version_info__ structure, following pattern of sys.version_info
+      field names.
+
     - Refactored classes and parser interface to support better
       definition of precedence of operations for custom operators.
 
@@ -21,6 +24,53 @@ plusminus Change Log
     - Update default `sys.setrecursionlimit` to 3000 if it has not
       already been modified, to allow for deep call stacks generated
       from infixNotation parsers.
+
+    - Custom functions can now take different numbers of arguments,
+      using a tuple of integers for the arity. For example, here is the
+      log function, that can take only one or two arguments:
+
+          self.add_function("log", (1, 2), math.log)
+
+    - Updated operators and functions in ArithmeticParser:
+
+        - "−" can now be used as a unary minus operator, like "-".
+
+        - "//" operator for floor division added.
+
+        - round function now accepts one or two arguments, instead of two only.
+
+    - Updated operators, functions and variables in BasicArithmeticParser:
+
+        - Added the log function above in the BasicArithmeticParser. If called
+          with one argument, base e is used. If called with two, the second
+          argument is used as the base.
+
+        - Removed the nhypot function. The hypot function now takes any number
+          of arguments.
+
+        - gamma function now takes one parameter, instead of two.
+
+        - Added variable "tau" (same as "τ"), which is equal to 2×π.
+
+        - Added variables "ϕ" and "phi" (same as "φ", the golden number).
+
+    - Updated documentation and examples in the BasicArithmeticParser class.
+
+    Thanks to TheOneMusic for his awesome contributions to this release!
+
+    - PLANNED FOR 0.5.0
+
+        - Refactoring the parser classes to provide a
+          parser for standard Python expressions using standard Python
+          operators and builtins, and functions from the math module
+          (may limit types to int and float). Will make this parser more
+          of a safe drop-in replacement for "eval" without extra bells and
+          whistles.
+
+        - Better definition of custom operators, to permit support for
+          proper definition of precedence of operations.
+
+        - Update web demo to support selection of different parsers.
 
 
 0.3.0 -

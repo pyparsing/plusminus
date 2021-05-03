@@ -52,7 +52,7 @@ if not hasattr(ParseException, "explain_exception"):
 ArithmeticParseException = ParseBaseException
 
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
-             safe_pow safe_str_mult constrained_factorial ArithmeticParseException
+             safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
              """.split()
 __version__ = "0.5.0"
 
@@ -259,6 +259,7 @@ def _collapse_operands(seq, eps=1e-15):
 
 
 def safe_pow(*seq, eps=1e-15):
+    """Same as `pow`, but raises `OverflowError` if the result gets too large."""
     operands = _collapse_operands(seq, eps)
     ret = 1
     for operand in operands[::-1]:
@@ -284,6 +285,7 @@ def safe_pow(*seq, eps=1e-15):
 
 
 def safe_str_mult(a, b):
+    """Same as `*`, but if a or b is a string and the result gets too big, raises `MemoryError`."""
     for _ in range(2):
         if isinstance(a, str):
             if b <= 0:
@@ -295,6 +297,7 @@ def safe_str_mult(a, b):
 
 
 def constrained_factorial(x):
+    """Same as `math.factorial`, but raises `ValueError` if x is under 0 or over 32,767."""
     if not (0 <= x < 32768):
         raise ValueError(f"{x!r} not in working 0-32,767 range")
     if math.isclose(x, int(x), abs_tol=1e-12):
@@ -799,7 +802,7 @@ class ArithmeticParser:
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
+            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ & | in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "abs": FunctionSpec("abs", abs, 1),
@@ -897,9 +900,18 @@ class ArithmeticParser:
         self._variable_map[name] = LiteralNode([value])
 
     def customize(self):
-        pass
+        """Entry point to define operators, functions and variables."""
 
     def add_operator(self, operator_expr, arity, assoc, parse_action):
+        """
+        Adds an operator.
+
+        Parameters:
+        - operator_expr (str): operator expression
+        - arity (int): operator arity
+        - assoc: `ArithmeticParser.RIGHT` or `ArithmeticParser.LEFT`
+        - parse_action: method to associate with the operator
+        """
         operator_node_superclass = {
             (1, pp.opAssoc.LEFT): ArithmeticUnaryPostOp,
             (1, pp.opAssoc.RIGHT): ArithmeticUnaryOp,
@@ -925,17 +937,36 @@ class ArithmeticParser:
         )
 
     def initialize_variable(self, vname, vvalue, as_formula=False):
+        """
+        Adds a variable to the parser.
+
+        Parameters:
+        - vname (str): variable name
+        - vvalue: variable value
+        - as_formula (bool): if True, variable is registered as a formula
+          and its value can be dynamically updated (defaults to False)
+        """
         self._initial_variables[vname] = (vvalue, as_formula)
 
     def add_function(self, fn_name, fn_arity, fn_method):
+        """
+        Adds a function to the parser.
+
+        Parameters:
+        - fn_name (str): the name of the function
+        - fn_arity (tuple, int or ...): number of arguments accepted by the function
+        - fn_method: the method associated with the function
+        """
         self._added_function_specs[fn_name] = FunctionSpec(fn_name, fn_method, fn_arity)
 
     def get_parser(self):
+        """Retrieves parser or make a new one if None was found."""
         if self._parser is None:
             self._parser = self.make_parser()
         return self._parser
 
     def make_parser(self):
+        """Creates a new parser."""
         arith_operand = pp.Forward()
         LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, COMMA = map(pp.Suppress, "()[]{},")
         fn_name_expr = pp.Word(
@@ -977,6 +1008,7 @@ class ArithmeticParser:
         var_name.addParseAction(identifier_node_class)
 
         def set_intersection(a, b):
+            """Represents a set intersection."""
             a_set = (
                 a
                 if isinstance(a, PrettySet)
@@ -990,6 +1022,7 @@ class ArithmeticParser:
             return PrettySet(a_set.intersection(b_set))
 
         def set_union(a, b):
+            """Represents a set union."""
             a_set = (
                 a
                 if isinstance(a, PrettySet)
@@ -1006,19 +1039,18 @@ class ArithmeticParser:
             opns_map = {
                 "∩": set_intersection,
                 "∪": set_union,
+                "&": set_intersection,
+                "|": set_union,
             }
 
             def evaluate(self):
                 with _trimming_exception_traceback():
                     return self.left_associative_evaluate(self.opns_map)
 
-        set_expression = pp.infixNotation(
-            set_operand | var_name,
-            [
-                ("∩", 2, pp.opAssoc.LEFT, SetBinaryOp),
-                ("∪", 2, pp.opAssoc.LEFT, SetBinaryOp),
-            ],
-        )
+        set_expression = pp.infixNotation(set_operand | var_name, [
+            (pp.oneOf("∩ &"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+            (pp.oneOf("∪ |"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+            ])
 
         self.Operators.IS_ELEMENT_set_expression <<= set_expression
         self.Operators.IS_ELEMENT_var_name <<= var_name
@@ -1225,6 +1257,7 @@ class ArithmeticParser:
         return parser
 
     def vars(self):
+        """Returns all the variables defined in the parser."""
         ret = {}
         for k, v in self._variable_map.items():
             if isinstance(v, LiteralNode):
@@ -1235,6 +1268,7 @@ class ArithmeticParser:
 
 
 def log(x, y=10):
+    """Similar to `math.log`, but second optional value is 10."""
     if math.isclose(y, 2, abs_tol=1e-15):
         return math.log2(x)
     if math.isclose(y, 10, abs_tol=1e-15):
@@ -1257,6 +1291,7 @@ class BasicArithmeticParser(ArithmeticParser):
     """
 
     def customize(self):
+        """Entry point to define operators, functions and variables."""
         import math
 
         super().customize()

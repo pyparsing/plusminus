@@ -21,8 +21,8 @@ parsed_elements = parser.parse("2+3/10")
 Arithmetic expressions are evaluated following standard rules for operator precedence, allowing for use of parentheses to override:
 
     ()
-    ∩ (set intersection)
-    ∪ (set union)
+    ∩ & (set intersection)
+    ∪ | (set union)
     -
     **
     * / // × ÷ mod
