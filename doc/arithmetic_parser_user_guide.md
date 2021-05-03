@@ -8,7 +8,7 @@
 
 - 6-function arithmetic (`+`, `-`, `*`, `/`, `//`, `**`)
 
-- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`)
+- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧` (`and`), `∨` (`or`), `∩`, `∪`, `∈`, `∉`)
 
 - Additional operators
 
@@ -16,10 +16,16 @@
     - conditions that evaluate to 0 or False will be treated as False
     - conditions that evaluate to non-zero or True will be treated as True
 
-  - set operators `∩`, `∪`
+  - set operators `∩`, `∪`, `∈`, `∉`
     - sets are defined using `{`, `}` symbols    
     - `∩` is intersection, `∪` is union
+    - `∈` is `is element of`, `∉` is `is not element of`
+
+          1 ∈ {1, 2, 3} ∪ {10, 11, 12} evaluates True
+          1 ∉ {1, 2, 3} ∩ {10, 11, 12} evaluates True
+
     - `{}` is the empty set
+    - `in` and `not in` are equivalent to `∈` and `∉`
     - sets can be nested, and can be used as arguments to functions:
     
           {{1,2}, {3,4}}
@@ -53,6 +59,7 @@
     * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
+    in, not in, ∈ ∉
     not
     and ∧
     or ∨

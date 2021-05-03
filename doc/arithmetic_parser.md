@@ -21,6 +21,9 @@
         {1, 2, 3} ∩ {3, 4, 5}  # {3}
         {1, 2, 3} ∩ {4, 5, 6}  # {}
 
+    use `∈` for "is element of" and `∉` for "is not element of"; `in` and `not in` 
+    can also be used
+
   - `?:` ternary if-then-else
   - `not, and, or`
   - `mod` - modulo arithmetic - `8 mod 3 = 2`

@@ -588,6 +588,45 @@ class BinaryComparison(BinaryNode):
             return ret
 
 
+def make_incontainer_node(ident_node_class, set_bin_op_class):
+    def _inner(t):
+        ret = InContainerNode(t)
+        ret.identifier_node_class = ident_node_class
+        ret.SetBinaryOp = set_bin_op_class
+        return ret
+    return _inner
+
+
+class InContainerNode(UnaryNode):
+    def evaluate(self):
+        operand, op, range_expr = self.tokens
+        assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ('∉', 'not_in')]
+
+        if isinstance(range_expr, (self.identifier_node_class, self.SetBinaryOp)):
+            range_expr = range_expr.evaluate()
+
+        with _trimming_exception_traceback():
+            op_val = operand.evaluate()
+            return assert_negate_fn(
+                sum(op_val == elem for elem in range_expr.evaluate())
+                if isinstance(range_expr, SetNode) else op_val in range_expr
+            )
+
+    def __repr__(self):
+        operand, op, range_expr = self.tokens
+
+        lower_symbol = "(["[range_expr.lower_inclusive]
+        upper_symbol = ")]"[range_expr.upper_inclusive]
+        repr_format = "{} {} {}{}, {}{}"
+        return repr_format.format(repr(operand),
+                                  op,
+                                  lower_symbol,
+                                  repr(range_expr.lower),
+                                  repr(range_expr.upper),
+                                  upper_symbol
+                                  )
+
+
 class RoundToEpsilon:
     def __init__(self, result):
         self._result = result
@@ -709,9 +748,12 @@ class ArithmeticParser:
         INEQUALITY = OperatorSpec(
             pp.oneOf("< > <= >= == != ≠ ≤ ≥"), 2, pp.opAssoc.LEFT, BinaryComparison
         )
-        # IS_ELEMENT = OperatorSpec((IN | _NOT_IN | pp.oneOf("∈ ∉"))
-        #                           - (set_expression | var_name),
-        #                           1, pp.opAssoc.LEFT, InRangeNode)
+        IS_ELEMENT_set_expression = pp.Forward()
+        IS_ELEMENT_var_name = pp.Forward()
+        IS_ELEMENT = OperatorSpec((IN | _NOT_IN | pp.oneOf("∈ ∉"))
+                                  - (IS_ELEMENT_set_expression | IS_ELEMENT_var_name),
+                                  1, pp.opAssoc.LEFT, None)
+
         LOGICAL_NOT = OperatorSpec(NOT, 1, pp.opAssoc.RIGHT, UnaryNot)
         LOGICAL_AND = OperatorSpec(AND | "∧", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         LOGICAL_OR = OperatorSpec(OR | "∨", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
@@ -757,7 +799,7 @@ class ArithmeticParser:
         self._added_operator_specs = []
         self._added_function_specs = {}
         self._base_operators = (
-            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∩ ∪ not and ∧ or ∨ ?:"
+            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map = {
             "abs": FunctionSpec("abs", abs, 1),
@@ -978,17 +1020,22 @@ class ArithmeticParser:
             ],
         )
 
+        self.Operators.IS_ELEMENT_set_expression <<= set_expression
+        self.Operators.IS_ELEMENT_var_name <<= var_name
+
         base_operator_specs = [
             self.Operators.EXPONENT,
             self.Operators.UNARY_MINUS,
             self.Operators.MULTIPLICATION,
             self.Operators.ADDITION,
             self.Operators.INEQUALITY,
+            self.Operators.IS_ELEMENT._replace(action=make_incontainer_node(identifier_node_class, SetBinaryOp)),
             self.Operators.LOGICAL_NOT,
             self.Operators.LOGICAL_AND,
             self.Operators.LOGICAL_OR,
             self.Operators.C_STYLE_TERNARY,
         ]
+
         ABS_VALUE_VERT = pp.Suppress("|")
         abs_value_expression = ABS_VALUE_VERT + arith_operand + ABS_VALUE_VERT
 
@@ -1148,15 +1195,21 @@ class ArithmeticParser:
         formula_assignment_statement.addParseAction(store_parsed_value)
         value_clear_statement.addParseAction(clear_parsed_value)
 
+        # fmt: off
         if self.user_defined_functions_supported:
             parser = (
-                value_assignment_statement
-                | value_clear_statement
-                | formula_assignment_statement
-                | lone_rvalue
+                    value_assignment_statement
+                    | value_clear_statement
+                    | formula_assignment_statement
+                    | lone_rvalue
             )
         else:
-            parser = value_assignment_statement | value_clear_statement | lone_rvalue
+            parser = (
+                    value_assignment_statement
+                    | value_clear_statement
+                    | lone_rvalue
+            )
+        # fmt: on
 
         # init _variable_map with any pre-defined values
         for varname, (varvalue, as_formula) in self._initial_variables.items():

@@ -85,6 +85,9 @@ class TestBasicArithmetic:
     @pytest.mark.parametrize(
         "input_string, expected_value",
         [
+            ("1 in { a, 11, 22, 53}", True),
+            ("1 not in {b, 0}", True),
+            ("1 in myset", True),
             ("{ 0, 2, 22}", {0, 2, 22}),
             (
                 "{ a, 11, 22, 53} ∩ { 0, 2, 22}",
@@ -102,6 +105,12 @@ class TestBasicArithmetic:
                 },
             ),
             ("myset ∪ { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
+            ("1 in (myset ∩ { 0, 2, 22})", False),
+            ("1 in (myset ∪ { 0, 2, 22})", True),
+            ("1 ∈ (myset ∩ { 0, 2, 22})", False),
+            ("1 ∉ (myset ∪ { 0, 2, 22})", False),
+            ("1 in (myset ∩ {})", False),
+            ("1 in (myset ∪ {})", True),
             ("max(aset)", 3),
             ("max({1, 2, 4})", 4),
             ("max({1, 2} ∪ aset)", 3),

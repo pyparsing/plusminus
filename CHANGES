@@ -8,8 +8,9 @@ plusminus Change Log
     - Refactored classes and parser interface to support better
       definition of precedence of operations for custom operators.
 
-    - Dropped support for "in" range and "in" set notation, including
-      `∈` and `∉` operators.
+    - Dropped support for "in" range notation, with ranges specified
+      using (), (], [) or [] notation. ("in" with sets is still
+      supported.)
 
     - Added `user_defined_formulas_supported` attribute for parsers,
       to enable/disable support for `@=` formula assignment operator

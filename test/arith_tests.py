@@ -139,6 +139,9 @@ parser.runTests(
     1 or 0
     1 and not 0
 
+    # set membership
+    2 in {1, 2, 3}
+
     32 + 37 * 9 / 5 == 98.6
     ctemp = 37
     temp_f = 100.2
@@ -218,8 +221,11 @@ parser.runTests(
     
     # set operations
     a, b = 1, 10
+    1 in { a, 11, 22, 53}
+    1 not in {b, 0}
     myset = { a, 11, 22, 53, 'z', 'x' ,'a', {100, 101, 99}}
     myset
+    1 in myset
     { 0, 2, 22}
     { a, 11, 22, 53} ∩ { 0, 2, 22}
     { a, 11, 22, 53} ∪ { 0, 2, 22}
@@ -227,6 +233,12 @@ parser.runTests(
     { a, 11, 22, 53} ∪ {}
     myset ∩ { 0, 2, 22}
     myset ∪ { 0, 2, 22}
+    1 in (myset ∩ { 0, 2, 22})
+    1 in (myset ∪ { 0, 2, 22})
+    1 ∈ (myset ∩ { 0, 2, 22})
+    1 ∉ (myset ∪ { 0, 2, 22})
+    1 in (myset ∩ {})
+    1 in (myset ∪ {})
     {{1, 2}, 99, 100}
     {99, 'z', 'a'} ∪ {'a', 't', 100}
     
