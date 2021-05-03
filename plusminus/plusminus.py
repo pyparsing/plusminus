@@ -54,7 +54,10 @@ ArithmeticParseException = ParseBaseException
 __all__ = """__version__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
              """.split()
-__version__ = "0.5.0"
+
+VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serisl")
+__version_info__ = VersionInfo(0, 5, 0, "final", 0)
+__version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
 if sys.getrecursionlimit() == 1000:
@@ -67,7 +70,8 @@ expressions = {}
 
 # keywords
 keywords = {
-    k.upper(): pp.Keyword(k) for k in """in and or not True False if else mod""".split()
+    k.upper(): pp.Keyword(k)
+    for k in """in and or not True False if else mod""".split()
 }
 vars().update(keywords)
 expressions.update(keywords)
@@ -1267,8 +1271,8 @@ class ArithmeticParser:
         return ret
 
 
-def log(x, y=10):
-    """Similar to `math.log`, but second optional value is 10."""
+def log(x, y=math.e):
+    """Similar to `math.log`, with is_close for bases 2 and 10."""
     if math.isclose(y, 2, abs_tol=1e-15):
         return math.log2(x)
     if math.isclose(y, 10, abs_tol=1e-15):
@@ -1319,7 +1323,7 @@ class BasicArithmeticParser(ArithmeticParser):
         self.add_function("deg", 1, math.degrees)
         self.add_function("ln", 1, lambda x: math.log(x))
         self.add_function(
-            "log", (1, 2), math.log
+            "log", (1, 2), log
         )  # log function can accept one or two values
         self.add_function("log2", 1, math.log2)
         self.add_function("log10", 1, math.log10)

@@ -1,3 +1,4 @@
+import math
 import pytest
 from plusminus import BasicArithmeticParser, ArithmeticParseException
 import sys
@@ -22,7 +23,10 @@ def basic_arithmetic_parser():
 # but you can setup/scope fixtures for one test/class/module/test_suite run etc
 class TestBasicArithmetic:
     def _test_evaluate(self, basic_arithmetic_parser, input_string, expected_value):
-        assert basic_arithmetic_parser.evaluate(input_string) == expected_value
+        if isinstance(expected_value, (int, float)):
+            assert math.isclose(basic_arithmetic_parser.evaluate(input_string), expected_value, rel_tol=1e-12)
+        else:
+            assert basic_arithmetic_parser.evaluate(input_string) == expected_value
 
     @pytest.mark.parametrize(
         "input_string, expected_value",
@@ -33,6 +37,10 @@ class TestBasicArithmetic:
             ("0**0", 1),
             ("3**2**3", 3 ** 2 ** 3),
             ('"You" + " win"*3', "You win win win"),
+            ('log(10)', math.log(10)),
+            ('log(10, 2)', math.log(10, 2)),
+            ('log(10, 10)', math.log(10, 10)),
+            ('log(e)', math.log(math.e)),
             ("(0)", 0),
             ("((0))", 0),
             ("(((0)))", 0),
