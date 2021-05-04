@@ -765,27 +765,6 @@ class ArithmeticParser:
         LOGICAL_AND = OperatorSpec(AND | "∧", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         LOGICAL_OR = OperatorSpec(OR | "∨", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         C_STYLE_TERNARY = OperatorSpec(("?", ":"), 3, pp.opAssoc.RIGHT, TernaryComp)
-        # avoid clash with '!=' operator
-        _factorial_operator = (~pp.Literal("!=") + "!").setName("!")
-        FACTORIAL = OperatorSpec(
-            _factorial_operator, 1, pp.opAssoc.LEFT, constrained_factorial
-        )
-        SQUARE_ROOT_UNARY = OperatorSpec("√", 1, pp.opAssoc.RIGHT, lambda x: x ** 0.5)
-        SQUARE_ROOT_BINARY = OperatorSpec(
-            "√", 2, pp.opAssoc.LEFT, lambda x, y: x * y ** 0.5
-        )
-        DEGREE_OPERATOR = OperatorSpec("°", 1, pp.opAssoc.LEFT, math.radians)
-
-        special_exponents_opns_map = {
-            "⁻¹": (lambda x: 1 / x),
-            "⁰": (lambda x: x ** 0),
-            "¹": (lambda x: x),
-            "²": (lambda x: safe_pow(x, 2)),
-            "³": (lambda x: safe_pow(x, 3)),
-        }
-        SPECIAL_EXPONENTS = OperatorSpec(
-            pp.oneOf("⁻¹ ⁰ ¹ ² ³"), 1, pp.opAssoc.LEFT, special_exponents_opns_map
-        )
 
     # class Functions:
     #     "abs": FunctionSpec(abs, 1),
@@ -1056,20 +1035,20 @@ class ArithmeticParser:
             (pp.oneOf("∪ |"), 2, pp.opAssoc.LEFT, SetBinaryOp),
             ])
 
-        self.Operators.IS_ELEMENT_set_expression <<= set_expression
-        self.Operators.IS_ELEMENT_var_name <<= var_name
+        ArithmeticParser.Operators.IS_ELEMENT_set_expression <<= set_expression
+        ArithmeticParser.Operators.IS_ELEMENT_var_name <<= var_name
 
         base_operator_specs = [
-            self.Operators.EXPONENT,
-            self.Operators.UNARY_MINUS,
-            self.Operators.MULTIPLICATION,
-            self.Operators.ADDITION,
-            self.Operators.INEQUALITY,
-            self.Operators.IS_ELEMENT._replace(action=make_incontainer_node(identifier_node_class, SetBinaryOp)),
-            self.Operators.LOGICAL_NOT,
-            self.Operators.LOGICAL_AND,
-            self.Operators.LOGICAL_OR,
-            self.Operators.C_STYLE_TERNARY,
+            ArithmeticParser.Operators.EXPONENT,
+            ArithmeticParser.Operators.UNARY_MINUS,
+            ArithmeticParser.Operators.MULTIPLICATION,
+            ArithmeticParser.Operators.ADDITION,
+            ArithmeticParser.Operators.INEQUALITY,
+            ArithmeticParser.Operators.IS_ELEMENT._replace(action=make_incontainer_node(identifier_node_class, SetBinaryOp)),
+            ArithmeticParser.Operators.LOGICAL_NOT,
+            ArithmeticParser.Operators.LOGICAL_AND,
+            ArithmeticParser.Operators.LOGICAL_OR,
+            ArithmeticParser.Operators.C_STYLE_TERNARY,
         ]
 
         ABS_VALUE_VERT = pp.Suppress("|")
@@ -1294,6 +1273,32 @@ class BasicArithmeticParser(ArithmeticParser):
     ```
     """
 
+    class Operators:
+        """
+        Custom operator definitions, beyond those defined in ArithmeticParser.
+        """
+        # avoid clash with '!=' operator
+        _factorial_operator = (~pp.Literal("!=") + "!").setName("!")
+        FACTORIAL = OperatorSpec(
+            _factorial_operator, 1, pp.opAssoc.LEFT, constrained_factorial
+        )
+        SQUARE_ROOT_UNARY = OperatorSpec("√", 1, pp.opAssoc.RIGHT, lambda x: x ** 0.5)
+        SQUARE_ROOT_BINARY = OperatorSpec(
+            "√", 2, pp.opAssoc.LEFT, lambda x, y: x * y ** 0.5
+        )
+        DEGREE_OPERATOR = OperatorSpec("°", 1, pp.opAssoc.LEFT, math.radians)
+
+        special_exponents_opns_map = {
+            "⁻¹": (lambda x: 1 / x),
+            "⁰": (lambda x: x ** 0),
+            "¹": (lambda x: x),
+            "²": (lambda x: safe_pow(x, 2)),
+            "³": (lambda x: safe_pow(x, 3)),
+        }
+        SPECIAL_EXPONENTS = OperatorSpec(
+            pp.oneOf("⁻¹ ⁰ ¹ ² ³"), 1, pp.opAssoc.LEFT, special_exponents_opns_map
+        )
+
     def customize(self):
         """Entry point to define operators, functions and variables."""
         import math
@@ -1301,14 +1306,12 @@ class BasicArithmeticParser(ArithmeticParser):
         super().customize()
         phi = (1.0 + 5 ** 0.5) / 2.0  # The golden number
 
-        self.initialize_variable("pi", math.pi)
-        self.initialize_variable("π", math.pi)
-        self.initialize_variable("τ", math.tau)
-        self.initialize_variable("tau", math.tau)
-        self.initialize_variable("e", math.e)
-        self.initialize_variable("φ", phi)
-        self.initialize_variable("ϕ", phi)
-        self.initialize_variable("phi", phi)
+
+        self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_UNARY)
+        self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_BINARY)
+        self.add_operator(*BasicArithmeticParser.Operators.DEGREE_OPERATOR)
+        self.add_operator(*BasicArithmeticParser.Operators.FACTORIAL)
+        self.add_operator(*BasicArithmeticParser.Operators.SPECIAL_EXPONENTS)
 
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)
@@ -1341,8 +1344,11 @@ class BasicArithmeticParser(ArithmeticParser):
             "sgn", 1, lambda x: 0 if _eq(x, 0, self.epsilon) else 1 if x > 0 else -1
         ),
 
-        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_UNARY)
-        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_BINARY)
-        self.add_operator(*ArithmeticParser.Operators.DEGREE_OPERATOR)
-        self.add_operator(*ArithmeticParser.Operators.FACTORIAL)
-        self.add_operator(*ArithmeticParser.Operators.SPECIAL_EXPONENTS)
+        self.initialize_variable("pi", math.pi)
+        self.initialize_variable("π", math.pi)
+        self.initialize_variable("τ", math.tau)
+        self.initialize_variable("tau", math.tau)
+        self.initialize_variable("e", math.e)
+        self.initialize_variable("φ", phi)
+        self.initialize_variable("ϕ", phi)
+        self.initialize_variable("phi", phi)
