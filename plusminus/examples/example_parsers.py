@@ -64,6 +64,7 @@ class DateTimeArithmeticParser(ArithmeticParser):
         self.add_operator("h", 1, ArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_HOUR)
         self.add_operator("m", 1, ArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_MINUTE)
         self.add_operator("s", 1, ArithmeticParser.LEFT, lambda t: t)
+
         self.add_function("now", 0, lambda: datetime.utcnow().timestamp())
         self.add_function("today", 0,
                           lambda: datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
@@ -71,7 +72,7 @@ class DateTimeArithmeticParser(ArithmeticParser):
         # fmt: on
 
 
-class CombinatoricsArithmeticParser(BasicArithmeticParser):
+class CombinatoricsArithmeticParser(ArithmeticParser):
     """
     Parser for evaluating expressions of combinatorics problems, for numbers of
     permutations (nPm) and combinations (nCm):
@@ -92,6 +93,7 @@ class CombinatoricsArithmeticParser(BasicArithmeticParser):
                           lambda a, b: int(constrained_factorial(a)
                                            / constrained_factorial(b)
                                            / constrained_factorial(a - b)))
+        self.add_operator(*BasicArithmeticParser.Operators.FACTORIAL)
         # fmt: on
 
 
@@ -128,6 +130,7 @@ class BusinessArithmeticParser(ArithmeticParser):
         super().customize()
         self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
         self.add_operator("%", 1, ArithmeticParser.LEFT, lambda a: a / 100)
+
         self.add_function("PV", 3, pv)
         self.add_function("FV", 3, fv)
         self.add_function("PP", 3, pp)
