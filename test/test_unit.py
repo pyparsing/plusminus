@@ -1,6 +1,6 @@
 import math
 import pytest
-from plusminus import BasicArithmeticParser, ArithmeticParseException
+from plusminus import ArithmeticParser, ArithmeticParseException
 import sys
 
 sys.setrecursionlimit(4000)
@@ -9,12 +9,13 @@ sys.setrecursionlimit(4000)
 # Normally this would be kept in a "fixtures.py" file or similar, for access by all test scripts.
 @pytest.fixture
 def basic_arithmetic_parser():
-    arith_parser = BasicArithmeticParser()
+    arith_parser = ArithmeticParser()
 
-    # Add temp conversions - you could do this in the test, or create a separate/inheiting fixture with these.
-    arith_parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
-    arith_parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
-    arith_parser.initialize_variable("ctemp", 38)
+    # Add temp conversions - you could do this in the test, or create a separate/inheriting fixture with these.
+    arith_parser.parse("temp_c @= (ftemp - 32) * 5 / 9")
+    arith_parser.parse("temp_f @= 32 + ctemp * 9 / 5")
+    arith_parser.parse("ctemp = 38")
+    arith_parser.parse("feverish @= temp_f > 98.6")
 
     return arith_parser
 
@@ -24,7 +25,11 @@ def basic_arithmetic_parser():
 class TestBasicArithmetic:
     def _test_evaluate(self, basic_arithmetic_parser, input_string, expected_value):
         if isinstance(expected_value, (int, float)):
-            assert math.isclose(basic_arithmetic_parser.evaluate(input_string), expected_value, rel_tol=1e-12)
+            assert math.isclose(
+                basic_arithmetic_parser.evaluate(input_string),
+                expected_value,
+                rel_tol=1e-12,
+            )
         else:
             assert basic_arithmetic_parser.evaluate(input_string) == expected_value
 
@@ -35,12 +40,17 @@ class TestBasicArithmetic:
             ("sin(30°)", 0.5),
             ("sin(π/2)", 1.0),
             ("0**0", 1),
+            ("+5", 5),
+            ("+(5-3)", 2),
+            ("-(5-3)", -2),
+            ("-(5-+3)", -2),
+            ("-(5--3)", -8),
             ("3**2**3", 3 ** 2 ** 3),
             ('"You" + " win"*3', "You win win win"),
-            ('log(10)', math.log(10)),
-            ('log(10, 2)', math.log(10, 2)),
-            ('log(10, 10)', math.log(10, 10)),
-            ('log(e)', math.log(math.e)),
+            ("log(10)", math.log(10)),
+            ("log(10, 2)", math.log(10, 2)),
+            ("log(10, 10)", math.log(10, 10)),
+            ("log(e)", math.log(math.e)),
             ("(0)", 0),
             ("((0))", 0),
             ("(((0)))", 0),
@@ -57,9 +67,13 @@ class TestBasicArithmetic:
                     ]
                 ),
             ),
-            # ('ctemp = 38', [38]),
-            # ('feverish @= temp_f > 98.6', True),
-            # ('"You " + (feverish ? "have" : "dont have") + " a fever"', "You dont have a fever"),
+            # evaluate formula expressions
+            ("ctemp", 38),
+            ("temp_f", 100.4),
+            (
+                '"You " + (feverish ? "have" : "dont have") + " a fever"',
+                "You have a fever",
+            ),
         ],
     )
     def test_evaluate(self, basic_arithmetic_parser, input_string, expected_value):
@@ -224,16 +238,16 @@ class TestBasicArithmetic:
             basic_arithmetic_parser.parse("e @= f")
 
     def test_max_number_of_vars(self, basic_arithmetic_parser):
-        VAR_LIMIT = 20
-        basic_arithmetic_parser.max_number_of_vars = VAR_LIMIT
+        var_limit = 20
+        basic_arithmetic_parser.max_number_of_vars = var_limit
 
         # compute number of vars that are safe to define by subtracting
         # the number of predefined vars from the allowed limit
-        vars_to_define = VAR_LIMIT - len(basic_arithmetic_parser.vars())
+        vars_to_define = var_limit - len(basic_arithmetic_parser.vars())
         for i in range(vars_to_define):
             basic_arithmetic_parser.evaluate("a{} = 0".format(i))
 
         # now define one more, which should put us over the limit and raise
         # the exception
         with pytest.raises(Exception):
-            basic_arithmetic_parser.evaluate("a{} = 0".format(VAR_LIMIT))
+            basic_arithmetic_parser.evaluate("a{} = 0".format(var_limit))

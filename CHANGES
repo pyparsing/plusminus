@@ -5,15 +5,35 @@ plusminus Change Log
     - Python 3.5 is no longer supported, plusminus now only works with
       Python 3.6 and later.
 
-    - Added __version_info__ structure, following pattern of sys.version_info
-      field names.
-
     - Refactored classes and parser interface to support better
-      definition of precedence of operations for custom operators.
+      definition of precedence of operations for custom operators, and to better
+      align the BaseArithmeticParser class to standard Python `eval()`, with
+      some enhancements/distinctions:
+        - `|x|` absolute value notation included
+        - Unicode operators included (`≠ ≤ ≥ ∈ ∉ ∩ ∪ ∧ ∨` for
+          `!= <= >= in not-in intersection union and or`)
+        - C-style `condition ? true_value : false_value` ternary operator included
+        - support for set union, intersection, and element
+        - dict and list containers not supported
+
+      The new ArithmeticParser class (renamed from BasicArithmeticParser) adds:
+        - trig, algebra, and random functions
+        - algebra constants `π τ e φ ϕ`
+        - `√` square root operator (unary and binary)
+        - exponent operators `⁻¹ ⁰ ¹ ² ³`
+        - `!` factorial operator
+        - `°` degrees-to-radians conversion operator
+
+      The former `BasicArithmeticParser` is deprecated, as too easily confused with the
+      `BaseArithmeticParser`. A compatibility synonym is defined for now, but this
+      will be removed in a future release (probably 1.0).
 
     - Dropped support for "in" range notation, with ranges specified
       using (), (], [) or [] notation ("in" with sets is still
       supported).
+
+    - Added __version_info__ structure, following pattern of sys.version_info
+      field names.
 
     - Added `user_defined_formulas_supported` attribute for parsers,
       to enable/disable support for `@=` formula assignment operator

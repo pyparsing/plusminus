@@ -6,8 +6,8 @@
 # Copyright 2020, Paul McGuire
 #
 from plusminus import (
+    BaseArithmeticParser,
     ArithmeticParser,
-    BasicArithmeticParser,
     safe_pow,
     constrained_factorial,
 )
@@ -15,7 +15,7 @@ from plusminus import (
 __all__ = "DiceRollParser DateTimeArithmeticParser CombinatoricsArithmeticParser BusinessArithmeticParser".split()
 
 
-class DiceRollParser(ArithmeticParser):
+class DiceRollParser(BaseArithmeticParser):
     """
     Parser for evaluating expressions representing rolls of dice, as used in many board and
     role-playing games, such as:
@@ -29,13 +29,13 @@ class DiceRollParser(ArithmeticParser):
         import random
 
         # fmt: off
-        self.add_operator("d", 1, ArithmeticParser.RIGHT, lambda a: random.randint(1, a))
-        self.add_operator("d", 2, ArithmeticParser.LEFT,
+        self.add_operator("d", 1, BaseArithmeticParser.RIGHT, lambda a: random.randint(1, a))
+        self.add_operator("d", 2, BaseArithmeticParser.LEFT,
                           lambda a, b: sum(random.randint(1, b) for _ in range(a)))
         # fmt: on
 
 
-class DateTimeArithmeticParser(ArithmeticParser):
+class DateTimeArithmeticParser(BaseArithmeticParser):
     """
     Parser for evaluating expressions in dates and times, using operators d, h, m, and s
     to define terms for amounts of days, hours, minutes, and seconds:
@@ -60,10 +60,10 @@ class DateTimeArithmeticParser(ArithmeticParser):
         from datetime import datetime
 
         # fmt: off
-        self.add_operator("d", 1, ArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_DAY)
-        self.add_operator("h", 1, ArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_HOUR)
-        self.add_operator("m", 1, ArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_MINUTE)
-        self.add_operator("s", 1, ArithmeticParser.LEFT, lambda t: t)
+        self.add_operator("d", 1, BaseArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_DAY)
+        self.add_operator("h", 1, BaseArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_HOUR)
+        self.add_operator("m", 1, BaseArithmeticParser.LEFT, lambda t: t * DateTimeArithmeticParser.SECONDS_PER_MINUTE)
+        self.add_operator("s", 1, BaseArithmeticParser.LEFT, lambda t: t)
 
         self.add_function("now", 0, lambda: datetime.utcnow().timestamp())
         self.add_function("today", 0,
@@ -72,7 +72,7 @@ class DateTimeArithmeticParser(ArithmeticParser):
         # fmt: on
 
 
-class CombinatoricsArithmeticParser(ArithmeticParser):
+class CombinatoricsArithmeticParser(BaseArithmeticParser):
     """
     Parser for evaluating expressions of combinatorics problems, for numbers of
     permutations (nPm) and combinations (nCm):
@@ -87,17 +87,17 @@ class CombinatoricsArithmeticParser(ArithmeticParser):
     def customize(self):
         super().customize()
         # fmt: off
-        self.add_operator("P", 2, ArithmeticParser.LEFT,
+        self.add_operator("P", 2, BaseArithmeticParser.LEFT,
                           lambda a, b: int(constrained_factorial(a) / constrained_factorial(a - b)))
-        self.add_operator("C", 2, ArithmeticParser.LEFT,
+        self.add_operator("C", 2, BaseArithmeticParser.LEFT,
                           lambda a, b: int(constrained_factorial(a)
                                            / constrained_factorial(b)
                                            / constrained_factorial(a - b)))
-        self.add_operator(*BasicArithmeticParser.Operators.FACTORIAL)
+        self.add_operator(*ArithmeticParser.Operators.FACTORIAL)
         # fmt: on
 
 
-class BusinessArithmeticParser(ArithmeticParser):
+class BusinessArithmeticParser(BaseArithmeticParser):
     """
     A parser for evaluating common financial and retail calculations:
 
@@ -128,8 +128,8 @@ class BusinessArithmeticParser(ArithmeticParser):
             return rate * pv / (1 - safe_pow(1 + rate, -n_periods))
 
         super().customize()
-        self.add_operator("of", 2, ArithmeticParser.LEFT, lambda a, b: a * b)
-        self.add_operator("%", 1, ArithmeticParser.LEFT, lambda a: a / 100)
+        self.add_operator("of", 2, BaseArithmeticParser.LEFT, lambda a, b: a * b)
+        self.add_operator("%", 1, BaseArithmeticParser.LEFT, lambda a: a / 100)
 
         self.add_function("PV", 3, pv)
         self.add_function("FV", 3, fv)

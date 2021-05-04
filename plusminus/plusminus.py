@@ -51,8 +51,9 @@ if not hasattr(ParseException, "explain_exception"):
 
 ArithmeticParseException = ParseBaseException
 
-__all__ = """__version__ __version_info__ ArithmeticParser BasicArithmeticParser expressions any_keyword 
+__all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
+             BasicArithmeticParser
              """.split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
@@ -70,8 +71,7 @@ expressions = {}
 
 # keywords
 keywords = {
-    k.upper(): pp.Keyword(k)
-    for k in """in and or not True False if else mod""".split()
+    k.upper(): pp.Keyword(k) for k in """in and or not True False if else mod""".split()
 }
 vars().update(keywords)
 expressions.update(keywords)
@@ -601,13 +601,14 @@ def make_incontainer_node(ident_node_class, set_bin_op_class):
         ret.identifier_node_class = ident_node_class
         ret.SetBinaryOp = set_bin_op_class
         return ret
+
     return _inner
 
 
 class InContainerNode(UnaryNode):
     def evaluate(self):
         operand, op, range_expr = self.tokens
-        assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ('∉', 'not_in')]
+        assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ("∉", "not_in")]
 
         if isinstance(range_expr, (self.identifier_node_class, self.SetBinaryOp)):
             range_expr = range_expr.evaluate()
@@ -616,7 +617,8 @@ class InContainerNode(UnaryNode):
             op_val = operand.evaluate()
             return assert_negate_fn(
                 sum(op_val == elem for elem in range_expr.evaluate())
-                if isinstance(range_expr, SetNode) else op_val in range_expr
+                if isinstance(range_expr, SetNode)
+                else op_val in range_expr
             )
 
     def __repr__(self):
@@ -625,13 +627,14 @@ class InContainerNode(UnaryNode):
         lower_symbol = "(["[range_expr.lower_inclusive]
         upper_symbol = ")]"[range_expr.upper_inclusive]
         repr_format = "{} {} {}{}, {}{}"
-        return repr_format.format(repr(operand),
-                                  op,
-                                  lower_symbol,
-                                  repr(range_expr.lower),
-                                  repr(range_expr.upper),
-                                  upper_symbol
-                                  )
+        return repr_format.format(
+            repr(operand),
+            op,
+            lower_symbol,
+            repr(range_expr.lower),
+            repr(range_expr.upper),
+            upper_symbol,
+        )
 
 
 class RoundToEpsilon:
@@ -663,7 +666,7 @@ class RoundToEpsilon:
             return ret
 
 
-class ArithmeticParser:
+class BaseArithmeticParser:
     """
     Base class for defining arithmetic parsers.
     """
@@ -743,8 +746,8 @@ class ArithmeticParser:
         _NOT_IN = (NOT() + IN()).addParseAction("_".join)
 
         EXPONENT = OperatorSpec("**", 2, pp.opAssoc.LEFT, ExponentBinaryOp)
-        UNARY_MINUS = OperatorSpec(
-            pp.oneOf("- −"), 1, pp.opAssoc.RIGHT, ArithmeticUnaryOp
+        UNARY_SIGN = OperatorSpec(
+            pp.oneOf("+ - −"), 1, pp.opAssoc.RIGHT, ArithmeticUnaryOp
         )
         MULTIPLICATION = OperatorSpec(
             pp.oneOf("* // / mod × ÷"), 2, pp.opAssoc.LEFT, ArithmeticBinaryOp
@@ -757,25 +760,18 @@ class ArithmeticParser:
         )
         IS_ELEMENT_set_expression = pp.Forward()
         IS_ELEMENT_var_name = pp.Forward()
-        IS_ELEMENT = OperatorSpec((IN | _NOT_IN | pp.oneOf("∈ ∉"))
-                                  - (IS_ELEMENT_set_expression | IS_ELEMENT_var_name),
-                                  1, pp.opAssoc.LEFT, None)
+        IS_ELEMENT = OperatorSpec(
+            (IN | _NOT_IN | pp.oneOf("∈ ∉"))
+            - (IS_ELEMENT_set_expression | IS_ELEMENT_var_name),
+            1,
+            pp.opAssoc.LEFT,
+            None,
+        )
 
         LOGICAL_NOT = OperatorSpec(NOT, 1, pp.opAssoc.RIGHT, UnaryNot)
         LOGICAL_AND = OperatorSpec(AND | "∧", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         LOGICAL_OR = OperatorSpec(OR | "∨", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         C_STYLE_TERNARY = OperatorSpec(("?", ":"), 3, pp.opAssoc.RIGHT, TernaryComp)
-
-    # class Functions:
-    #     "abs": FunctionSpec(abs, 1),
-    #     "round": FunctionSpec(round, (1, 2)),
-    #     "trunc": FunctionSpec(math.trunc, 1),
-    #     "ceil": FunctionSpec(math.ceil, 1),
-    #     "floor": FunctionSpec(math.floor, 1),
-    #     "min": FunctionSpec(min, ...),
-    #     "max": FunctionSpec(max, ...),
-    #     "str": FunctionSpec(lambda x: str(x), 1),
-    #     "bool": FunctionSpec(lambda x: not not x, 1),
 
     def __init__(self):
         self.max_number_of_vars = 1000
@@ -1030,25 +1026,30 @@ class ArithmeticParser:
                 with _trimming_exception_traceback():
                     return self.left_associative_evaluate(self.opns_map)
 
-        set_expression = pp.infixNotation(set_operand | var_name, [
-            (pp.oneOf("∩ &"), 2, pp.opAssoc.LEFT, SetBinaryOp),
-            (pp.oneOf("∪ |"), 2, pp.opAssoc.LEFT, SetBinaryOp),
-            ])
+        set_expression = pp.infixNotation(
+            set_operand | var_name,
+            [
+                (pp.oneOf("∩ &"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+                (pp.oneOf("∪ |"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+            ],
+        )
 
-        ArithmeticParser.Operators.IS_ELEMENT_set_expression <<= set_expression
-        ArithmeticParser.Operators.IS_ELEMENT_var_name <<= var_name
+        BaseArithmeticParser.Operators.IS_ELEMENT_set_expression <<= set_expression
+        BaseArithmeticParser.Operators.IS_ELEMENT_var_name <<= var_name
 
         base_operator_specs = [
-            ArithmeticParser.Operators.EXPONENT,
-            ArithmeticParser.Operators.UNARY_MINUS,
-            ArithmeticParser.Operators.MULTIPLICATION,
-            ArithmeticParser.Operators.ADDITION,
-            ArithmeticParser.Operators.INEQUALITY,
-            ArithmeticParser.Operators.IS_ELEMENT._replace(action=make_incontainer_node(identifier_node_class, SetBinaryOp)),
-            ArithmeticParser.Operators.LOGICAL_NOT,
-            ArithmeticParser.Operators.LOGICAL_AND,
-            ArithmeticParser.Operators.LOGICAL_OR,
-            ArithmeticParser.Operators.C_STYLE_TERNARY,
+            BaseArithmeticParser.Operators.EXPONENT,
+            BaseArithmeticParser.Operators.UNARY_SIGN,
+            BaseArithmeticParser.Operators.MULTIPLICATION,
+            BaseArithmeticParser.Operators.ADDITION,
+            BaseArithmeticParser.Operators.INEQUALITY,
+            BaseArithmeticParser.Operators.IS_ELEMENT._replace(
+                action=make_incontainer_node(identifier_node_class, SetBinaryOp)
+            ),
+            BaseArithmeticParser.Operators.LOGICAL_NOT,
+            BaseArithmeticParser.Operators.LOGICAL_AND,
+            BaseArithmeticParser.Operators.LOGICAL_OR,
+            BaseArithmeticParser.Operators.C_STYLE_TERNARY,
         ]
 
         ABS_VALUE_VERT = pp.Suppress("|")
@@ -1259,7 +1260,7 @@ def log(x, y=math.e):
     return math.log(x, y)
 
 
-class BasicArithmeticParser(ArithmeticParser):
+class ArithmeticParser(BaseArithmeticParser):
     """
     Ready to use, basic parser. Example:
     ```python
@@ -1277,6 +1278,7 @@ class BasicArithmeticParser(ArithmeticParser):
         """
         Custom operator definitions, beyond those defined in ArithmeticParser.
         """
+
         # avoid clash with '!=' operator
         _factorial_operator = (~pp.Literal("!=") + "!").setName("!")
         FACTORIAL = OperatorSpec(
@@ -1305,7 +1307,6 @@ class BasicArithmeticParser(ArithmeticParser):
 
         super().customize()
         phi = (1.0 + 5 ** 0.5) / 2.0  # The golden number
-
 
         self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_UNARY)
         self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_BINARY)
@@ -1352,3 +1353,7 @@ class BasicArithmeticParser(ArithmeticParser):
         self.initialize_variable("φ", phi)
         self.initialize_variable("ϕ", phi)
         self.initialize_variable("phi", phi)
+
+
+# backwards compat synonym - deprecated
+BasicArithmeticParser = ArithmeticParser
