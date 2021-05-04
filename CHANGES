@@ -19,8 +19,6 @@ plusminus Change Log
       to enable/disable support for `@=` formula assignment operator
       (default=`True`)
 
-0.4.1 -
-
     - Added documentation to functions in the ArithmeticParser class
       for better understanding and readability.
 
