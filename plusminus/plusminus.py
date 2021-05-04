@@ -773,10 +773,10 @@ class BaseArithmeticParser:
         LOGICAL_OR = OperatorSpec(OR | "∨", 2, pp.opAssoc.LEFT, BinaryLogicalOperator)
         C_STYLE_TERNARY = OperatorSpec(("?", ":"), 3, pp.opAssoc.RIGHT, TernaryComp)
 
-    def __init__(self):
-        self.max_number_of_vars = 1000
-        self.max_var_memory = 10 ** 6
-        self.user_defined_functions_supported = True
+    def __init__(self, **options):
+        self.max_number_of_vars = options.get("max_vars", 1000)
+        self.max_var_memory = options.get("max_memory", 10 ** 6)
+        self.user_defined_functions_supported = options.get("allow_user_functions", True)
 
         self._added_operator_specs = []
         self._added_function_specs = {}
@@ -796,7 +796,7 @@ class BaseArithmeticParser:
         }
 
         # epsilon for computing "close" floating point values - can be updated in customize
-        self.epsilon = 1e-15
+        self.epsilon = options.get("epsilon", 1e-15)
 
         # customize can update or replace with different characters
         self.ident_letters = (
@@ -804,10 +804,10 @@ class BaseArithmeticParser:
         )
 
         # customize can raise or lower the maximum expression depth
-        # to be supported - default = 8
-        self.maximum_expression_depth = 6
-        self.maximum_formula_depth = 12
-        self.maximum_set_depth = 6
+        # to be supported - default = 6
+        self.maximum_expression_depth = options.get("max_expression_depth", 6)
+        self.maximum_formula_depth = options.get("max_formula_depth", 12)
+        self.maximum_set_depth = options.get("max_set_depth", 6)
 
         # storage for assigned variables
         self._variable_map = {}
