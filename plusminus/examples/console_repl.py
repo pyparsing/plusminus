@@ -8,7 +8,7 @@
 #
 from pprint import pprint
 import textwrap
-from plusminus import BasicArithmeticParser, ArithmeticParseException
+from plusminus import ArithmeticParser, ArithmeticParseException
 
 
 def usage(parser):
@@ -75,7 +75,7 @@ def run_repl(parser_class):
 
 
 def main():
-    parser_class = BasicArithmeticParser
+    parser_class = ArithmeticParser
     run_repl(parser_class)
 
 

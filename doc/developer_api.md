@@ -58,7 +58,7 @@ Defining an operator that is both unary and binary
   - Be extremely careful if reading/writing to the file system
   - Take care when exposing access to an underlying database or server files
   - Some math functions may need to be constrained to avoid extended arithmetic processing (see 
-    `constrained_factorial` in the [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser) as an example)
+    `constrained_factorial` in the [`BaseArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basearithmeticparser) as an example)
   - When populating web page elements with gathered input strings, be sure to escape potential quotation and control 
     characters (see [`bottle_repl.py`](https://github.com/pyparsing/plusminus/blob/master/plusminus/examples/bottle_repl.py) as an example)
   - Be aware that your functions may get called recursively, or in an

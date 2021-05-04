@@ -5,8 +5,8 @@
 #
 # Copyright 2020, Paul McGuire
 #
-from plusminus import BasicArithmeticParser, ArithmeticParseException
-from plusminus.examples.example_parsers import *
+from plusminus import ArithmeticParser, ArithmeticParseException
+# from plusminus.examples.example_parsers import *
 from pprint import pprint
 
 try:
@@ -16,7 +16,7 @@ except ImportError:
 
 prompt = '> '
 prompt_indent = ' ' * len(prompt)
-parser = BasicArithmeticParser()
+parser = ArithmeticParser()
 
 while True:
     expression = input(prompt).strip()

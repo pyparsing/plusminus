@@ -17,7 +17,7 @@ from collections import deque, namedtuple
 from datetime import datetime, timedelta
 import textwrap
 from plusminus import (
-    BasicArithmeticParser,
+    ArithmeticParser,
     ArithmeticParseException,
     __version__ as plusminus_version,
 )
@@ -330,7 +330,7 @@ class BottlePlusminusReplRequestHandler:
         buffer.append("</table>")
         self.write_html("\n".join(buffer))
 
-    def _handle_app_request(self):
+    def handle_app_request(self):
         title_string = "Plusminus +/- Parser/Evaluator Tester - {}".format(
             plusminus_version
         )
@@ -351,7 +351,7 @@ class BottlePlusminusReplRequestHandler:
             player, game = session_info.player, session_info.game
         else:
             if len(sessions) < MAX_SESSIONS:
-                game = Repl(BasicArithmeticParser)
+                game = Repl(ArithmeticParser)
                 # create player session
                 sessionkey = game.start_new_session()
             else:
@@ -469,7 +469,7 @@ class BottlePlusminusReplRequestHandler:
         )
         self.write_html("\n</body></html>")
 
-    def _handle_stats_request(self):
+    def handle_stats_request(self):
         now = datetime.now()
         self.write_html("<html><body>\n")
         self.write_html("<h2>Stats as of {}</h2>\n<p>\n".format(time_to_str(now)))
@@ -586,7 +586,7 @@ class BottlePlusminusReplRequestHandler:
         self.write_html("</table>\n")
         self.write_html("\n</body></html>")
 
-    def _handle_cleanup_request(self):
+    def handle_cleanup_request(self):
         with sessions_lock:
             sessions_data = list(sessions.items())
 
@@ -606,7 +606,7 @@ class BottlePlusminusReplRequestHandler:
             for key in deletes:
                 sessions.pop(key, None)
 
-        return self._handle_stats_request()
+        return self.handle_stats_request()
 
 
 if __name__ == "__main__":
@@ -614,20 +614,20 @@ if __name__ == "__main__":
 
     @route("/plusminus/_stats")
     def handle_stats_command():
-        handler = BottleArithReplRequestHandler()
-        handler._handle_stats_request()
+        handler = BottlePlusminusReplRequestHandler()
+        handler.handle_stats_request()
         return "".join(handler.buffer)
 
     @route("/plusminus/_cleanup")
     def handle_cleanup_command():
-        handler = BottleArithReplRequestHandler()
-        handler._handle_cleanup_request()
+        handler = BottlePlusminusReplRequestHandler()
+        handler.handle_cleanup_request()
         return "".join(handler.buffer)
 
     @route("/plusminus")
     def handle_app_command():
-        handler = BottleArithReplRequestHandler()
-        handler._handle_app_request()
+        handler = BottlePlusminusReplRequestHandler()
+        handler.handle_app_request()
         return "".join(handler.buffer)
 
     @route("/")

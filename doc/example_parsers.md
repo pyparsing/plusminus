@@ -12,7 +12,7 @@
 Class implementation:
 
 ```python
-class BusinessArithmeticParser(ArithmeticParser):
+class BusinessArithmeticParser(BaseArithmeticParser):
     def customize(self):
         def pv(fv, rate, n_periods):
             return fv / safe_pow(1 + rate, n_periods)
@@ -54,7 +54,7 @@ parser.runTests("""\
 Class implementation:
 
 ```python
-class CombinatoricsParser(BasicArithmeticParser):
+class CombinatoricsParser(BaseArithmeticParser):
     def customize(self):
         super().customize()
         self.add_operator(
@@ -100,7 +100,7 @@ Class implementation:
 ```python
 from datetime import datetime
 
-class DateTimeArithmeticParser(ArithmeticParser):
+class DateTimeArithmeticParser(BaseArithmeticParser):
     SECONDS_PER_MINUTE = 60
     SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
     SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
@@ -138,7 +138,7 @@ parser.runTests("""\
 Class implementation:
 
 ```python
-class DiceRollParser(ArithmeticParser):
+class DiceRollParser(BaseArithmeticParser):
     def customize(self):
         import random
         super().customize()

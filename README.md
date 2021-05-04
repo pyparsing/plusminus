@@ -1,14 +1,17 @@
 # plusminus
 
-The **plusminus** package provides a ready-to-run arithmetic parser and evaluator, based on [`pyparsing`](https://pyparsing-docs.readthedocs.io/en/latest/index.html)'s 
-[`infixNotation`](https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.infixNotation) helper method.
+The **plusminus** package provides a ready-to-run arithmetic parser and evaluator, 
+based on [`pyparsing`](https://pyparsing-docs.readthedocs.io/en/latest/index.html)'s 
+[`infixNotation`](https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.infixNotation) 
+helper method.
 
-Strings containing 6-function arithmetic expressions can be parsed and evaluated using the [`BasicArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
+Strings containing 6-function arithmetic expressions can be parsed and evaluated using the 
+[`BaseArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
 
 ```python
-from plusminus import BasicArithmeticParser
+from plusminus import BaseArithmeticParser
 
-parser = BasicArithmeticParser()
+parser = BaseArithmeticParser()
 print(parser.evaluate("2+3/10"))
 ```
 
@@ -43,7 +46,7 @@ Functions can be called:
       floor  tan  tanh  log10
 
 
-The Basic ArithmeticParser also supports assignment of variables:
+The BaseArithmeticParser also supports assignment of variables:
 
     r = 5
     area = π × r²
@@ -57,8 +60,9 @@ This last expression could be assigned using  `@=` formula assignment:
 As `r` is updated, evaluating `area` will be reevaluated using the new value.
 
 
-Custom expressions can be defined using a simple [`API`](https://github.com/pyparsing/plusminus/blob/master/doc/developer_api.md). Example parsers
-are included for dice rolling, combination/permutation expressions, and 
-common business calculations. These parsers can be incorporated into
-other applications to support the safe evaluation of user-defined 
-domain-specific expressions.
+Custom expressions can be defined using a simple
+[`API`](https://github.com/pyparsing/plusminus/blob/master/doc/developer_api.md).
+Example parsers are included for dice rolling, combination/permutation expressions,
+and common business calculations. These parsers can be incorporated into other
+applications to support the safe evaluation of user-defined domain-specific
+expressions.

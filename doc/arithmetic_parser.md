@@ -1,4 +1,4 @@
-## The core ArithmeticParser
+## The core BaseArithmeticParser
 - operators
 - functions
 - variables
@@ -81,10 +81,11 @@
         dist = hypot(x₂-x₁, y₂-y₁)
 
 
-## The core BasicArithmeticParser
+## The core ArithmeticParser
 
-The BasicArithmeticParser class inherits all the features and behavior of the 
-[`ArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-arithmeticparser) class. In addition, it also defines more operators and
+The ArithmeticParser class inherits all the features and behavior of the 
+[`BaseArithmeticParser`](#the-core-basearithmeticparser) 
+class. In addition, it also defines more operators and
 functions, and common mathematical variables
 
 - operators
@@ -160,7 +161,7 @@ functions, and common mathematical variables
             return math.log10(x)
         return math.log(x, y)
 
-    class BasicArithmeticParser(ArithmeticParser):
+    class ArithmeticParser(BaseArithmeticParser):
         def customize(self):
             """Entry point to define operators, functions and variables."""
             import math

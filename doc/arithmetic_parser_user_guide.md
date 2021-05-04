@@ -1,4 +1,4 @@
-# User Guide - Working with the Basic Arithmetic Parser
+# User Guide - Working with the plusminus Arithmetic Parser
 
 ## Introduction
 
@@ -19,6 +19,7 @@
   - set operators `∩`/`&`, `∪`/`|`, `∈`/`in`, `∉`/`not in`
     - sets are defined using `{`, `}` symbols    
     - `∩` is intersection, `∪` is union
+    - `&` and `|` are equivalent to `∩` and `∪`
     - `∈` is `is element of`, `∉` is `is not element of`
 
           1 ∈ {1, 2, 3} ∪ {10, 11, 12} evaluates True
