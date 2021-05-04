@@ -796,7 +796,7 @@ class ArithmeticParser:
             "min": FunctionSpec("min", min, ...),
             "max": FunctionSpec("max", max, ...),
             "str": FunctionSpec("str", lambda x: str(x), 1),
-            "bool": FunctionSpec("bool", lambda x: bool(x), 1),
+            "bool": FunctionSpec("bool", lambda x: not not x, 1),
         }
 
         # epsilon for computing "close" floating point values - can be updated in customize
