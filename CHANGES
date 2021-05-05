@@ -32,6 +32,9 @@ plusminus Change Log
       using (), (], [) or [] notation ("in" with sets is still
       supported).
 
+    - Deleted the example_parsers.py module in the examples directory, and split
+      the parsers out into separate modules in that directory.
+
     - Added __version_info__ structure, following pattern of sys.version_info
       field names.
 

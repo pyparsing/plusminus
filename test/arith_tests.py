@@ -5,18 +5,13 @@
 #
 # Copyright 2020, Paul McGuire
 #
-from plusminus import *
-from plusminus.examples.example_parsers import (
-    DiceRollParser,
-    CombinatoricsArithmeticParser,
-    BusinessArithmeticParser,
-    DateTimeArithmeticParser,
-)
 from pprint import pprint
 
-import sys
-
-sys.setrecursionlimit(3000)
+from plusminus import BasicArithmeticParser
+from plusminus.examples.dice_roll_parser import DiceRollParser
+from plusminus.examples.combinatorics_arithmetic_parser import CombinatoricsArithmeticParser
+from plusminus.examples.business_arithmetic_parser import BusinessArithmeticParser
+from plusminus.examples.date_time_arithmetic_parser import DateTimeArithmeticParser
 
 
 def post_parse_evaluate(teststr, result):

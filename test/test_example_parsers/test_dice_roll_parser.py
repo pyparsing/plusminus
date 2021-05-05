@@ -1,6 +1,6 @@
 import pytest
 
-from plusminus.examples.example_parsers import DiceRollParser
+from plusminus.examples.dice_roll_parser import DiceRollParser
 
 
 @pytest.fixture

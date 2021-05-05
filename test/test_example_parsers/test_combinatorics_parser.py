@@ -1,7 +1,7 @@
 # test_combinatorics_parser.py
 import pytest
 
-from plusminus.examples.example_parsers import CombinatoricsArithmeticParser
+from plusminus.examples.combinatorics_arithmetic_parser import CombinatoricsArithmeticParser
 
 
 @pytest.fixture

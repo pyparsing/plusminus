@@ -1,7 +1,7 @@
 # test_business_arithmetic_parser.py
 import pytest
 
-from plusminus.examples.example_parsers import BusinessArithmeticParser
+from plusminus.examples.business_arithmetic_parser import BusinessArithmeticParser
 
 
 @pytest.fixture

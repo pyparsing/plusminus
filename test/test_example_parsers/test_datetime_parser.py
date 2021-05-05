@@ -2,7 +2,7 @@
 import datetime
 import pytest
 
-from plusminus.examples.example_parsers import DateTimeArithmeticParser
+from plusminus.examples.date_time_arithmetic_parser import DateTimeArithmeticParser
 
 
 @pytest.fixture
