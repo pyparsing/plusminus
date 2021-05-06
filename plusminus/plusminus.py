@@ -34,6 +34,7 @@ import math
 import operator
 import random
 import pyparsing as pp
+import string
 import sys
 
 # monkeypatch explain into an instance method
@@ -57,7 +58,7 @@ __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser 
              """.split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-__version_info__ = VersionInfo(0, 5, 0, "final", 0)
+__version_info__ = VersionInfo(0, 6, 0, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
@@ -911,6 +912,8 @@ class BaseArithmeticParser:
                 (operator_node_superclass,),
                 {"opns_map": {str(operator_expr): parse_action}},
             )
+        if isinstance(operator_expr, str) and operator_expr.isalpha():
+            operator_expr = pp.Keyword(operator_expr, identChars=string.ascii_letters)
         self._added_operator_specs.insert(
             0, (operator_expr, arity, assoc, operator_node_class)
         )

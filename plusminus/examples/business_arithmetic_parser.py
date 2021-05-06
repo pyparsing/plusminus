@@ -37,6 +37,7 @@ class BusinessArithmeticParser(BaseArithmeticParser):
             return rate * present_value / (1 - safe_pow(1 + rate, -n_periods))
 
         super().customize()
+        self.add_operator("off", 2, BaseArithmeticParser.LEFT, lambda a, b: (1-a) * b)
         self.add_operator("of", 2, BaseArithmeticParser.LEFT, lambda a, b: a * b)
         self.add_operator("%", 1, BaseArithmeticParser.LEFT, lambda a: a / 100)
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
         25%
         20 * 50%
         50% of 20
+        30% off 50
         20 * (1-20%)
         (100-20)% of 20
         5 / 20%
