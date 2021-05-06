@@ -13,9 +13,17 @@ class BusinessArithmeticParser(BaseArithmeticParser):
         50% of 20
         20 * (1-20%)
         (100-20)% of 20
+        20% off of 20
+        20 less 20%
         5 / 20%
         FV(20000, 3%, 30)
         FV(20000, 3%/12, 30*12)
+
+    Operators:
+        % - convert number to a percentage ("20%" -> 0.2)
+        of - synonym for multiplication, used in "X% of Y" expressions ("20% of 5" -> 1)
+        off - discount, computed as (1-x), used in "X% off of Y" expressions ("20% off of 5" -> 4)
+        less - discount, used in "Y less X%" expressions ("5 less 20%" -> 4)
 
     Functions:
         FV(present_value, rate_per_period, number_of_periods)
@@ -37,8 +45,9 @@ class BusinessArithmeticParser(BaseArithmeticParser):
             return rate * present_value / (1 - safe_pow(1 + rate, -n_periods))
 
         super().customize()
-        self.add_operator("off", 2, BaseArithmeticParser.LEFT, lambda a, b: (1-a) * b)
         self.add_operator("of", 2, BaseArithmeticParser.LEFT, lambda a, b: a * b)
+        self.add_operator("less", 2, BaseArithmeticParser.LEFT, lambda a, b: (1-b) * a)
+        self.add_operator("off", 1, BaseArithmeticParser.LEFT, lambda a: 1-a)
         self.add_operator("%", 1, BaseArithmeticParser.LEFT, lambda a: a / 100)
 
         self.add_function("PV", 3, pv)
@@ -54,7 +63,10 @@ if __name__ == '__main__':
         25%
         20 * 50%
         50% of 20
-        30% off 50
+        (100-30)% of 50
+        30% off
+        30% off of 50
+        50 less 30%
         20 * (1-20%)
         (100-20)% of 20
         5 / 20%
