@@ -5,7 +5,7 @@ plusminus Change Log
     - Auto-promote operators that are alphabetic to pyparsing Keywords,
       to help differentiate operators that are similar.
 
-    - Added "less" and ""off" operators to BusinessArithmeticParser for parsing
+    - Added "less" and "off" operators to BusinessArithmeticParser for parsing
       discounting expressions like "20% off of 30" or "30 less 20%".
 
 0.5.0 -
