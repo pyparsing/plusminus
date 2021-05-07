@@ -54,7 +54,6 @@ ArithmeticParseException = ParseBaseException
 
 __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
-             BasicArithmeticParser
              """.split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
@@ -668,8 +667,24 @@ class RoundToEpsilon:
 
 
 class BaseArithmeticParser:
-    """
-    Base class for defining arithmetic parsers.
+    """Base class for defining arithmetic parsers. Options are:
+
+    max_vars: :class:`int`
+        Represents the maximum number of variables that can be defined. Default to ``1000``.
+    max_memory: :class:`int`
+        Represents the maximum space in memory that can be allocated to variables and user functions. Default to ``10**6``.
+    allow_user_variables: :class:`bool`
+        Allows/disallows user defined variables. Default to ``True``.
+    allow_user_functions: :class:`bool`
+        Allows/disallows user defined variables. Default to the value of ``allow_user_variables``.
+    epsilon: :class:`float`
+        Represents error approximation. Default to ``1e-15``.
+    max_expression_depth: :class:`int`
+        Represents maximum expression depth. Default to ``6``.
+    max_formula_depth: :class:`int`
+        Represents maximum expression depth. Default to ``12``.
+    max_set_depth: :class:`int`
+        Represents maximum set depth. Default to ``6``.
     """
 
     LEFT = pp.opAssoc.LEFT
@@ -683,12 +698,10 @@ class BaseArithmeticParser:
         Enter an arithmetic expression or assignment statement, using
         the following operators:
         {operator_list}
-
         Multiple assignments can be made using lists of variable names and
         corresponding lists of expressions (lists must be of matching lengths).
             x₁, y₁ = 1, 2
             a, b, c = 1, 2, a+b
-
         {user_defined_functions}
         Expression can include the following functions:
         {function_list}
@@ -777,7 +790,8 @@ class BaseArithmeticParser:
     def __init__(self, **options):
         self.max_number_of_vars = options.get("max_vars", 1000)
         self.max_var_memory = options.get("max_memory", 10 ** 6)
-        self.user_defined_functions_supported = options.get("allow_user_functions", True)
+        self.user_variables_supported = options.get("allow_user_variables", True)
+        self.user_defined_functions_supported = options.get("allow_user_functions", self.user_variables_supported)
 
         self._added_operator_specs = []
         self._added_function_specs = {}
@@ -885,7 +899,6 @@ class BaseArithmeticParser:
     def add_operator(self, operator_expr, arity, assoc, parse_action):
         """
         Adds an operator.
-
         Parameters:
         - operator_expr (str): operator expression
         - arity (int): operator arity
@@ -921,7 +934,6 @@ class BaseArithmeticParser:
     def initialize_variable(self, vname, vvalue, as_formula=False):
         """
         Adds a variable to the parser.
-
         Parameters:
         - vname (str): variable name
         - vvalue: variable value
@@ -933,7 +945,6 @@ class BaseArithmeticParser:
     def add_function(self, fn_name, fn_arity, fn_method):
         """
         Adds a function to the parser.
-
         Parameters:
         - fn_name (str): the name of the function
         - fn_arity (tuple, int or ...): number of arguments accepted by the function
@@ -1016,13 +1027,45 @@ class BaseArithmeticParser:
                 else PrettySet(elem.evaluate() for elem in b)
             )
             return PrettySet(a_set.union(b_set))
+        
+        def set_difference(a, b):
+            """Represents a set difference."""
+            a_set = (
+                a
+                if isinstance(a, PrettySet)
+                else PrettySet(elem.evaluate() for elem in a)
+            )
+            b_set = (
+                b
+                if isinstance(b, PrettySet)
+                else PrettySet(elem.evaluate() for elem in b)
+            )
+            return PrettySet(a_set.difference(b_set))
+
+        def set_symmetric_difference(a, b):
+            """Represents a set symmetric difference."""
+            a_set = (
+                a
+                if isinstance(a, PrettySet)
+                else PrettySet(elem.evaluate() for elem in a)
+            )
+            b_set = (
+                b
+                if isinstance(b, PrettySet)
+                else PrettySet(elem.evaluate() for elem in b)
+            )
+            return PrettySet(a_set.symmetric_difference(b_set))
 
         class SetBinaryOp(BinaryNode):
             opns_map = {
                 "∩": set_intersection,
-                "∪": set_union,
                 "&": set_intersection,
+                "∪": set_union,
                 "|": set_union,
+                "\\": set_difference,
+                "-": set_difference,
+                "−": set_difference,
+                "∆": set_symmetric_difference
             }
 
             def evaluate(self):
@@ -1032,8 +1075,7 @@ class BaseArithmeticParser:
         set_expression = pp.infixNotation(
             set_operand | var_name,
             [
-                (pp.oneOf("∩ &"), 2, pp.opAssoc.LEFT, SetBinaryOp),
-                (pp.oneOf("∪ |"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+                (pp.oneOf("∩ & ∪ | \\ - − ∆"), 2, pp.opAssoc.LEFT, SetBinaryOp),
             ],
         )
 
@@ -1056,20 +1098,34 @@ class BaseArithmeticParser:
         ]
 
         ABS_VALUE_VERT = pp.Suppress("|")
+        FLOOR_VERT_LEFT, FLOOR_VERT_RIGHT = pp.Suppress("⌊"), pp.Suppress("⌋")
+        CEIL_VERT_LEFT, CEIL_VERT_RIGHT = pp.Suppress("⌈"), pp.Suppress("⌉")
+
         abs_value_expression = ABS_VALUE_VERT + arith_operand + ABS_VALUE_VERT
+        floor_value_expression = FLOOR_VERT_LEFT + arith_operand + FLOOR_VERT_RIGHT
+        ceil_value_expression = CEIL_VERT_LEFT + arith_operand + CEIL_VERT_RIGHT
+        round_value_expression = (FLOOR_VERT_LEFT + arith_operand + CEIL_VERT_RIGHT) | (CEIL_VERT_LEFT + arith_operand + FLOOR_VERT_RIGHT)
 
-        def cvt_to_function_call(tokens):
-            ret = pp.ParseResults(["abs"]) + tokens
-            ret["fn_name"] = "abs"
-            ret["args"] = tokens
-            return [ret]
+        def cvt_to_function_call(function):
+            def wrapper(tokens):
+                ret = pp.ParseResults([function]) + tokens
+                ret["fn_name"] = function
+                ret["args"] = tokens
+                return [ret]
+            return wrapper
 
-        abs_value_expression.addParseAction(cvt_to_function_call, function_node_class)
+        abs_value_expression.addParseAction(cvt_to_function_call("abs"), function_node_class)
+        floor_value_expression.addParseAction(cvt_to_function_call("floor"), function_node_class)
+        ceil_value_expression.addParseAction(cvt_to_function_call("ceil"), function_node_class)
+        round_value_expression.addParseAction(cvt_to_function_call("round"), function_node_class)
 
         arith_operand <<= pp.infixNotation(
             (
                 function_expression
                 | abs_value_expression
+                | floor_value_expression
+                | ceil_value_expression
+                | round_value_expression
                 | string_operand
                 | numeric_operand
                 | bool_operand
@@ -1084,15 +1140,17 @@ class BaseArithmeticParser:
 
         value_assignment_statement = (
             pp.delimitedList(lvalue)("lhs")
-            + pp.oneOf("<- =")
+            + pp.oneOf("<- = ←")
             + pp.delimitedList(rvalue)("rhs")
         )
 
         value_clear_statement = (
-            pp.delimitedList(lvalue)("lhs") + pp.oneOf("<- =") + pp.StringEnd()
+            pp.Keyword("CLEAR") + pp.delimitedList(lvalue)("lhs") + pp.StringEnd()
         )
 
         def eval_and_store_value(tokens):
+            if not self.user_variables_supported:
+                raise Exception("user variable definitions are not allowed!")
             if len(tokens.lhs) > len(tokens.rhs):
                 raise TypeError("not enough values given")
             if len(tokens.lhs) < len(tokens.rhs):
@@ -1123,6 +1181,8 @@ class BaseArithmeticParser:
         formula_assignment_statement.setName("formula statement")
 
         def verify_formula_not_recursive(tokens):
+            if not self.user_defined_functions_supported:
+                raise Exception("user function definitions are not allowed!")
             # see if this var_name is recursively referenced
             formula_defn = tokens.rhs
             dest_var_name = tokens.lhs.name
@@ -1214,21 +1274,12 @@ class BaseArithmeticParser:
         formula_assignment_statement.addParseAction(store_parsed_value)
         value_clear_statement.addParseAction(clear_parsed_value)
 
-        # fmt: off
-        if self.user_defined_functions_supported:
-            parser = (
-                    value_assignment_statement
-                    | value_clear_statement
-                    | formula_assignment_statement
-                    | lone_rvalue
-            )
-        else:
-            parser = (
-                    value_assignment_statement
-                    | value_clear_statement
-                    | lone_rvalue
-            )
-        # fmt: on
+        parser = (
+                value_assignment_statement
+                | value_clear_statement
+                | formula_assignment_statement
+                | lone_rvalue
+        )
 
         # init _variable_map with any pre-defined values
         for varname, (varvalue, as_formula) in self._initial_variables.items():
@@ -1267,7 +1318,7 @@ class ArithmeticParser(BaseArithmeticParser):
     """
     Ready to use, basic parser. Example:
     ```python
-    >>> parser = BasicArithmeticParser()
+    >>> parser = ArithmeticParser()
     >>> parser.evaluate("gamma(2)") # Predefined functions
     1
     >>> parser.evaluate("pi*9") # Predefined variables
@@ -1278,9 +1329,7 @@ class ArithmeticParser(BaseArithmeticParser):
     """
 
     class Operators:
-        """
-        Custom operator definitions, beyond those defined in ArithmeticParser.
-        """
+        """Custom operator definitions, beyond those defined in ArithmeticParser."""
 
         # avoid clash with '!=' operator
         _factorial_operator = (~pp.Literal("!=") + "!").setName("!")
@@ -1295,7 +1344,7 @@ class ArithmeticParser(BaseArithmeticParser):
 
         special_exponents_opns_map = {
             "⁻¹": (lambda x: 1 / x),
-            "⁰": (lambda x: x ** 0),
+            "⁰": (lambda x: 1),
             "¹": (lambda x: x),
             "²": (lambda x: safe_pow(x, 2)),
             "³": (lambda x: safe_pow(x, 3)),
@@ -1311,11 +1360,11 @@ class ArithmeticParser(BaseArithmeticParser):
         super().customize()
         phi = (1.0 + 5 ** 0.5) / 2.0  # The golden number
 
-        self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_UNARY)
-        self.add_operator(*BasicArithmeticParser.Operators.SQUARE_ROOT_BINARY)
-        self.add_operator(*BasicArithmeticParser.Operators.DEGREE_OPERATOR)
-        self.add_operator(*BasicArithmeticParser.Operators.FACTORIAL)
-        self.add_operator(*BasicArithmeticParser.Operators.SPECIAL_EXPONENTS)
+        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_UNARY)
+        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_BINARY)
+        self.add_operator(*ArithmeticParser.Operators.DEGREE_OPERATOR)
+        self.add_operator(*ArithmeticParser.Operators.FACTORIAL)
+        self.add_operator(*ArithmeticParser.Operators.SPECIAL_EXPONENTS)
 
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)
@@ -1356,7 +1405,3 @@ class ArithmeticParser(BaseArithmeticParser):
         self.initialize_variable("φ", phi)
         self.initialize_variable("ϕ", phi)
         self.initialize_variable("phi", phi)
-
-
-# backwards compat synonym - deprecated
-BasicArithmeticParser = ArithmeticParser
