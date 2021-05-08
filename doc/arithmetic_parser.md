@@ -8,18 +8,20 @@
 ### Features:
 - 6-function arithmetic (`+`, `-` , `*`, `/`, `//`, `**`)
 
-- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧`, `∨`, `∩`, `∪`, `&`, `|`, `∈`, `∉`)
+- Unicode math operators (`×`, `÷`, `≠`, `≤`, `≥`, `∧`, `∨`, `∩`, `∪`, `&`, `|`, `^`, `∆`, `∈`, `∉`)
 
 - Additional operators
 
-  - define sets using `{}` notation and `∩`/`&` (intersection) and
-    `∪`/`|` (union) operators:
+  - define sets using `{}` notation and `∩`/`&` (intersection), `∪`/`|` (union),
+    `-` (difference) and `^`/`∆` (symmetric difference) operators:
   
         {1, 2, 3}
         {}  # this is the empty set
         {1, 2, 3} ∪ {4, 5, 6}  # {1, 2, 3, 4, 5, 6}
         {1, 2, 3} ∩ {3, 4, 5}  # {3}
         {1, 2, 3} & {4, 5, 6}  # {}
+        {1, 2, 3} - {2, 3, 4}  # {1}
+        {1, 2, 3} ∆ {2, 3, 4}  # {1, 4}
 
     use `∈` for "is element of" and `∉` for "is not element of"; `in` and `not in` 
     can also be used
