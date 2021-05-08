@@ -1073,7 +1073,8 @@ class BaseArithmeticParser:
                 "|": set_union,
                 "-": set_difference,
                 "−": set_difference,
-                "^": set_symmetric_difference
+                "^": set_symmetric_difference,
+                "∆": set_symmetric_difference,
             }
 
             def evaluate(self):
@@ -1083,7 +1084,7 @@ class BaseArithmeticParser:
         set_expression = pp.infixNotation(
             set_operand | var_name,
             [
-                (pp.oneOf("∩ & ∪ | - − ^"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+                (pp.oneOf("∩ & ∪ | - − ^ ∆"), 2, pp.opAssoc.LEFT, SetBinaryOp),
             ],
         )
 
@@ -1346,7 +1347,7 @@ class ArithmeticParser(BaseArithmeticParser):
 
         special_exponents_opns_map = {
             "⁻¹": (lambda x: 1 / x),
-            "⁰": (lambda x: 1),
+            "⁰": (lambda x: x ** 0),
             "¹": (lambda x: x),
             "²": (lambda x: safe_pow(x, 2)),
             "³": (lambda x: safe_pow(x, 3)),
