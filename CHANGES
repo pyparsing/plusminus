@@ -7,6 +7,12 @@ plusminus Change Log
     - Added symmetric difference set operations, supported by '∆' and '^'
       operators.
 
+    - Added radical expressions for roots > 2, up to 9, to the ArithmeticParser
+      class:
+
+        ³√2 -> 2 ** (1/3) (1.259921049894873)
+        ⁹√2 -> 2 ** (1/9) (1.080059738892306)
+
     - Added Unicode variable assignment operator '←'.
 
     - Added option to allow/disallow user-defined variables in expressions.

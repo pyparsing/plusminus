@@ -9,7 +9,7 @@ parsers for parsing and evaluating infix arithmetic expressions. plusminus's Ari
 separate parse and evaluate methods, handling operator precedence, override with parentheses, presence or absence of
 whitespace, built-in functions, and pre-defined and user-defined variables, functions, and operators.
 
-Copyright 2020, by Paul McGuire
+Copyright 2020-2021, by Paul McGuire
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -25,7 +25,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
+from abc import ABC
 from collections import namedtuple, deque
 from contextlib import contextmanager
 from functools import partial, total_ordering
@@ -263,7 +263,9 @@ def _collapse_operands(seq, eps=1e-15):
 
 
 def safe_pow(*seq, eps=1e-15):
-    """Same as `pow`, but raises `OverflowError` if the result gets too large."""
+    """
+    Same as `pow`, but raises `OverflowError` if the result gets too large.
+    """
     operands = _collapse_operands(seq, eps)
     ret = 1
     for operand in operands[::-1]:
@@ -289,7 +291,9 @@ def safe_pow(*seq, eps=1e-15):
 
 
 def safe_str_mult(a, b):
-    """Same as `*`, but if a or b is a string and the result gets too big, raises `MemoryError`."""
+    """
+    Same as `*`, but if a or b is a string and the result gets too big, raises `MemoryError`.
+    """
     for _ in range(2):
         if isinstance(a, str):
             if b <= 0:
@@ -301,7 +305,9 @@ def safe_str_mult(a, b):
 
 
 def constrained_factorial(x):
-    """Same as `math.factorial`, but raises `ValueError` if x is under 0 or over 32,767."""
+    """
+    Same as `math.factorial`, but raises `ValueError` if x is under 0 or over 32,767.
+    """
     if not (0 <= x < 32768):
         raise ValueError(f"{x!r} not in working 0-32,767 range")
     if math.isclose(x, int(x), abs_tol=1e-12):
@@ -374,7 +380,7 @@ class SetNode(ArithNode):
         return f"{{{', '.join(map(repr, self.tokens))}}}" if self.tokens else "{}"
 
 
-class UnaryNode(ArithNode):
+class UnaryNode(ArithNode, ABC):
     def right_associative_evaluate(self, oper_fn_map):
         *opers, operand = self.tokens
         ret = operand.evaluate()
@@ -396,7 +402,7 @@ class UnaryNode(ArithNode):
         return "".join(map(repr, repr_tokens))
 
 
-class BinaryNode(ArithNode):
+class BinaryNode(ArithNode, ABC):
     def right_associative_evaluate(self, oper_fn_map):
         ret = self.tokens[-1].evaluate()
         for oper, operand in zip(self.tokens[-2::-2], self.tokens[-3::-2]):
@@ -595,7 +601,7 @@ class BinaryComparison(BinaryNode):
             return ret
 
 
-def make_incontainer_node(ident_node_class, set_bin_op_class):
+def make_in_container_node(ident_node_class, set_bin_op_class):
     def _inner(t):
         ret = InContainerNode(t)
         ret.identifier_node_class = ident_node_class
@@ -610,6 +616,7 @@ class InContainerNode(UnaryNode):
         operand, op, range_expr = self.tokens
         assert_negate_fn = (lambda x: not not x, lambda x: not x)[op in ("∉", "not_in")]
 
+        # noinspection PyUnresolvedReferences
         if isinstance(range_expr, (self.identifier_node_class, self.SetBinaryOp)):
             range_expr = range_expr.evaluate()
 
@@ -667,12 +674,14 @@ class RoundToEpsilon:
 
 
 class BaseArithmeticParser:
-    """Base class for defining arithmetic parsers. Options are:
+    """
+    Base class for defining arithmetic parsers. Options are:
 
     max_vars: :class:`int`
         Represents the maximum number of variables that can be defined. Default to ``1000``.
     max_memory: :class:`int`
-        Represents the maximum space in memory that can be allocated to variables and user functions. Default to ``10**6``.
+        Represents the maximum space in memory that can be allocated to variables and user functions.
+        Default to ``10**6``.
     allow_user_variables: :class:`bool`
         Allows/disallows user defined variables. Default to ``True``.
     allow_user_functions: :class:`bool`
@@ -793,7 +802,9 @@ class BaseArithmeticParser:
         self.max_number_of_vars = options.get("max_vars", 1000)
         self.max_var_memory = options.get("max_memory", 10 ** 6)
         self.user_variables_supported = options.get("allow_user_variables", True)
-        self.user_defined_functions_supported = options.get("allow_user_functions", self.user_variables_supported)
+        self.user_defined_functions_supported = options.get(
+            "allow_user_functions", self.user_variables_supported
+        )
 
         self._added_operator_specs = []
         self._added_function_specs = {}
@@ -864,7 +875,9 @@ class BaseArithmeticParser:
             return parsed[0]
 
     def evaluate(self, arith_expression):
-        """Evaluates an expression and returns its result."""
+        """
+        Evaluates an expression and returns its result.
+        """
         with _trimming_exception_traceback():
             parsed = self.parse(arith_expression, parseAll=True)
             return parsed.evaluate()
@@ -896,7 +909,9 @@ class BaseArithmeticParser:
         self._variable_map[name] = LiteralNode([value])
 
     def customize(self):
-        """Entry point to define operators, functions and variables."""
+        """
+        Entry point to define operators, functions and variables.
+        """
 
     def add_operator(self, operator_expr, arity, assoc, parse_action):
         """
@@ -958,13 +973,17 @@ class BaseArithmeticParser:
         self._added_function_specs[fn_name] = FunctionSpec(fn_name, fn_method, fn_arity)
 
     def get_parser(self):
-        """Retrieves parser or make a new one if None was found."""
+        """
+        Retrieves parser or make a new one if None was found.
+        """
         if self._parser is None:
             self._parser = self.make_parser()
         return self._parser
 
     def make_parser(self):
-        """Creates a new parser."""
+        """
+        Creates a new parser.
+        """
         arith_operand = pp.Forward()
         LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, COMMA = map(pp.Suppress, "()[]{},")
         fn_name_expr = pp.Word(
@@ -1006,64 +1025,39 @@ class BaseArithmeticParser:
         var_name.addParseAction(identifier_node_class)
 
         # fmt: off
+        def make_sets(a, b):
+            a_set = a if isinstance(a, PrettySet) else PrettySet(elem.evaluate() for elem in a)
+            b_set = b if isinstance(b, PrettySet) else PrettySet(elem.evaluate() for elem in b)
+            return a_set, b_set
+        # fmt: on
 
         def set_intersection(a, b):
-            """Represents a set intersection."""
-            a_set = (
-                a
-                if isinstance(a, PrettySet)
-                else PrettySet(elem.evaluate() for elem in a)
-            )
-            b_set = (
-                b
-                if isinstance(b, PrettySet)
-                else PrettySet(elem.evaluate() for elem in b)
-            )
+            """
+            Represents a set intersection.
+            """
+            a_set, b_set = make_sets(a, b)
             return PrettySet(a_set.intersection(b_set))
 
         def set_union(a, b):
-            """Represents a set union."""
-            a_set = (
-                a
-                if isinstance(a, PrettySet)
-                else PrettySet(elem.evaluate() for elem in a)
-            )
-            b_set = (
-                b
-                if isinstance(b, PrettySet)
-                else PrettySet(elem.evaluate() for elem in b)
-            )
+            """
+            Represents a set union.
+            """
+            a_set, b_set = make_sets(a, b)
             return PrettySet(a_set.union(b_set))
-        
+
         def set_difference(a, b):
-            """Represents a set difference."""
-            a_set = (
-                a
-                if isinstance(a, PrettySet)
-                else PrettySet(elem.evaluate() for elem in a)
-            )
-            b_set = (
-                b
-                if isinstance(b, PrettySet)
-                else PrettySet(elem.evaluate() for elem in b)
-            )
+            """
+            Represents a set difference.
+            """
+            a_set, b_set = make_sets(a, b)
             return PrettySet(a_set.difference(b_set))
 
         def set_symmetric_difference(a, b):
-            """Represents a set symmetric difference."""
-            a_set = (
-                a
-                if isinstance(a, PrettySet)
-                else PrettySet(elem.evaluate() for elem in a)
-            )
-            b_set = (
-                b
-                if isinstance(b, PrettySet)
-                else PrettySet(elem.evaluate() for elem in b)
-            )
+            """
+            Represents a set symmetric difference.
+            """
+            a_set, b_set = make_sets(a, b)
             return PrettySet(a_set.symmetric_difference(b_set))
-
-        # fmt: on
 
         class SetBinaryOp(BinaryNode):
             opns_map = {
@@ -1098,7 +1092,7 @@ class BaseArithmeticParser:
             BaseArithmeticParser.Operators.ADDITION,
             BaseArithmeticParser.Operators.INEQUALITY,
             BaseArithmeticParser.Operators.IS_ELEMENT._replace(
-                action=make_incontainer_node(identifier_node_class, SetBinaryOp)
+                action=make_in_container_node(identifier_node_class, SetBinaryOp)
             ),
             BaseArithmeticParser.Operators.LOGICAL_NOT,
             BaseArithmeticParser.Operators.LOGICAL_AND,
@@ -1115,9 +1109,12 @@ class BaseArithmeticParser:
                 ret["fn_name"] = function
                 ret["args"] = tokens
                 return [ret]
+
             return wrapper
 
-        abs_value_expression.addParseAction(cvt_to_function_call("abs"), function_node_class)
+        abs_value_expression.addParseAction(
+            cvt_to_function_call("abs"), function_node_class
+        )
 
         arith_operand <<= pp.infixNotation(
             (
@@ -1156,15 +1153,16 @@ class BaseArithmeticParser:
             assignments = []
             # noinspection PyUnresolvedReferences
             assigned_vars = identifier_node_class._assigned_vars
+            rval = None
             for lhs_name, rhs_expr in zip(tokens.lhs, tokens.rhs):
                 rval = LiteralNode([rhs_expr.evaluate()])
-                var_name = lhs_name.name
+                dest_var_name = lhs_name.name
                 if (
-                    var_name not in assigned_vars
+                    dest_var_name not in assigned_vars
                     and len(assigned_vars) >= self.max_number_of_vars
                 ):
                     raise Exception("too many variables defined")
-                assigned_vars[var_name] = rval
+                assigned_vars[dest_var_name] = rval
                 assignments.append(rval)
             return LiteralNode([assignments]) if len(assignments) > 1 else rval
 
@@ -1272,14 +1270,12 @@ class BaseArithmeticParser:
         value_clear_statement.addParseAction(clear_parsed_value)
 
         # fmt: off
-
         parser = (
                 value_assignment_statement
                 | value_clear_statement
                 | formula_assignment_statement
                 | lone_rvalue
         )
-
         # fmt: on
 
         # init _variable_map with any pre-defined values
@@ -1307,7 +1303,9 @@ class BaseArithmeticParser:
 
 
 def log(x, y=math.e):
-    """Similar to `math.log`, with is_close for bases 2 and 10."""
+    """
+    Similar to `math.log`, with is_close for bases 2 and 10.
+    """
     if math.isclose(y, 2, abs_tol=1e-15):
         return math.log2(x)
     if math.isclose(y, 10, abs_tol=1e-15):
@@ -1339,13 +1337,43 @@ class ArithmeticParser(BaseArithmeticParser):
         FACTORIAL = OperatorSpec(
             _factorial_operator, 1, pp.opAssoc.LEFT, constrained_factorial
         )
-        SQUARE_ROOT_UNARY = OperatorSpec("√", 1, pp.opAssoc.RIGHT, lambda x: x ** 0.5)
-        SQUARE_ROOT_BINARY = OperatorSpec(
-            "√", 2, pp.opAssoc.LEFT, lambda x, y: x * y ** 0.5
+
+        radical_sign = pp.Literal("√").setName("radical sign")
+        root_integer = pp.oneOf("² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹").leaveWhitespace()
+        radical_operator_expr = pp.Combine(
+            pp.Optional(root_integer, default="²") + radical_sign
         )
+        radical_operator_expr.setName("radical operator")
+        unary_root_methods_map = {
+            "²√": (lambda x: x ** (1 / 2)),
+            "³√": (lambda x: x ** (1 / 3)),
+            "⁴√": (lambda x: x ** (1 / 4)),
+            "⁵√": (lambda x: x ** (1 / 5)),
+            "⁶√": (lambda x: x ** (1 / 6)),
+            "⁷√": (lambda x: x ** (1 / 7)),
+            "⁸√": (lambda x: x ** (1 / 8)),
+            "⁹√": (lambda x: x ** (1 / 9)),
+        }
+        RADICAL_UNARY = OperatorSpec(
+            radical_operator_expr, 1, pp.opAssoc.RIGHT, unary_root_methods_map
+        )
+        binary_root_methods_map = {
+            "²√": (lambda x, y: x * y ** (1 / 2)),
+            "³√": (lambda x, y: x * y ** (1 / 3)),
+            "⁴√": (lambda x, y: x * y ** (1 / 4)),
+            "⁵√": (lambda x, y: x * y ** (1 / 5)),
+            "⁶√": (lambda x, y: x * y ** (1 / 6)),
+            "⁷√": (lambda x, y: x * y ** (1 / 7)),
+            "⁸√": (lambda x, y: x * y ** (1 / 8)),
+            "⁹√": (lambda x, y: x * y ** (1 / 9)),
+        }
+        RADICAL_BINARY = OperatorSpec(
+            radical_operator_expr, 2, pp.opAssoc.LEFT, binary_root_methods_map
+        )
+
         DEGREE_OPERATOR = OperatorSpec("°", 1, pp.opAssoc.LEFT, math.radians)
 
-        special_exponents_opns_map = {
+        special_exponents_methods_map = {
             "⁻¹": (lambda x: 1 / x),
             "⁰": (lambda x: x ** 0),
             "¹": (lambda x: x),
@@ -1353,21 +1381,26 @@ class ArithmeticParser(BaseArithmeticParser):
             "³": (lambda x: safe_pow(x, 3)),
         }
         SPECIAL_EXPONENTS = OperatorSpec(
-            pp.oneOf("⁻¹ ⁰ ¹ ² ³"), 1, pp.opAssoc.LEFT, special_exponents_opns_map
+            pp.oneOf("⁻¹ ⁰ ¹ ² ³").leaveWhitespace(),
+            1,
+            pp.opAssoc.LEFT,
+            special_exponents_methods_map,
         )
 
     def customize(self):
-        """Entry point to define operators, functions and variables."""
+        """
+        Entry point to define operators, functions and variables.
+        """
         import math
 
         super().customize()
         phi = (1.0 + 5 ** 0.5) / 2.0  # The golden number
 
-        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_UNARY)
-        self.add_operator(*ArithmeticParser.Operators.SQUARE_ROOT_BINARY)
+        self.add_operator(*ArithmeticParser.Operators.RADICAL_UNARY)
+        self.add_operator(*ArithmeticParser.Operators.SPECIAL_EXPONENTS)
+        self.add_operator(*ArithmeticParser.Operators.RADICAL_BINARY)
         self.add_operator(*ArithmeticParser.Operators.DEGREE_OPERATOR)
         self.add_operator(*ArithmeticParser.Operators.FACTORIAL)
-        self.add_operator(*ArithmeticParser.Operators.SPECIAL_EXPONENTS)
 
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)

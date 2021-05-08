@@ -28,8 +28,20 @@ class TestBasicArithmetic:
             assert math.isclose(
                 basic_arithmetic_parser.evaluate(input_string),
                 expected_value,
-                rel_tol=1e-12,
+                abs_tol=1e-12,
             )
+        elif isinstance(expected_value, complex):
+            observed_value = basic_arithmetic_parser.evaluate(input_string)
+            assert math.isclose(
+                observed_value.real,
+                expected_value.real,
+                abs_tol=1e-12,
+            ) and math.isclose(
+                observed_value.imag,
+                expected_value.imag,
+                abs_tol=1e-12,
+            )
+
         else:
             assert basic_arithmetic_parser.evaluate(input_string) == expected_value
 
@@ -80,6 +92,24 @@ class TestBasicArithmetic:
         self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
 
     @pytest.mark.parametrize(
+        "input_string, expected_value",
+        [
+            ("²√2", math.sqrt(2)),
+            ("2√2", 2 * math.sqrt(2)),
+            ("³√2", math.pow(2, 1 / 3)),
+            ("3³√2", 3 * math.pow(2, 1 / 3)),
+            ("(3³)√2", 3 ** 3 * math.sqrt(2)),
+            ("⁹√2", math.pow(2, 1 / 9)),
+            ("2⁹√2", 2 * math.pow(2, 1 / 9)),
+            ("√-1", (-1) ** (1 / 2)),
+        ],
+    )
+    def test_evaluate_radical_expressions(
+        self, basic_arithmetic_parser, input_string, expected_value
+    ):
+        self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
+
+    @pytest.mark.parametrize(
         "input_string, expected_error_type",
         [
             ("sin()", TypeError),
@@ -107,25 +137,16 @@ class TestBasicArithmetic:
     @pytest.mark.parametrize(
         "input_string, expected_value",
         [
+            # fmt: off
             ("1 in { a, 11, 22, 53}", True),
             ("1 not in {b, 0}", True),
             ("1 in myset", True),
             ("{ 0, 2, 22}", {0, 2, 22}),
-            (
-                "{ a, 11, 22, 53} ∩ { 0, 2, 22}",
-                {
-                    22,
-                },
-            ),
+            ("{ a, 11, 22, 53} ∩ { 0, 2, 22}", {22},),
             ("{ a, 11, 22, 53} ∪ { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
             ("{ a, 11, 22, 53} ∩ {}", set()),
             ("{ a, 11, 22, 53} ∪ {}", {1, 11, 22, 53}),
-            (
-                "myset ∩ { 0, 2, 22}",
-                {
-                    22,
-                },
-            ),
+            ("myset ∩ { 0, 2, 22}", {22},),
             ("myset ∪ { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
             ("1 in (myset ∩ { 0, 2, 22})", False),
             ("1 in (myset ∪ { 0, 2, 22})", True),
@@ -137,6 +158,12 @@ class TestBasicArithmetic:
             ("max({1, 2, 4})", 4),
             ("max({1, 2} ∪ aset)", 3),
             ("min({1, 2, 4})", 1),
+            ("{ a, 11, 22, 53} - { 0, 2, 22}", {1, 11, 53}),
+            ("{ 0, 31, 1.2} - { 0, 1.2, 31}", set()),
+            ("{} - { 0, 2, 22}", set()),
+            ("{} ^ {}", set()),
+            ("{1, 2, 3} ^ {2, 3, 4}", {1, 4}),
+            # fmt: on
         ],
     )
     def test_set_expressions(

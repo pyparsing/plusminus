@@ -7,7 +7,7 @@
 #
 from pprint import pprint
 
-from plusminus import BasicArithmeticParser
+from plusminus import ArithmeticParser
 from plusminus.examples.dice_roll_parser import DiceRollParser
 from plusminus.examples.combinatorics_arithmetic_parser import CombinatoricsArithmeticParser
 from plusminus.examples.business_arithmetic_parser import BusinessArithmeticParser
@@ -19,10 +19,10 @@ def post_parse_evaluate(teststr, result):
         return result[0].evaluate()
 
 
-parser = BasicArithmeticParser()
+parser = ArithmeticParser()
 
 parser.maximum_formula_depth = 5
-parser.runTests(
+if 0: parser.runTests(
     """\
     k @= j
     j @= i
@@ -42,8 +42,8 @@ parser.runTests(
     postParse=post_parse_evaluate,
 )
 
-parser = BasicArithmeticParser()
-parser.runTests(
+parser = ArithmeticParser()
+if 0: parser.runTests(
     """\
     a, b, c =
     # illegal recursion expected
@@ -58,8 +58,8 @@ parser.runTests(
     postParse=post_parse_evaluate,
 )
 
-parser = BasicArithmeticParser()
-parser.runTests(
+parser = ArithmeticParser()
+if 0: parser.runTests(
     """\
     # illegal recursion expected
     a @= a + 1
@@ -79,7 +79,7 @@ parser.runTests(
     postParse=post_parse_evaluate,
 )
 
-parser = BasicArithmeticParser()
+parser = ArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
 parser.runTests(
@@ -176,7 +176,13 @@ parser.runTests(
     # unary and binary square root
     # and imaginary square root
     √2
+    ²√2
     2√2
+    ³√2
+    2³√2
+    (2³)√2
+    ⁹√2
+    2⁹√2
     √-1
 
     # test safe_pow

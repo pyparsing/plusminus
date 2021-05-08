@@ -93,7 +93,7 @@ functions, and common mathematical variables
 - operators
   - `°` - degree (convert to radians)
   - `!` - factorial
-  - `√` - square root (can be used a unary and binary operator)
+  - `√` `²√` `³√` `⁴√` `⁵√` `⁶√` `⁷√` `⁸√` `⁹√` - root (can be used a unary and binary operator)
   - `⁻¹` - superscript -1 - `x**(-1) or 1/x`
   - `²` - superscript 2 - `x**2`
   - `³` - superscript 3 - `x**3`
