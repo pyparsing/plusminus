@@ -1380,7 +1380,7 @@ class ArithmeticParser(BaseArithmeticParser):
         self.add_function("tanh", 1, math.tanh)
         self.add_function("rad", 1, math.radians)
         self.add_function("deg", 1, math.degrees)
-        self.add_function("ln", 1, lambda x: math.log(x))
+        self.add_function("ln", 1, math.log)
         self.add_function(
             "log", (1, 2), log
         )  # log function can accept one or two values
