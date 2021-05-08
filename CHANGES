@@ -1,5 +1,20 @@
 plusminus Change Log
 
+0.7.0 -
+
+    - Dropped BasicArithmeticParser synonym for ArithmeticParser.
+
+    - Added symmetric difference set operations, supported by '∆' and '^'
+      operators.
+
+    - Added Unicode variable assignment operator '←'.
+
+    - Added option to allow/disallow user-defined variables in expressions.
+
+    - Added better docstring to enumerate all supported parser options.
+
+     (Many features added by TheOneMusic, thanks!)
+
 0.6.0 -
 
     - Auto-promote operators that are alphabetic to pyparsing Keywords,

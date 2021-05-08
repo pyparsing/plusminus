@@ -57,7 +57,7 @@ __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser 
              """.split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-__version_info__ = VersionInfo(0, 6, 0, "final", 0)
+__version_info__ = VersionInfo(0, 7, 0, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
