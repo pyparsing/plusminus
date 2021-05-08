@@ -698,10 +698,12 @@ class BaseArithmeticParser:
         Enter an arithmetic expression or assignment statement, using
         the following operators:
         {operator_list}
+
         Multiple assignments can be made using lists of variable names and
         corresponding lists of expressions (lists must be of matching lengths).
             x₁, y₁ = 1, 2
             a, b, c = 1, 2, a+b
+
         {user_defined_functions}
         Expression can include the following functions:
         {function_list}
@@ -899,6 +901,7 @@ class BaseArithmeticParser:
     def add_operator(self, operator_expr, arity, assoc, parse_action):
         """
         Adds an operator.
+
         Parameters:
         - operator_expr (str): operator expression
         - arity (int): operator arity
@@ -934,6 +937,7 @@ class BaseArithmeticParser:
     def initialize_variable(self, vname, vvalue, as_formula=False):
         """
         Adds a variable to the parser.
+
         Parameters:
         - vname (str): variable name
         - vvalue: variable value
@@ -945,6 +949,7 @@ class BaseArithmeticParser:
     def add_function(self, fn_name, fn_arity, fn_method):
         """
         Adds a function to the parser.
+
         Parameters:
         - fn_name (str): the name of the function
         - fn_arity (tuple, int or ...): number of arguments accepted by the function
@@ -999,6 +1004,8 @@ class BaseArithmeticParser:
             "Identifier", (self.IdentifierNode,), {"_assigned_vars": self._variable_map}
         )
         var_name.addParseAction(identifier_node_class)
+
+        # fmt: off
 
         def set_intersection(a, b):
             """Represents a set intersection."""
@@ -1056,16 +1063,17 @@ class BaseArithmeticParser:
             )
             return PrettySet(a_set.symmetric_difference(b_set))
 
+        # fmt: on
+
         class SetBinaryOp(BinaryNode):
             opns_map = {
                 "∩": set_intersection,
                 "&": set_intersection,
                 "∪": set_union,
                 "|": set_union,
-                "\\": set_difference,
                 "-": set_difference,
                 "−": set_difference,
-                "∆": set_symmetric_difference
+                "^": set_symmetric_difference
             }
 
             def evaluate(self):
@@ -1075,7 +1083,7 @@ class BaseArithmeticParser:
         set_expression = pp.infixNotation(
             set_operand | var_name,
             [
-                (pp.oneOf("∩ & ∪ | \\ - − ∆"), 2, pp.opAssoc.LEFT, SetBinaryOp),
+                (pp.oneOf("∩ & ∪ | - − ^"), 2, pp.opAssoc.LEFT, SetBinaryOp),
             ],
         )
 
@@ -1098,13 +1106,7 @@ class BaseArithmeticParser:
         ]
 
         ABS_VALUE_VERT = pp.Suppress("|")
-        FLOOR_VERT_LEFT, FLOOR_VERT_RIGHT = pp.Suppress("⌊"), pp.Suppress("⌋")
-        CEIL_VERT_LEFT, CEIL_VERT_RIGHT = pp.Suppress("⌈"), pp.Suppress("⌉")
-
         abs_value_expression = ABS_VALUE_VERT + arith_operand + ABS_VALUE_VERT
-        floor_value_expression = FLOOR_VERT_LEFT + arith_operand + FLOOR_VERT_RIGHT
-        ceil_value_expression = CEIL_VERT_LEFT + arith_operand + CEIL_VERT_RIGHT
-        round_value_expression = (FLOOR_VERT_LEFT + arith_operand + CEIL_VERT_RIGHT) | (CEIL_VERT_LEFT + arith_operand + FLOOR_VERT_RIGHT)
 
         def cvt_to_function_call(function):
             def wrapper(tokens):
@@ -1115,17 +1117,11 @@ class BaseArithmeticParser:
             return wrapper
 
         abs_value_expression.addParseAction(cvt_to_function_call("abs"), function_node_class)
-        floor_value_expression.addParseAction(cvt_to_function_call("floor"), function_node_class)
-        ceil_value_expression.addParseAction(cvt_to_function_call("ceil"), function_node_class)
-        round_value_expression.addParseAction(cvt_to_function_call("round"), function_node_class)
 
         arith_operand <<= pp.infixNotation(
             (
                 function_expression
                 | abs_value_expression
-                | floor_value_expression
-                | ceil_value_expression
-                | round_value_expression
                 | string_operand
                 | numeric_operand
                 | bool_operand
@@ -1145,7 +1141,7 @@ class BaseArithmeticParser:
         )
 
         value_clear_statement = (
-            pp.Keyword("CLEAR") + pp.delimitedList(lvalue)("lhs") + pp.StringEnd()
+            pp.delimitedList(lvalue)("lhs") + pp.oneOf("<- = ←") + pp.StringEnd()
         )
 
         def eval_and_store_value(tokens):
@@ -1274,12 +1270,16 @@ class BaseArithmeticParser:
         formula_assignment_statement.addParseAction(store_parsed_value)
         value_clear_statement.addParseAction(clear_parsed_value)
 
+        # fmt: off
+
         parser = (
                 value_assignment_statement
                 | value_clear_statement
                 | formula_assignment_statement
                 | lone_rvalue
         )
+
+        # fmt: on
 
         # init _variable_map with any pre-defined values
         for varname, (varvalue, as_formula) in self._initial_variables.items():
@@ -1329,7 +1329,9 @@ class ArithmeticParser(BaseArithmeticParser):
     """
 
     class Operators:
-        """Custom operator definitions, beyond those defined in ArithmeticParser."""
+        """
+        Custom operator definitions, beyond those defined in ArithmeticParser.
+        """
 
         # avoid clash with '!=' operator
         _factorial_operator = (~pp.Literal("!=") + "!").setName("!")
