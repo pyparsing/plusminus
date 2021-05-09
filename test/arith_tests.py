@@ -22,7 +22,7 @@ def post_parse_evaluate(teststr, result):
 parser = ArithmeticParser()
 
 parser.maximum_formula_depth = 5
-if 0: parser.runTests(
+parser.runTests(
     """\
     k @= j
     j @= i
@@ -43,7 +43,7 @@ if 0: parser.runTests(
 )
 
 parser = ArithmeticParser()
-if 0: parser.runTests(
+parser.runTests(
     """\
     a, b, c =
     # illegal recursion expected
@@ -59,7 +59,7 @@ if 0: parser.runTests(
 )
 
 parser = ArithmeticParser()
-if 0: parser.runTests(
+parser.runTests(
     """\
     # illegal recursion expected
     a @= a + 1
