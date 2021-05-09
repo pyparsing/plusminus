@@ -61,7 +61,10 @@ As `r` is updated, evaluating `area` will be reevaluated using the new value.
 An `ArithmeticParser` class is also defined, with more extensive operators, 
 including:
 
-    !  °  ⁿ√  ⁻¹  ⁰  ¹  ²  ³
+    !     - factorial  
+    °     - degree-radian conversion
+    √ ⁿ√  - square root and n'th root (2-9)
+    ⁻¹  ⁰  ¹  ²  ³ - common exponents as superscripts
 
 and additional pre-defined functions:
 
