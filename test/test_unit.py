@@ -100,9 +100,11 @@ class TestBasicArithmetic:
             ("hypot()", 0),
             ("max(10, 11, 12)", 12),
             ("max({10, 11, 12})", 12),
-        ]
+        ],
     )
-    def test_evaluate_functions(self, basic_arithmetic_parser, input_string, expected_value):
+    def test_evaluate_functions(
+        self, basic_arithmetic_parser, input_string, expected_value
+    ):
         self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
 
     @pytest.mark.parametrize(
