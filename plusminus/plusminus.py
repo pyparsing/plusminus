@@ -1338,12 +1338,12 @@ class ArithmeticParser(BaseArithmeticParser):
             _factorial_operator, 1, pp.opAssoc.LEFT, constrained_factorial
         )
 
-        radical_sign = pp.Literal("√").setName("radical sign")
+        radical_sign = pp.Literal("√")
         root_integer = pp.oneOf("² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹").leaveWhitespace()
         radical_operator_expr = pp.Combine(
             pp.Optional(root_integer, default="²") + radical_sign
         )
-        radical_operator_expr.setName("radical operator")
+        radical_operator_expr.setName("ⁿ√")
         unary_root_methods_map = {
             "²√": (lambda x: x ** (1 / 2)),
             "³√": (lambda x: x ** (1 / 3)),
