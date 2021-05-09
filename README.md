@@ -24,12 +24,14 @@ parsed_elements = parser.parse("2+3/10")
 Arithmetic expressions are evaluated following standard rules for operator precedence, allowing for use of parentheses to override:
 
     ()
+    |x|
     ∩ & ∪ | - ^ ∆ (set operations)
     **
     -
     * / // × ÷ mod
     + -
     < > <= >= == != ≠ ≤ ≥
+    in ∈ ∉ (element in/not in set)
     not
     and ∧
     or ∨
@@ -37,15 +39,12 @@ Arithmetic expressions are evaluated following standard rules for operator prece
 
 Functions can be called:
 
-      sgn    min  asin  rad    gcd
-      abs    max  acos  deg    lcm
-      round  str  atan  ln     gamma
-      trunc  sin  sinh  log    hypot
-      ceil   cos  cosh  log2   rnd
-      floor  tan  tanh  log10
+    abs    ceil   max
+    round  floor  str
+    trunc  min    bool
 
 
-The BaseArithmeticParser also supports assignment of variables:
+The `BaseArithmeticParser` also supports assignment of variables:
 
     r = 5
     area = π × r²
@@ -59,9 +58,34 @@ This last expression could be assigned using  `@=` formula assignment:
 As `r` is updated, evaluating `area` will be reevaluated using the new value.
 
 
+An `ArithmeticParser` class is also defined, with more extensive operators, 
+including:
+
+    !  °  ⁿ√  ⁻¹  ⁰  ¹  ²  ³
+
+and additional pre-defined functions:
+
+    sin    asin  rad    gcd
+    cos    acos  deg    lcm
+    tan    atan  ln     rnd
+    sgn    sinh  log    randint
+    gamma  cosh  log2
+    hypot  tanh  log10
+
+This parser class can be used in applications using algebra or trigonometry
+expressions.
+
 Custom expressions can be defined using a simple
 [`API`](https://github.com/pyparsing/plusminus/blob/master/doc/developer_api.md).
-Example parsers are included for dice rolling, combination/permutation expressions,
-and common business calculations. These parsers can be incorporated into other
+Example parsers are included for other specialized applications
+and domains:
+
+- dice rolling (`"3d6 + d20"`)
+- time delta expressions (`"today() + 2d + 12h"`)
+- retail and business expressions (`"20% off of 19.99"`)
+- combinatoric expressions (`"6C2"` or `"5P3"` )
+ 
+
+These parsers can be incorporated into other
 applications to support the safe evaluation of user-defined domain-specific
 expressions.
