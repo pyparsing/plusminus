@@ -48,9 +48,6 @@ class TestBasicArithmetic:
     @pytest.mark.parametrize(
         "input_string, expected_value",
         [
-            ("sin(rad(30))", 0.5),
-            ("sin(30°)", 0.5),
-            ("sin(π/2)", 1.0),
             ("0**0", 1),
             ("+5", 5),
             ("+(5-3)", 2),
@@ -59,10 +56,6 @@ class TestBasicArithmetic:
             ("-(5--3)", -8),
             ("3**2**3", 3 ** 2 ** 3),
             ('"You" + " win"*3', "You win win win"),
-            ("log(10)", math.log(10)),
-            ("log(10, 2)", math.log(10, 2)),
-            ("log(10, 10)", math.log(10, 10)),
-            ("log(e)", math.log(math.e)),
             ("(0)", 0),
             ("((0))", 0),
             ("(((0)))", 0),
@@ -89,6 +82,27 @@ class TestBasicArithmetic:
         ],
     )
     def test_evaluate(self, basic_arithmetic_parser, input_string, expected_value):
+        self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
+
+    @pytest.mark.parametrize(
+        "input_string, expected_value",
+        [
+            ("sin(rad(30))", 0.5),
+            ("sin(30°)", 0.5),
+            ("sin(π/2)", 1.0),
+            ("log(10)", math.log(10)),
+            ("log(10, 2)", math.log(10, 2)),
+            ("log(10, 10)", math.log(10, 10)),
+            ("log(e)", math.log(math.e)),
+            ("hypot(3)", 3),
+            ("hypot(3, 4)", 5),
+            ("hypot(3, 4, 5, 6) == hypot(3, hypot(4, hypot(5, 6)))", True),
+            ("hypot()", 0),
+            ("max(10, 11, 12)", 12),
+            ("max({10, 11, 12})", 12),
+        ]
+    )
+    def test_evaluate_functions(self, basic_arithmetic_parser, input_string, expected_value):
         self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
 
     @pytest.mark.parametrize(
@@ -146,6 +160,10 @@ class TestBasicArithmetic:
             ("{ a, 11, 22, 53} ∪ { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
             ("{ a, 11, 22, 53} ∩ {}", set()),
             ("{ a, 11, 22, 53} ∪ {}", {1, 11, 22, 53}),
+            ("{ a, 11, 22, 53} & { 0, 2, 22}", {22},),
+            ("{ a, 11, 22, 53} | { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
+            ("{ a, 11, 22, 53} & {}", set()),
+            ("{ a, 11, 22, 53} | {}", {1, 11, 22, 53}),
             ("myset ∩ { 0, 2, 22}", {22},),
             ("myset ∪ { 0, 2, 22}", {0, 1, 2, 11, 22, 53}),
             ("1 in (myset ∩ { 0, 2, 22})", False),
@@ -163,6 +181,7 @@ class TestBasicArithmetic:
             ("{} - { 0, 2, 22}", set()),
             ("{} ^ {}", set()),
             ("{1, 2, 3} ^ {2, 3, 4}", {1, 4}),
+            ("{1, 2, 3} ∆ {2, 3, 4}", {1, 4}),
             # fmt: on
         ],
     )
