@@ -2,7 +2,8 @@ plusminus Change Log
 
 0.7.0 -
 
-    - Dropped BasicArithmeticParser synonym for ArithmeticParser.
+    - Dropped BasicArithmeticParser synonym for ArithmeticParser
+      (too easily confused with BaseArithmeticParser).
 
     - Added symmetric difference set operations, supported by '∆' and '^'
       operators.
