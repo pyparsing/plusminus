@@ -1141,6 +1141,7 @@ class BaseArithmeticParser:
         value_clear_statement = (
             pp.delimitedList(lvalue)("lhs") + pp.oneOf("<- = ←") + pp.StringEnd()
         )
+        value_clear_statement.setName("value clear statement")
 
         def eval_and_store_value(tokens):
             if not self.user_variables_supported:
