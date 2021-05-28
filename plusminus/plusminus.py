@@ -54,7 +54,7 @@ ArithmeticParseException = ParseBaseException
 
 __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser expressions any_keyword 
              safe_pow safe_str_mult constrained_factorial ArithmeticParseException log
-             """.split()
+             DEFAULT_BASE_FUNCTION_MAP""".split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
 __version_info__ = VersionInfo(0, 7, 0, "final", 0)
@@ -673,6 +673,19 @@ class RoundToEpsilon:
             return ret
 
 
+DEFAULT_BASE_FUNCTION_MAP = {
+    "abs": FunctionSpec("abs", abs, 1),
+    "round": FunctionSpec("round", round, (1, 2)),
+    "trunc": FunctionSpec("trunc", math.trunc, 1),
+    "ceil": FunctionSpec("ceil", math.ceil, 1),
+    "floor": FunctionSpec("floor", math.floor, 1),
+    "min": FunctionSpec("min", min, ...),
+    "max": FunctionSpec("max", max, ...),
+    "str": FunctionSpec("str", str, 1),
+    "bool": FunctionSpec("bool", lambda x: not not x, 1),
+}
+
+
 class BaseArithmeticParser:
     """
     Base class for defining arithmetic parsers. Options are:
@@ -686,6 +699,8 @@ class BaseArithmeticParser:
         Allows/disallows user defined variables. Default to ``True``.
     allow_user_functions: :class:`bool`
         Allows/disallows user defined variables. Default to the value of ``allow_user_variables``.
+    base_function_map: :class:`dict`
+        Base function map. Default to ``DEFAULT_BASE_FUNCTION_MAP``.
     epsilon: :class:`float`
         Represents error approximation. Default to ``1e-15``.
     max_expression_depth: :class:`int`
@@ -811,17 +826,7 @@ class BaseArithmeticParser:
         self._base_operators = (
             "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ & | in not and ∧ or ∨ ?:"
         ).split()
-        self._base_function_map = {
-            "abs": FunctionSpec("abs", abs, 1),
-            "round": FunctionSpec("round", round, (1, 2)),
-            "trunc": FunctionSpec("trunc", math.trunc, 1),
-            "ceil": FunctionSpec("ceil", math.ceil, 1),
-            "floor": FunctionSpec("floor", math.floor, 1),
-            "min": FunctionSpec("min", min, ...),
-            "max": FunctionSpec("max", max, ...),
-            "str": FunctionSpec("str", lambda x: str(x), 1),
-            "bool": FunctionSpec("bool", lambda x: not not x, 1),
-        }
+        self._base_function_map = options.get("base_function_map", DEFAULT_BASE_FUNCTION_MAP)
 
         # epsilon for computing "close" floating point values - can be updated in customize
         self.epsilon = options.get("epsilon", 1e-15)
