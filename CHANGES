@@ -1,5 +1,10 @@
 plusminus Change Log
 
+0.8.0 -
+
+    - Added sin², sin³, sin⁻¹, etc. methods for common mathematical notation
+      such as sin²(x) for sin(x)**2, and sin⁻¹(x) for asin(x).
+
 0.7.0 -
 
     - Dropped BasicArithmeticParser synonym for ArithmeticParser

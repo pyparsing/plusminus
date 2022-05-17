@@ -82,6 +82,7 @@ parser.runTests(
 parser = ArithmeticParser()
 parser.initialize_variable("temp_c", "(ftemp - 32) * 5 / 9", as_formula=True)
 parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
+
 parser.runTests(
     """\
     sin(rad(30))
@@ -94,6 +95,21 @@ parser.runTests(
 
     sin(pi)
     sin(π/2)
+    sin²(pi)
+    sin²(π/2)
+    sin²(30°)
+    sin³(30°)
+    deg(sin⁻¹(0.5))
+    cos(pi)
+    cos(π/2)
+    cos²(pi)
+    cos²(π/2)
+    cos²(30°)
+    cos³(30°)
+    deg(cos⁻¹(0.5))
+    deg(tan⁻¹(1.0))
+    deg(tan⁻¹(-1.0))
+
     rnd()
     # division by zero expected
     1/0

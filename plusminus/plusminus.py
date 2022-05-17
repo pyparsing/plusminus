@@ -57,7 +57,7 @@ __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser 
              DEFAULT_BASE_FUNCTION_MAP""".split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-__version_info__ = VersionInfo(0, 7, 0, "final", 0)
+__version_info__ = VersionInfo(0, 8, 0, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
@@ -991,8 +991,11 @@ class BaseArithmeticParser:
         """
         arith_operand = pp.Forward()
         LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, COMMA = map(pp.Suppress, "()[]{},")
-        fn_name_expr = pp.Word(
-            "_" + self.ident_letters, "_" + self.ident_letters + pp.nums
+        # superscripts = "⁻¹²³⁴⁵⁶⁷⁸⁹"
+        fn_name_expr = pp.Combine(
+            pp.Word(
+                "_" + self.ident_letters, "_" + self.ident_letters + pp.nums
+            ) + pp.Optional(pp.oneOf("⁻¹ ² ³"))
         )
         function_expression = pp.Group(
             fn_name_expr("fn_name")
@@ -1408,15 +1411,33 @@ class ArithmeticParser(BaseArithmeticParser):
         self.add_operator(*ArithmeticParser.Operators.DEGREE_OPERATOR)
         self.add_operator(*ArithmeticParser.Operators.FACTORIAL)
 
+        def fn_raised_to(fn, n):
+            return lambda x: fn(x) ** n
+
         self.add_function("sin", 1, math.sin)
         self.add_function("cos", 1, math.cos)
         self.add_function("tan", 1, math.tan)
+        self.add_function("sin²", 1, fn_raised_to(math.sin, 2))
+        self.add_function("cos²", 1, fn_raised_to(math.cos, 2))
+        self.add_function("tan²", 1, fn_raised_to(math.tan, 2))
+        self.add_function("sin³", 1, fn_raised_to(math.sin, 3))
+        self.add_function("cos³", 1, fn_raised_to(math.cos, 3))
+        self.add_function("tan³", 1, fn_raised_to(math.tan, 3))
+        self.add_function("sin⁻¹", 1, math.asin)
+        self.add_function("cos⁻¹", 1, math.acos)
+        self.add_function("tan⁻¹", 1, math.atan)
         self.add_function("asin", 1, math.asin)
         self.add_function("acos", 1, math.acos)
         self.add_function("atan", 1, math.atan)
         self.add_function("sinh", 1, math.sinh)
         self.add_function("cosh", 1, math.cosh)
         self.add_function("tanh", 1, math.tanh)
+        self.add_function("sinh²", 1, fn_raised_to(math.sinh, 2))
+        self.add_function("cosh²", 1, fn_raised_to(math.cosh, 2))
+        self.add_function("tanh²", 1, fn_raised_to(math.tanh, 2))
+        self.add_function("sinh³", 1, fn_raised_to(math.sinh, 3))
+        self.add_function("cosh³", 1, fn_raised_to(math.cosh, 3))
+        self.add_function("tanh³", 1, fn_raised_to(math.tanh, 3))
         self.add_function("rad", 1, math.radians)
         self.add_function("deg", 1, math.degrees)
         self.add_function("ln", 1, math.log)
