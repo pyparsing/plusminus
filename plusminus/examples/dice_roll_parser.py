@@ -16,19 +16,28 @@ class DiceRollParser(BaseArithmeticParser):
         3d20
         5d6 + d20
         min(d6, d6, d6)
+        maxn(2, d6, d6, d6)   (select top 2 of 3 d6 rolls)
         show(d6, d6, d6)
     """
 
     def customize(self):
         import random
 
-        self.add_operator("d", 1, BaseArithmeticParser.RIGHT, lambda a: random.randint(1, a))
+        self.add_operator("d", 1, BaseArithmeticParser.RIGHT,
+                          lambda a: random.randint(1, a))
         self.add_operator("d", 2, BaseArithmeticParser.LEFT,
                           lambda a, b: sum(random.randint(1, b) for _ in range(a)))
 
         self.add_function("min", ..., min)
         self.add_function("max", ..., max)
-        self.add_function("show", ..., lambda *args: (list(args), sum(args)))
+        self.add_function("show", ...,
+                          lambda *args: {"rolls": list(args), "sum": sum(args)})
+
+        def maxn(n, *values):
+            ret = sorted(values, reverse=True)[:n]
+            return {"n": n, "rolls": values, "maxn": ret, "sum": sum(ret)}
+
+        self.add_function("maxn", ..., maxn)
 
 # fmt: on
 

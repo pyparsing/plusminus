@@ -28,7 +28,7 @@ SOFTWARE.
 from abc import ABC
 from collections import namedtuple, deque
 from contextlib import contextmanager
-from functools import partial, total_ordering
+from functools import partial, total_ordering, lru_cache
 from itertools import groupby
 import math
 import operator
@@ -850,6 +850,7 @@ class BaseArithmeticParser:
 
         self.customize()
         self._parser = self.make_parser()
+        self.parse = lru_cache(maxsize=32)(self._parse)
 
     @property
     def base_function_map(self):
@@ -866,7 +867,7 @@ class BaseArithmeticParser:
     def scanString(self, *args):
         yield from self.get_parser().scanString(*args)
 
-    def parse(self, *args, **kwargs):
+    def _parse(self, *args, **kwargs):
         """Parses an expression."""
         if _get_expression_depth(args[0]) > self.maximum_expression_depth:
             raise OverflowError("expression too deeply nested")
