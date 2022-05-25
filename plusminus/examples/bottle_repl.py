@@ -176,16 +176,14 @@ class Repl:
         elif cmd.lower() == "code":
             parser_class = type(self.parser)
             code = inspect.getsourcelines(parser_class)[0]
-            code.append("\nparser = {}()\n".format(parser_class.__name__))
+            code.append(f"\nparser = {parser_class.__name__}()\n")
             cmds = [
                 hist.command
                 for hist in cmd_history
                 if hist.player == key and hist.command.lower() not in self.meta_commands
             ]
             code.append(
-                "print(parser.evaluate({!r}))\n".format(
-                    cmds[-1] if cmds else "area = π*r²"
-                )
+                f"print(parser.evaluate({cmds[-1] if cmds else 'area = π*r²'!r}))\n"
             )
             self._update_session(key, cmd, True)
             return True, self.CommandStatus.META, "".join(code)
@@ -213,7 +211,7 @@ class Repl:
                 return (
                     False,
                     self.CommandStatus.APP_FAILURE,
-                    "{}: {}".format(type(e).__name__, e),
+                    f"{type(e).__name__}: {e}",
                 )
             else:
                 retvalue = repr(result) if result is not None else ""
@@ -331,9 +329,7 @@ class BottlePlusminusReplRequestHandler:
         self.write_html("\n".join(buffer))
 
     def handle_app_request(self):
-        title_string = "Plusminus +/- Parser/Evaluator Tester - {}".format(
-            plusminus_version
-        )
+        title_string = f"Plusminus +/- Parser/Evaluator Tester - {plusminus_version}"
         # get any form input, pass to parser
         query = self.get_query()
         # print('query=', query)
@@ -364,10 +360,10 @@ class BottlePlusminusReplRequestHandler:
             ' maximum-scale=1.0, user-scalable=1" />'
         )
         self.write_html('<meta charset="UTF-8">')
-        self.write_html("<title>{}</title>".format(title_string))
+        self.write_html(f"<title>{title_string}</title>")
         self.write_html("</head>")
         self.write_html('<body OnLoad="document.turnForm.c.focus();">\n')
-        self.write_html("<h3>{}</h3>\n<p>\n".format(title_string))
+        self.write_html(f"<h3>{title_string}</h3>\n<p>\n")
 
         # add buttons for operators and non-ASCII identifier chars
         def button(s, action="", go=False):
@@ -379,13 +375,11 @@ class BottlePlusminusReplRequestHandler:
             if go:
                 action = "cleartext();" + action
             self.write_html(
-                """<button onclick="{}">&nbsp;&nbsp;{}&nbsp;&nbsp;</button>\n""".format(
-                    action, s
-                )
+                f"""<button onclick="{action}">&nbsp;&nbsp;{s}&nbsp;&nbsp;</button>\n"""
             )
 
         def button_row(s, label=""):
-            self.write_html("\n<br>{}\n".format(label + ": " if label else ""))
+            self.write_html(f"\n<br>{label + ': ' if label else ''}\n")
             for c in s:
                 button(c)
 
@@ -472,9 +466,9 @@ class BottlePlusminusReplRequestHandler:
     def handle_stats_request(self):
         now = datetime.now()
         self.write_html("<html><body>\n")
-        self.write_html("<h2>Stats as of {}</h2>\n<p>\n".format(time_to_str(now)))
-        self.write_html("Server start time: {}<p>".format(time_to_str(server_start)))
-        self.write_html("Uptime: {}<p>".format(str(datetime.utcnow() - server_start)))
+        self.write_html(f"<h2>Stats as of {time_to_str(now)}</h2>\n<p>\n")
+        self.write_html(f"Server start time: {time_to_str(server_start)}<p>")
+        self.write_html(f"Uptime: {str(datetime.utcnow() - server_start)}<p>")
         headings = (
             "Session/Start time/Latest time/Connected/Idle/Tests/Exceptions".split("/")
         )
@@ -609,29 +603,28 @@ class BottlePlusminusReplRequestHandler:
         return self.handle_stats_request()
 
 
-if __name__ == "__main__":
-    # bottle server "main"
+# bottle server "main"
 
-    @route("/plusminus/_stats")
-    def handle_stats_command():
-        handler = BottlePlusminusReplRequestHandler()
-        handler.handle_stats_request()
-        return "".join(handler.buffer)
+@route("/plusminus/_stats")
+def handle_stats_command():
+    handler = BottlePlusminusReplRequestHandler()
+    handler.handle_stats_request()
+    return "".join(handler.buffer)
 
-    @route("/plusminus/_cleanup")
-    def handle_cleanup_command():
-        handler = BottlePlusminusReplRequestHandler()
-        handler.handle_cleanup_request()
-        return "".join(handler.buffer)
+@route("/plusminus/_cleanup")
+def handle_cleanup_command():
+    handler = BottlePlusminusReplRequestHandler()
+    handler.handle_cleanup_request()
+    return "".join(handler.buffer)
 
-    @route("/plusminus")
-    def handle_app_command():
-        handler = BottlePlusminusReplRequestHandler()
-        handler.handle_app_request()
-        return "".join(handler.buffer)
+@route("/plusminus")
+def handle_app_command():
+    handler = BottlePlusminusReplRequestHandler()
+    handler.handle_app_request()
+    return "".join(handler.buffer)
 
-    @route("/")
-    def hello_world():
-        return "Hello from plusminus repl!"
+@route("/")
+def hello_world():
+    return "Hello from plusminus repl!"
 
-    application = default_app()
+application = default_app()

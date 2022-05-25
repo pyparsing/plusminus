@@ -173,7 +173,7 @@ def _make_name_list_string(names, indent=""):
     for transpose in zip(*chunks):
         line = indent
         for item, wid in zip(transpose, col_widths):
-            line += "{:{}s}".format(item, wid + 2)
+            line += f"{item:{wid + 2}s}"
         ret.append(line.rstrip())
     return "\n".join(ret)
 
@@ -511,22 +511,18 @@ class ArithmeticFunction(ArithNode):
             if isinstance(fn_spec.arity, tuple):
                 if not any(arit == len(fn_args) for arit in fn_spec.arity):
                     raise TypeError(
-                        "{} takes {} {}, {} given".format(
-                            fn_name,
-                            " or ".join(str(ari) for ari in fn_spec.arity),
-                            ("arg", "args")[fn_spec.arity[-1] != 1],
-                            len(fn_args),
-                        )
+                        f"{fn_name} takes"
+                        f" {' or '.join(str(ari) for ari in fn_spec.arity)}"
+                        f" arg{'s' if fn_spec.arity[-1] != 1 else ''},"
+                        f" {len(fn_args)} given"
                     )
 
             elif fn_spec.arity not in (len(fn_args), ...):
                 raise TypeError(
-                    "{} takes {} {}, {} given".format(
-                        fn_name,
-                        fn_spec.arity,
-                        ("arg", "args")[fn_spec.arity != 1],
-                        len(fn_args),
-                    )
+                    f"{fn_name} takes"
+                    f" {fn_spec.arity}"
+                    f" arg{'s' if fn_spec.arity[-1] != 1 else ''},"
+                    f" {len(fn_args)} given"
                 )
             return fn_spec.method(*[arg.evaluate() for arg in fn_args])
 
@@ -631,17 +627,11 @@ class InContainerNode(UnaryNode):
     def __repr__(self):
         operand, op, range_expr = self.tokens
 
-        lower_symbol = "(["[range_expr.lower_inclusive]
-        upper_symbol = ")]"[range_expr.upper_inclusive]
-        repr_format = "{} {} {}{}, {}{}"
-        return repr_format.format(
-            repr(operand),
-            op,
-            lower_symbol,
-            repr(range_expr.lower),
-            repr(range_expr.upper),
-            upper_symbol,
-        )
+        lower_symbol = "[" if range_expr.lower_inclusive else "("
+        upper_symbol = "]" if range_expr.upper_inclusive else ")"
+        repr_format = (f"{operand!r} {op}"
+                       f" {lower_symbol}{range_expr.lower!r}, {range_expr.upper!r}{upper_symbol}")
+        return repr_format
 
 
 class RoundToEpsilon:
