@@ -4,12 +4,12 @@
 """
 plusminus
 
-plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and easy-to-use
-parsers for parsing and evaluating infix arithmetic expressions. plusminus's ArithmeticParser class includes
+plusminus is a module that builds on the pyparsing infix_notation helper method to build easy-to-code and easy-to-use
+parsers for parsing and evaluating infix arithmetic expressions. plusminus's BaseArithmeticParser class includes
 separate parse and evaluate methods, handling operator precedence, override with parentheses, presence or absence of
 whitespace, built-in functions, and pre-defined and user-defined variables, functions, and operators.
 
-Copyright 2020-2021, by Paul McGuire
+Copyright 2020-2022, by Paul McGuire
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -57,7 +57,7 @@ __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser 
              DEFAULT_BASE_FUNCTION_MAP""".split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-__version_info__ = VersionInfo(0, 8, 0, "final", 0)
+__version_info__ = VersionInfo(0, 7, 0, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified

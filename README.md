@@ -2,11 +2,11 @@
 
 The **plusminus** package provides a ready-to-run arithmetic parser and evaluator, 
 based on [`pyparsing`](https://pyparsing-docs.readthedocs.io/en/latest/index.html)'s 
-[`infixNotation`](https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.infixNotation) 
+[`infix_notation`](https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html#pyparsing.infixNotation) 
 helper method.
 
 Strings containing 6-function arithmetic expressions can be parsed and evaluated using the 
-[`BaseArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
+[`ArithmeticParser`](https://github.com/pyparsing/plusminus/blob/master/doc/arithmetic_parser.md#the-core-basicarithmeticparser):
 
 ```python
 from plusminus import BaseArithmeticParser
