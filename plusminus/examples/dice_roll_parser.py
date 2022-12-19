@@ -23,10 +23,11 @@ class DiceRollParser(BaseArithmeticParser):
     def customize(self):
         import random
 
-        self.add_operator("d", 1, BaseArithmeticParser.RIGHT,
-                          lambda a: random.randint(1, a))
-        self.add_operator("d", 2, BaseArithmeticParser.LEFT,
-                          lambda a, b: sum(random.randint(1, b) for _ in range(a)))
+        def roll_dice(num_dice, sides):
+            return sum(random.randint(1, sides) for _ in range(num_dice))
+
+        self.add_operator("d", 1, BaseArithmeticParser.RIGHT, lambda a: roll_dice(1, a))
+        self.add_operator("d", 2, BaseArithmeticParser.LEFT, lambda a, b: roll_dice(a, b))
 
         self.add_function("min", ..., min)
         self.add_function("max", ..., max)
