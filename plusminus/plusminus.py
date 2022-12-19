@@ -840,7 +840,7 @@ class BaseArithmeticParser:
 
         self.customize()
         self._parser = self.make_parser()
-        self.parse = lru_cache(maxsize=32)(self._parse)
+        self.parse = self._parse
 
     @property
     def base_function_map(self):
