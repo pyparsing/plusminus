@@ -28,14 +28,16 @@ SOFTWARE.
 from abc import ABC
 from collections import namedtuple, deque
 from contextlib import contextmanager
-from functools import partial, total_ordering, lru_cache
+from functools import partial, total_ordering
 from itertools import groupby
 import math
 import operator
 import random
-import pyparsing as pp
 import string
 import sys
+from typing import Dict, Callable, List, Any, Union, Tuple
+
+import pyparsing as pp
 
 # monkeypatch explain into an instance method
 from pyparsing import ParseBaseException, ParseException
@@ -423,7 +425,7 @@ class BinaryNode(ArithNode, ABC):
 
 
 class TernaryNode(ArithNode):
-    opns_map = {}
+    opns_map: Dict[Tuple[str, str], Callable] = {}
 
     def left_associative_evaluate(self, oper_fn_map):
         operands = self.tokens
@@ -462,7 +464,7 @@ class ArithmeticUnaryOp(UnaryNode):
 
 
 class ArithmeticUnaryPostOp(UnaryNode):
-    opns_map = {}
+    opns_map: Dict[str, Callable] = {}
 
     def evaluate(self):
         with _trimming_exception_traceback():
@@ -470,7 +472,7 @@ class ArithmeticUnaryPostOp(UnaryNode):
 
 
 class ArithmeticBinaryOp(BinaryNode):
-    opns_map = {
+    opns_map: Dict[str, Callable] = {
         "+": operator.add,
         "-": operator.sub,
         "−": operator.sub,
@@ -499,7 +501,7 @@ class ExponentBinaryOp(ArithmeticBinaryOp):
 
 
 class ArithmeticFunction(ArithNode):
-    fn_map = None
+    fn_map: Dict[str, FunctionSpec] = None
 
     def evaluate(self):
         with _trimming_exception_traceback():
@@ -663,7 +665,7 @@ class RoundToEpsilon:
             return ret
 
 
-DEFAULT_BASE_FUNCTION_MAP = {
+DEFAULT_BASE_FUNCTION_MAP: Dict[str, FunctionSpec] = {
     "abs": FunctionSpec("abs", abs, 1),
     "round": FunctionSpec("round", round, (1, 2)),
     "trunc": FunctionSpec("trunc", math.trunc, 1),
@@ -704,7 +706,7 @@ class BaseArithmeticParser:
     LEFT = pp.opAssoc.LEFT
     RIGHT = pp.opAssoc.RIGHT
 
-    def usage(self):
+    def usage(self) -> str:
         import textwrap
 
         msg = textwrap.dedent(
@@ -754,7 +756,7 @@ class BaseArithmeticParser:
         )
 
     class IdentifierNode(ArithNode):
-        _assigned_vars = {}
+        _assigned_vars: Dict[str, Any] = {}
 
         @property
         def name(self):
@@ -811,12 +813,12 @@ class BaseArithmeticParser:
             "allow_user_functions", self.user_variables_supported
         )
 
-        self._added_operator_specs = []
-        self._added_function_specs = {}
-        self._base_operators = (
+        self._added_operator_specs: List[OperatorSpec] = []
+        self._added_function_specs: Dict[str, FunctionSpec] = {}
+        self._base_operators: List[str] = (
             "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ & | in not and ∧ or ∨ ?:"
         ).split()
-        self._base_function_map = options.get("base_function_map", DEFAULT_BASE_FUNCTION_MAP)
+        self._base_function_map: Dict[str, FunctionSpec] = options.get("base_function_map", DEFAULT_BASE_FUNCTION_MAP)
 
         # epsilon for computing "close" floating point values - can be updated in customize
         self.epsilon = options.get("epsilon", 1e-15)
@@ -843,19 +845,22 @@ class BaseArithmeticParser:
         self.parse = self._parse
 
     @property
-    def base_function_map(self):
+    def base_function_map(self) -> Dict[str, FunctionSpec]:
         return {**self._base_function_map}
 
     @property
-    def added_function_specs(self):
+    def added_function_specs(self) -> Dict[str, FunctionSpec]:
         return {**self._added_function_specs}
 
     @property
-    def added_operator_specs(self):
+    def added_operator_specs(self) -> List[OperatorSpec]:
         return self._added_operator_specs[:]
 
-    def scanString(self, *args):
+    def scan_string(self, *args):
         yield from self.get_parser().scanString(*args)
+
+    def scanString(self, *args):
+        yield from self.scan_string(*args)
 
     def _parse(self, *args, **kwargs):
         """Parses an expression."""
@@ -904,12 +909,16 @@ class BaseArithmeticParser:
     def __setitem__(self, name, value):
         self._variable_map[name] = LiteralNode([value])
 
-    def customize(self):
+    def customize(self) -> None:
         """
         Entry point to define operators, functions and variables.
         """
 
-    def add_operator(self, operator_expr, arity, assoc, parse_action):
+    def add_operator(self,
+                     operator_expr: Union[str, pp.ParserElement],
+                     arity: int,
+                     assoc: object,
+                     parse_action: Callable) -> None:
         """
         Adds an operator.
 
@@ -942,10 +951,10 @@ class BaseArithmeticParser:
         if isinstance(operator_expr, str) and operator_expr.isalpha():
             operator_expr = pp.Keyword(operator_expr, identChars=string.ascii_letters)
         self._added_operator_specs.insert(
-            0, (operator_expr, arity, assoc, operator_node_class)
+            0, OperatorSpec(operator_expr, arity, assoc, operator_node_class)
         )
 
-    def initialize_variable(self, vname, vvalue, as_formula=False):
+    def initialize_variable(self, vname: str, vvalue: Any, as_formula: bool = False) -> None:
         """
         Adds a variable to the parser.
 
@@ -957,7 +966,7 @@ class BaseArithmeticParser:
         """
         self._initial_variables[vname] = (vvalue, as_formula)
 
-    def add_function(self, fn_name, fn_arity, fn_method):
+    def add_function(self, fn_name: str, fn_arity: Union[int, Tuple[int, int]], fn_method: Callable):
         """
         Adds a function to the parser.
 
@@ -968,7 +977,7 @@ class BaseArithmeticParser:
         """
         self._added_function_specs[fn_name] = FunctionSpec(fn_name, fn_method, fn_arity)
 
-    def get_parser(self):
+    def get_parser(self) -> pp.ParserElement:
         """
         Retrieves parser or make a new one if None was found.
         """
@@ -976,7 +985,7 @@ class BaseArithmeticParser:
             self._parser = self.make_parser()
         return self._parser
 
-    def make_parser(self):
+    def make_parser(self) -> pp.ParserElement:
         """
         Creates a new parser.
         """
@@ -1302,7 +1311,7 @@ class BaseArithmeticParser:
         return ret
 
 
-def log(x, y=math.e):
+def log(x: Union[int, float], y: Union[int, float] = math.e) -> float:
     """
     Similar to `math.log`, with is_close for bases 2 and 10.
     """

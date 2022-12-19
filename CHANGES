@@ -2,6 +2,9 @@ plusminus Change Log
 
 0.7.0 -
 
+    - Added type annotations on public methods, to aid in type checking and
+      autocomplete.
+
     - Added sin², sin³, sin⁻¹, etc. methods for common mathematical notation
       such as sin²(x) for sin(x)**2, and sin⁻¹(x) for asin(x).
 
@@ -22,6 +25,8 @@ plusminus Change Log
     - Added option to allow/disallow user-defined variables in expressions.
 
     - Added better docstring to enumerate all supported parser options.
+
+    - Added scan_string method, to replace deprecated scanString method.
 
      (Many features added by TheOneMusic, thanks!)
 
