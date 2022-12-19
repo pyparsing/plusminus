@@ -1,11 +1,9 @@
 plusminus Change Log
 
-0.8.0 -
+0.7.0 -
 
     - Added sin², sin³, sin⁻¹, etc. methods for common mathematical notation
       such as sin²(x) for sin(x)**2, and sin⁻¹(x) for asin(x).
-
-0.7.0 -
 
     - Dropped BasicArithmeticParser synonym for ArithmeticParser
       (too easily confused with BaseArithmeticParser).
@@ -16,8 +14,8 @@ plusminus Change Log
     - Added radical expressions for roots > 2, up to 9, to the ArithmeticParser
       class:
 
-        ³√2 -> 2 ** (1/3) (1.259921049894873)
-        ⁹√2 -> 2 ** (1/9) (1.080059738892306)
+        ³√2 -> 2**(1/3) (1.259921049894873)
+        ⁹√2 -> 2**(1/9) (1.080059738892306)
 
     - Added Unicode variable assignment operator '←'.
 
