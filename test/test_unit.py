@@ -236,20 +236,29 @@ class TestBasicArithmetic:
             assert basic_arithmetic_parser.evaluate(input_string) == expected_value
 
     def test_set_parser_vars(self, basic_arithmetic_parser):
-        res = []
+        x2_res = []
+        y_res = []
+        observed_x = []
         expected_x2 = []
-        expected_y = []
+        observed_y = []
         for x in range(10):
             basic_arithmetic_parser["x"] = x
-            res.append(basic_arithmetic_parser.evaluate("y = x²"))
+            x2_res.append(basic_arithmetic_parser.evaluate("x²"))
+            y_res.append(basic_arithmetic_parser.evaluate("y = x²"))
             expected_x2.append(x * x)
-            expected_y.append(basic_arithmetic_parser["y"])
+            observed_x.append(basic_arithmetic_parser["x"])
+            observed_y.append(basic_arithmetic_parser["y"])
 
-        print(res)
+        print(x2_res)
+        print(y_res)
+        print(observed_x)
         print(expected_x2)
-        print(expected_y)
+        print(observed_y)
+        print(basic_arithmetic_parser.vars())
 
-        assert res == expected_x2 == expected_y
+        assert list(range(10)) == observed_x
+        assert x2_res == expected_x2
+        assert observed_y == expected_x2
 
         with pytest.raises(NameError):
             z_value = basic_arithmetic_parser["z"]
