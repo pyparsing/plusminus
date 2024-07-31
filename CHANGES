@@ -1,5 +1,7 @@
 plusminus Change Log
 
+0.8.0 -
+
 0.7.0 -
 
     - Added type annotations on public methods, to aid in type checking and
