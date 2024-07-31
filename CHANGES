@@ -4,6 +4,8 @@ plusminus Change Log
 
     - Added tox for automated testing on multiple Python versions.
 
+    - Added support for Python 3.12 and 3.13.
+
 0.7.0 -
 
     - Added type annotations on public methods, to aid in type checking and
