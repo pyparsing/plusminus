@@ -2,6 +2,8 @@ plusminus Change Log
 
 0.8.0 -
 
+    - Added tox for automated testing on multiple Python versions.
+
 0.7.0 -
 
     - Added type annotations on public methods, to aid in type checking and
