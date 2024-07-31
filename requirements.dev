@@ -1,3 +1,5 @@
 pyparsing
 pytest
 tox
+
+cloudpickle

@@ -1,5 +1,9 @@
 import math
+import pickle
+
 import pytest
+import cloudpickle
+
 from plusminus import ArithmeticParser, ArithmeticParseException
 import sys
 
@@ -320,3 +324,29 @@ class TestBasicArithmetic:
         # the exception
         with pytest.raises(Exception):
             basic_arithmetic_parser.evaluate("a{} = 0".format(var_limit))
+
+    def test_parser_pickling(self, basic_arithmetic_parser):
+
+        pickled_parser = cloudpickle.dumps((basic_arithmetic_parser,))
+        parser, = pickle.loads(pickled_parser)
+
+        assert parser["ctemp"] == 38
+        parser.parse("ftemp = 212")
+        assert parser.evaluate("temp_c") == 100
+        assert parser.evaluate("feverish") is True
+
+    def test_parser_pickling2(self):
+
+        parser = ArithmeticParser()
+        parser.parse('α = π²')
+        parsed_res = parser.parse('β = 90')
+
+        # send parser and results on round trip through cloudpickle
+        parsed_pair = cloudpickle.dumps((parser, parsed_res))
+        parser, parsed_res = cloudpickle.loads(parsed_pair)
+
+        assert parser["α"] == math.pi ** 2
+        assert parser["β"] == 90
+        assert parser.evaluate("α * β") == math.pi ** 2 * 90
+        assert parser.evaluate("sin(β°)") == 1.0
+        assert parsed_res.evaluate() == 90

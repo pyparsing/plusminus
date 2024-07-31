@@ -6,6 +6,10 @@ plusminus Change Log
 
     - Added support for Python 3.12 and 3.13.
 
+    - Added support for serializing plusminus parsers and results over
+      cloudpickle (used in Apache Spark applications). Fixes Issue #22,
+      reported and assisted by ccaapton, thanks!
+
 0.7.0 -
 
     - Added type annotations on public methods, to aid in type checking and

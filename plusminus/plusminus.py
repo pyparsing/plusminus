@@ -319,8 +319,8 @@ def constrained_factorial(x):
 
 @total_ordering
 class ArithNode:
-    def __init__(self, tokens):
-        self.tokens = tokens[0]
+    def __init__(self, *args):
+        self.tokens = args[-1][0]
         try:
             iter(self.tokens)
         except TypeError:
@@ -1309,6 +1309,45 @@ class BaseArithmeticParser:
             else:
                 ret[k] = repr(v)
         return ret
+
+    def __getstate__(self):
+        return (
+            self._parser,
+            self._variable_map,
+            self._initial_variables,
+            self.maximum_formula_depth,
+            self.maximum_expression_depth,
+            self.maximum_set_depth,
+            self.max_number_of_vars,
+            self.user_defined_functions_supported,
+            self.user_variables_supported,
+            self._added_function_specs,
+            self._added_operator_specs,
+            self._base_operators,
+            self._base_function_map,
+            self.epsilon,
+            self.ident_letters,
+        )
+
+    def __setstate__(self, state):
+        (
+            self._parser,
+            self._variable_map,
+            self._initial_variables,
+            self.maximum_formula_depth,
+            self.maximum_expression_depth,
+            self.maximum_set_depth,
+            self.max_number_of_vars,
+            self.user_defined_functions_supported,
+            self.user_variables_supported,
+            self._added_function_specs,
+            self._added_operator_specs,
+            self._base_operators,
+            self._base_function_map,
+            self.epsilon,
+            self.ident_letters,
+        ) = state
+        self.parse = self._parse
 
 
 def log(x: Union[int, float], y: Union[int, float] = math.e) -> float:
