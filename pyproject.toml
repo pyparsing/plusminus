@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plusminus"
+version = "0.8.0"
+authors = [
+  { name="Paul McGuire", email="ptmcg+pm@gmail.com" },
+]
+description = "+/- plusminus is a module that builds on the pyparsing infixNotation helper method to build easy-to-code and easy-to-use parsers for parsing and evaluating infix arithmetic expressions. plusminus's ArithmeticParser class includes separate parse and evaluate methods, handling operator precedence, override with parentheses, presence or absence of whitespace, built-in functions, and pre-defined and user-defined variables, functions, and operators."
+
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+  "pyparsing>=2.4.7",
+]
+classifiers = [
+        "License :: OSI Approved :: MIT License",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: User Interfaces",
+        "Topic :: Text Processing",
+        "Topic :: Text Processing :: General",
+        "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/pyparsing/plusminus"
+Issues = "https://github.com/pyparsing/plusminus/issues"
+Documentation = "https://github.com/pyparsing/plusminus/tree/master/doc"
