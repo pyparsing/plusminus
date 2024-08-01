@@ -10,6 +10,12 @@ plusminus Change Log
       cloudpickle (used in Apache Spark applications). Fixes Issue #22,
       reported and assisted by ccaapton, thanks!
 
+    - Added a "use_decimal" keyword argument to the `BaseArithmeticParser`
+      class. If passed as `True`, the parser will evaluate float values using
+      Python's `decimal.Decimal` class. Addresses Issue #20, submitted by
+      ezekielnewren, nice idea!
+
+
 0.7.0 -
 
     - Added type annotations on public methods, to aid in type checking and

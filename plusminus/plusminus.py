@@ -25,6 +25,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import decimal
 from abc import ABC
 from collections import namedtuple, deque
 from contextlib import contextmanager
@@ -494,7 +495,7 @@ class ExponentBinaryOp(ArithmeticBinaryOp):
         with _trimming_exception_traceback():
             # parsed left-to-right, but evaluate right-to-left
             operands = [t.evaluate() for t in self.tokens[::2]]
-            if not all(isinstance(op, (int, float, complex)) for op in operands):
+            if not all(isinstance(op, _numeric_type) for op in operands):
                 raise TypeError("invalid operators for exponentiation")
 
             return safe_pow(*operands)
@@ -642,7 +643,7 @@ class RoundToEpsilon:
         self.epsilon = 1e-15
 
     def __repr__(self):
-        return "~" + str(self._result)
+        return f"~{self._result}"
 
     def evaluate(self):
         with _trimming_exception_traceback():
@@ -662,6 +663,29 @@ class RoundToEpsilon:
                     and math.isclose(ret, int(ret), abs_tol=self.epsilon)
                 ):
                     return int(ret)
+            return ret
+
+
+class AsDecimal:
+    def __init__(self, result):
+        self._result = result
+        self.epsilon = 10**-decimal.getcontext().prec
+
+    def __repr__(self):
+        return f"{self._result}"
+
+    def evaluate(self):
+        with _trimming_exception_traceback():
+            # print(self._result.dump())
+            ret = self._result[0].evaluate()
+            if isinstance(ret, (float, complex)):
+                if math.isclose(ret.imag, 0, abs_tol=self.epsilon):
+                    ret = decimal.Decimal(ret.real)
+                if math.isclose(ret.real, 0, abs_tol=self.epsilon):
+                    if ret.imag:
+                        ret = complex(0, ret.imag)
+                    else:
+                        ret = 0
             return ret
 
 
@@ -701,6 +725,8 @@ class BaseArithmeticParser:
         Represents maximum expression depth. Default to ``12``.
     max_set_depth: :class:`int`
         Represents maximum set depth. Default to ``6``.
+    use_decimal: :class:`bool`
+        Use decimal.Decimal values instead of float values. Default to ``False``.
     """
 
     LEFT = pp.opAssoc.LEFT
@@ -812,6 +838,8 @@ class BaseArithmeticParser:
         self.user_defined_functions_supported = options.get(
             "allow_user_functions", self.user_variables_supported
         )
+        self.using_decimal = options.get("use_decimal", False)
+        self.float_parser_class = AsDecimal if self.using_decimal else RoundToEpsilon
 
         self._added_operator_specs: List[OperatorSpec] = []
         self._added_function_specs: Dict[str, FunctionSpec] = {}
@@ -1014,7 +1042,14 @@ class BaseArithmeticParser:
             LBRACE + pp.Optional(pp.delimitedList(arith_operand)) + RBRACE
         ).addParseAction(SetNode)
 
-        numeric_operand = ppc.number().addParseAction(LiteralNode)
+        if self.using_decimal:
+            number = (
+                    ppc.real.set_parse_action(pp.token_map(decimal.Decimal))
+                    | ppc.integer.set_parse_action(pp.token_map(decimal.Decimal))
+            )
+            numeric_operand = number.addParseAction(LiteralNode)
+        else:
+            numeric_operand = ppc.number().addParseAction(LiteralNode)
         qs = pp.QuotedString('"', escChar="\\") | pp.QuotedString("'", escChar="\\")
         string_operand = qs.addParseAction(LiteralNode)
         # noinspection PyUnresolvedReferences
@@ -1327,6 +1362,7 @@ class BaseArithmeticParser:
             self._base_function_map,
             self.epsilon,
             self.ident_letters,
+            self.using_decimal,
         )
 
     def __setstate__(self, state):
@@ -1346,6 +1382,7 @@ class BaseArithmeticParser:
             self._base_function_map,
             self.epsilon,
             self.ident_letters,
+            self.using_decimal,
         ) = state
         self.parse = self._parse
 

@@ -1,3 +1,4 @@
+import decimal
 import math
 import pickle
 
@@ -350,3 +351,20 @@ class TestBasicArithmetic:
         assert parser.evaluate("α * β") == math.pi ** 2 * 90
         assert parser.evaluate("sin(β°)") == 1.0
         assert parsed_res.evaluate() == 90
+
+    def test_decimal_evaluate(self):
+
+        parser = ArithmeticParser(use_decimal=True)
+
+        test_str = "3.000000000000000000001"
+        result = parser.evaluate(test_str)
+        assert isinstance(result, decimal.Decimal)
+        assert str(result) == test_str
+
+        # make sure a pickled parser retains decimal-ness
+        parsed_pair = cloudpickle.dumps((parser,))
+        parser, = cloudpickle.loads(parsed_pair)
+
+        result = parser.evaluate("100")
+        assert isinstance(result, decimal.Decimal)
+        assert str(result) == "100"
