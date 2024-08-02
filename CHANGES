@@ -1,5 +1,11 @@
 plusminus Change Log
 
+0.8.1 -
+
+    - Fixed bug in evaluating boolean expressions with more than
+      two terms, reported by ccaapton - fixed Issue #23.
+
+
 0.8.0 -
 
     - Added tox for automated testing on multiple Python versions.

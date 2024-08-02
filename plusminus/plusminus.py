@@ -60,7 +60,7 @@ __all__ = """__version__ __version_info__ ArithmeticParser BaseArithmeticParser 
              DEFAULT_BASE_FUNCTION_MAP""".split()
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-__version_info__ = VersionInfo(0, 8, 0, "final", 0)
+__version_info__ = VersionInfo(0, 8, 1, "final", 0)
 __version__ = ".".join(map(str, __version_info__[:3]))
 
 # increase recursion limit if not already modified
@@ -541,10 +541,10 @@ class UnaryNot(UnaryNode):
 
 class BinaryLogicalOperator(BinaryNode):
     opns_map = {
-        "and": operator.and_,
-        "or": operator.or_,
-        "∧": operator.and_,
-        "∨": operator.or_,
+        "and": all,
+        "or": any,
+        "∧": all,
+        "∨": any,
     }
 
     def evaluate(self):
@@ -552,16 +552,9 @@ class BinaryLogicalOperator(BinaryNode):
             return self.left_associative_evaluate(self.opns_map)
 
     def left_associative_evaluate(self, oper_fn_map):
-        with _trimming_exception_traceback():
-            last = bool(self.tokens[0].evaluate())
-            ret = True
-            for oper, operand in zip(self.tokens[1::2], self.tokens[2::2]):
-                next_ = bool(operand.evaluate())
-                ret = ret and oper_fn_map[oper](last, next_)
-                if not ret:
-                    break
-                last = next_
-            return ret
+        oper_fn = oper_fn_map[self.tokens[1]]
+        ret = oper_fn(bool(t.evaluate()) for t in self.tokens[::2])
+        return ret
 
 
 class TernaryComp(TernaryNode):

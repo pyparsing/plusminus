@@ -92,6 +92,77 @@ class TestBasicArithmetic:
     @pytest.mark.parametrize(
         "input_string, expected_value",
         [
+            ("False", False),
+            ("True", True),
+
+            ("False or False", False),
+            ("False or True", True),
+            ("True or False", True),
+            ("True or True", True),
+
+            ("False or False or False", False),
+            ("False or True or False", True),
+            ("True or False or False", True),
+            ("True or True or False", True),
+
+            ("False or False or True", True),
+            ("False or True or True", True),
+            ("True or False or True", True),
+            ("True or True or True", True),
+
+            ("False and False", False),
+            ("False and True", False),
+            ("True and False", False),
+            ("True and True", True),
+
+            ("False and False and False", False),
+            ("False and True and False", False),
+            ("True and False and False", False),
+            ("True and True and False", False),
+
+            ("False and False and True", False),
+            ("False and True and True", False),
+            ("True and False and True", False),
+            ("True and True and True", True),
+
+            ("False or False and False", False),
+            ("False or True and False", False),
+            ("True or False and False", True),
+            ("True or True and False", True),
+
+            ("False or False and True", False),
+            ("False or True and True", True),
+            ("True or False and True", True),
+            ("True or True and True", True),
+
+            ("False and False or False", False),
+            ("False and True or False", False),
+            ("True and False or False", False),
+            ("True and True or False", True),
+
+            ("False and False or True", True),
+            ("False and True or True", True),
+            ("True and False or True", True),
+            ("True and True or True", True),
+
+
+            ("(False or False) and False", False),
+            ("(False or True) and False", False),
+            ("(True or False) and False", False),
+            ("(True or True) and False", False),
+
+            ("(False or False) and True", False),
+            ("(False or True) and True", True),
+            ("(True or False) and True", True),
+            ("(True or True) and True", True),
+        ],
+    )
+    def test_evaluate_boolean_expressions(self, basic_arithmetic_parser, input_string, expected_value):
+        self._test_evaluate(basic_arithmetic_parser, input_string, expected_value)
+
+    @pytest.mark.parametrize(
+        "input_string, expected_value",
+        [
             ("sin(rad(30))", 0.5),
             ("sin(π/2)", 1.0),
             ("sin(30°)", 0.5),
@@ -272,20 +343,17 @@ class TestBasicArithmetic:
     def test_clearing_parser_vars(self, basic_arithmetic_parser):
 
         with pytest.raises(NameError):
-            a_value = basic_arithmetic_parser.evaluate("a")
-            pytest.fail("unexpected 'a' value {!r}".format(a_value))
+            basic_arithmetic_parser.evaluate("a")
 
         print("a, b", basic_arithmetic_parser.parse("a, b = 1, 2"))
         print("c", basic_arithmetic_parser.parse("c = a + b"))
         print("clear a", basic_arithmetic_parser.parse("a ="))
 
         with pytest.raises(NameError):
-            a_value = basic_arithmetic_parser["a"]
-            pytest.fail("returned unexpected 'a' value {!r}".format(a_value))
+            basic_arithmetic_parser["a"]
 
         with pytest.raises(NameError):
-            a_value = basic_arithmetic_parser.evaluate("c = a + b")
-            pytest.fail("unexpected 'a' value {!r}".format(a_value))
+            basic_arithmetic_parser.evaluate("c = a + b")
 
     def test_maximum_formula_depth(self, basic_arithmetic_parser):
         basic_arithmetic_parser.maximum_formula_depth = 5

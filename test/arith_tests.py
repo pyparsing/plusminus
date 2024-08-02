@@ -85,6 +85,18 @@ parser.initialize_variable("temp_f", "32 + ctemp * 9 / 5", as_formula=True)
 
 parser.runTests(
     """\
+    False
+    False or True
+    True or False
+    True or True
+    False or False
+    False or False or True
+    """,
+    postParse=post_parse_evaluate,
+)
+
+parser.runTests(
+    """\
     sin(rad(30))
     sin(30°)
 
