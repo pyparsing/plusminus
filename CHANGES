@@ -2,6 +2,9 @@ plusminus Change Log
 
 0.8.2 -
 
+    - Added omitted operator ∆ to _base_operators, which adds it to
+      the operators list in the help
+
 
 0.8.1 -
 

@@ -837,7 +837,7 @@ class BaseArithmeticParser:
         self._added_operator_specs: List[OperatorSpec] = []
         self._added_function_specs: Dict[str, FunctionSpec] = {}
         self._base_operators: List[str] = (
-            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ & | in not and ∧ or ∨ ?:"
+            "** * // / mod × ÷ + - < > <= >= == != ≠ ≤ ≥ ∈ ∉ ∩ ∪ ∆ & | in not and ∧ or ∨ ?:"
         ).split()
         self._base_function_map: Dict[str, FunctionSpec] = options.get("base_function_map", DEFAULT_BASE_FUNCTION_MAP)
 
